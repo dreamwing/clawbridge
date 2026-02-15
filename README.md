@@ -112,10 +112,12 @@ systemctl enable --now clawbridge-tunnel
 
 Access your dashboard via your custom Cloudflare Tunnel domain with the magic key:
 
-**URL**: `https://clawbridge.app/?key=<ACCESS_KEY>`
+**URL**: `https://<user-id>.deck.clawbridge.app/?key=<ACCESS_KEY>`
+
+Example: `https://captain.deck.clawbridge.app/?key=claw2026`
 
 - **First Visit**: The key is saved to LocalStorage.
-- **Subsequent Visits**: You can just visit `https://clawbridge.app`.
+- **Subsequent Visits**: You can just visit `https://captain.deck.clawbridge.app`.
 
 ---
 
