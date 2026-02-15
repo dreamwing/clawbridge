@@ -201,14 +201,20 @@ function checkSystemStatus(callback) {
         const lines = stdout.trim().split('\n').slice(1);
         let activities = [];
         let totalCpu = 0;
+        let topProc = null;
 
-        lines.forEach(line => {
+        lines.forEach((line, index) => {
             const parts = line.trim().split(/\s+/);
             const cpu = parseFloat(parts[1]);
             const comm = parts[2];
             const args = parts.slice(3).join(' ');
 
             if (!isNaN(cpu)) totalCpu += cpu;
+            
+            // Capture Top Process Name (Row 0)
+            if (index === 0) {
+                topProc = `${comm} (${Math.round(cpu)}%)`;
+            }
 
             if (comm === 'node' && args.includes('scripts/')) {
                 const script = args.match(/scripts\/([a-zA-Z0-9_.-]+)/)?.[1] || 'Script';
@@ -237,7 +243,7 @@ function checkSystemStatus(callback) {
             taskText = activities.join(', ');
         } else if (totalCpu > 15.0) {
             status = 'busy';
-            taskText = '⚡ Processing (High CPU)';
+            taskText = `⚡ High CPU: ${topProc || 'Unknown'}`;
         }
 
         // Logic Change: Handle Idle Reset here

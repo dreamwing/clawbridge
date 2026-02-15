@@ -1,73 +1,5 @@
 [
   {
-    "ts": "2026-02-15T08:00:32.573Z",
-    "task": "🔧 exec systemctl restart clawbridge-dashboard"
-  },
-  {
-    "ts": "2026-02-15T08:00:41.573Z",
-    "task": "🔧 read memory/pending_alerts.json"
-  },
-  {
-    "ts": "2026-02-15T08:00:47.577Z",
-    "task": "🔧 read memory/pending_alerts.json"
-  },
-  {
-    "ts": "2026-02-15T08:00:59.585Z",
-    "task": "🔧 edit {\"oldText\":\"            div.innerHTML = `<span style=\\\"color:var(--text-dim); margin-right:8px; font-size:10px;\\\">${time}</span><span style=\\\"color:${color}\\\">${task}</span>`;\\n            div.style.marginBottom = '6px';\\n            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';\\n            div.style.paddingBottom = '2px';\\n            div.style.cursor = 'pointer';\\n            div.style.whiteSpace = 'nowrap';\\n            div.style.overflow = 'hidden';\\n            div.style.tex..."
-  },
-  {
-    "ts": "2026-02-15T08:01:05.587Z",
-    "task": "🔧 edit {\"oldText\":\"            div.innerHTML = `<span style=\\\"color:var(--text-dim); margin-right:8px; font-size:10px;\\\">${time}</span><span style=\\\"color:${color}\\\">${task}</span>`;\\n            div.style.marginBottom = '6px';\\n            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';\\n            div.style.paddingBottom = '2px';\\n            div.style.cursor = 'pointer';\\n            div.style.whiteSpace = 'nowrap';\\n            div.style.overflow = 'hidden';\\n            div.style.tex..."
-  },
-  {
-    "ts": "2026-02-15T08:02:02.604Z",
-    "task": "⚡ Processing (High CPU)"
-  },
-  {
-    "ts": "2026-02-15T08:03:02.631Z",
-    "task": "⚡ Processing (High CPU)"
-  },
-  {
-    "ts": "2026-02-15T08:04:02.657Z",
-    "task": "⚡ Processing (High CPU)"
-  },
-  {
-    "ts": "2026-02-15T08:04:35.676Z",
-    "task": "🔧 edit {\"oldText\":\"            div.innerHTML = `<span style=\\\"color:var(--text-dim); margin-right:8px; font-size:10px;\\\">${time}</span><span style=\\\"color:${color}\\\">${task}</span>`;\\n            div.style.marginBottom = '6px';\\n            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';\\n            div.style.paddingBottom = '2px';\\n            div.style.cursor = 'pointer';\\n            div.style.whiteSpace = 'nowrap';\\n            div.style.overflow = 'hidden';\\n            div.style.tex..."
-  },
-  {
-    "ts": "2026-02-15T08:04:41.676Z",
-    "task": "🔧 edit {\"oldText\":\"            div.innerHTML = `<span style=\\\"color:var(--text-dim); margin-right:8px; font-size:10px;\\\">${time}</span><span style=\\\"color:${color}\\\">${task}</span>`;\\n            div.style.marginBottom = '6px';\\n            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';\\n            div.style.paddingBottom = '2px';\\n            div.style.cursor = 'pointer';\\n            div.style.whiteSpace = 'nowrap';\\n            div.style.overflow = 'hidden';\\n            div.style.tex..."
-  },
-  {
-    "ts": "2026-02-15T08:05:02.680Z",
-    "task": "⚡ Processing (High CPU)"
-  },
-  {
-    "ts": "2026-02-15T08:05:32.696Z",
-    "task": "🔧 read memory/pending_alerts.json"
-  },
-  {
-    "ts": "2026-02-15T08:05:35.695Z",
-    "task": "🔧 web_search \"google trends \"AI\" breakout terms last 24 hours\""
-  },
-  {
-    "ts": "2026-02-15T08:06:02.498Z",
-    "task": "⚡ Processing (High CPU)"
-  },
-  {
-    "ts": "2026-02-15T08:06:56.722Z",
-    "task": "🔧 edit {\"path\":\"/root/clawd/skills/clawbridge-dashboard/public/index.html\",\"newText\":\"            div.innerHTML = `<span style=\\\"color:var(--text-dim); margin-right:8px; font-size:10px; vertical-align:middle;\\\">${time}</span><span style=\\\"color:${color}; vertical-align:middle;\\\">${task}</span>`;\\n            \\n            // Default Style (Collapsed)\\n            div.style.padding = '6px 4px'; // More padding\\n            div.style.minHeight = '18px'; // Minimum height\\n            div.style.lineHeight..."
-  },
-  {
-    "ts": "2026-02-15T08:07:02.724Z",
-    "task": "🔧 edit {\"path\":\"/root/clawd/skills/clawbridge-dashboard/public/index.html\",\"newText\":\"            div.innerHTML = `<span style=\\\"color:var(--text-dim); margin-right:8px; font-size:10px; vertical-align:middle;\\\">${time}</span><span style=\\\"color:${color}; vertical-align:middle;\\\">${task}</span>`;\\n            \\n            // Default Style (Collapsed)\\n            div.style.padding = '6px 4px'; // More padding\\n            div.style.minHeight = '18px'; // Minimum height\\n            div.style.lineHeight..."
-  },
-  {
-    "ts": "2026-02-15T08:07:11.727Z",
-    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Fix: Optimize feed UI (line-height/padding) and increase log limit\" && \\\ngit push origin master"
-  },
-  {
     "ts": "2026-02-15T08:07:17.730Z",
     "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Fix: Optimize feed UI (line-height/padding) and increase log limit\" && \\\ngit push origin master"
   },
@@ -197,6 +129,74 @@
   },
   {
     "ts": "2026-02-15T08:38:24.166Z",
+    "task": "🔧 exec systemctl restart clawbridge-dashboard"
+  },
+  {
+    "ts": "2026-02-15T08:38:30.169Z",
+    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Feat: Add cron schedule expression and next-run countdown to UI\" && \\\ngit push origin master"
+  },
+  {
+    "ts": "2026-02-15T08:38:36.169Z",
+    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Feat: Add cron schedule expression and next-run countdown to UI\" && \\\ngit push origin master"
+  },
+  {
+    "ts": "2026-02-15T08:39:03.174Z",
+    "task": "⚡ Processing (High CPU)"
+  },
+  {
+    "ts": "2026-02-15T08:39:42.191Z",
+    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Feat: Add cron schedule expression and next-run countdown to UI\" && \\\ngit push origin master"
+  },
+  {
+    "ts": "2026-02-15T08:40:03.195Z",
+    "task": "⚡ Processing (High CPU)"
+  },
+  {
+    "ts": "2026-02-15T08:40:13.888Z",
+    "task": "🔧 exec systemctl restart clawbridge-dashboard"
+  },
+  {
+    "ts": "2026-02-15T08:41:01.902Z",
+    "task": "⚡ High CPU: systemd (34%)"
+  },
+  {
+    "ts": "2026-02-15T08:42:01.940Z",
+    "task": "🔧 read memory/pending_alerts.json"
+  },
+  {
+    "ts": "2026-02-15T08:42:40.943Z",
+    "task": "🔧 read memory/pending_alerts.json"
+  },
+  {
+    "ts": "2026-02-15T08:43:01.949Z",
+    "task": "⚡ High CPU: systemd (27%)"
+  },
+  {
+    "ts": "2026-02-15T08:44:01.975Z",
+    "task": "⚡ High CPU: systemd (50%)"
+  },
+  {
+    "ts": "2026-02-15T08:45:32.017Z",
+    "task": "🔧 read memory/pending_alerts.json"
+  },
+  {
+    "ts": "2026-02-15T08:45:50.020Z",
+    "task": "🔧 read memory/pending_alerts.json"
+  },
+  {
+    "ts": "2026-02-15T08:46:02.021Z",
+    "task": "⚡ High CPU: systemd (38%)"
+  },
+  {
+    "ts": "2026-02-15T08:46:44.043Z",
+    "task": "🔧 exec systemctl restart clawbridge-dashboard"
+  },
+  {
+    "ts": "2026-02-15T08:47:02.052Z",
+    "task": "⚡ High CPU: systemd (81%)"
+  },
+  {
+    "ts": "2026-02-15T08:47:11.052Z",
     "task": "🔧 exec systemctl restart clawbridge-dashboard"
   }
 ]
