@@ -1,21 +1,5 @@
 [
   {
-    "ts": "2026-02-15T16:35:02.577Z",
-    "task": "⚡ High CPU: systemd (29%)"
-  },
-  {
-    "ts": "2026-02-15T16:35:20.588Z",
-    "task": "🔧 exec systemctl restart clawbridge-dashboard"
-  },
-  {
-    "ts": "2026-02-15T16:35:44.598Z",
-    "task": "🔧 exec systemctl status clawbridge-dashboard clawbridge-tunnel"
-  },
-  {
-    "ts": "2026-02-15T16:36:02.601Z",
-    "task": "⚡ High CPU: systemd (17%)"
-  },
-  {
     "ts": "2026-02-15T16:37:02.619Z",
     "task": "⚡ High CPU: systemd (24%)"
   },
@@ -198,5 +182,21 @@
   {
     "ts": "2026-02-15T17:09:03.282Z",
     "task": "⚡ High CPU: systemd (16%)"
+  },
+  {
+    "ts": "2026-02-15T17:10:00.301Z",
+    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Docs: Restore Option B instructions and clarify hyphenated subdomains\" && \\\ngit push origin master"
+  },
+  {
+    "ts": "2026-02-15T17:11:03.313Z",
+    "task": "⚡ High CPU: systemd (14%)"
+  },
+  {
+    "ts": "2026-02-15T17:12:48.341Z",
+    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Docs: Restore Option B instructions and clarify hyphenated subdomains\" && \\\ngit push origin master"
+  },
+  {
+    "ts": "2026-02-15T17:13:03.340Z",
+    "task": "⚡ High CPU: systemd (13%)"
   }
 ]

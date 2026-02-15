@@ -26,11 +26,31 @@ npm install
 ```
 
 ### 2. Configuration
-Copy the example config and edit it:
-
+Copy the example config:
 ```bash
 cp .env.example .env
 nano .env
+```
+
+**Environment Variables Explained:**
+
+```ini
+# .env Configuration
+
+# 1. ACCESS_KEY (Required)
+# This serves as your password. You will use it to log in via the Magic Link.
+# Example Login URL: https://your-domain.com/?key=my_secure_password_123
+ACCESS_KEY=my_secure_password_123
+
+# 2. TUNNEL_TOKEN (Required)
+# The credential from Cloudflare Zero Trust to establish the secure tunnel.
+# See "How to get TUNNEL_TOKEN" below.
+TUNNEL_TOKEN=eyJhIjoi...
+
+# 3. ENABLE_EMBEDDED_TUNNEL (Optional)
+# Set to 'false' (Recommended) if you run the tunnel via Systemd (see step 3).
+# Set to 'true' if you want the Node.js server to manage the tunnel process itself (Simple mode).
+ENABLE_EMBEDDED_TUNNEL=false
 ```
 
 **How to get `TUNNEL_TOKEN`:**
@@ -64,10 +84,9 @@ systemctl enable --now clawbridge-tunnel
 
 ## 🌐 Domain Setup
 
-### Option A: Bring Your Own Domain (Recommended)
 1.  Go back to **Cloudflare Tunnel** configuration page.
 2.  Click **Public Hostname** tab -> **Add a public hostname**.
-3.  **Subdomain**: e.g., `captain-deck` (Use dashes for free SSL compatibility).
+3.  **Subdomain**: e.g., `dreamwing-deck` (Use dashes for free SSL compatibility).
 4.  **Domain**: Select your domain (e.g., `clawbridge.app`).
 5.  **Service**: `HTTP` -> `localhost:3000`.
 6.  Save.
@@ -75,7 +94,7 @@ systemctl enable --now clawbridge-tunnel
 ### Option B: Use ClawBridge Deck (Invite Only)
 If you don't have a domain, we provide free subdomains under `clawbridge.app` for community members.
 *   **Format**: `https://<your-id>-deck.clawbridge.app`
-*   **Example**: `https://captain-deck.clawbridge.app`
+*   **Example**: `https://dreamwing-deck.clawbridge.app`
 *   **How to get**: Currently manually provisioned. Please [Open an Issue](https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard/issues) to request a slot.
 
 ### Accessing the Dashboard
@@ -83,7 +102,7 @@ Visit your URL with the key you set in `.env`:
 
 **URL**: `https://<your-subdomain>.<your-domain>/?key=<ACCESS_KEY>`
 
-*Example*: `https://captain-deck.clawbridge.app/?key=my-secret-password`
+*Example*: `https://dreamwing-deck.clawbridge.app/?key=my_secure_password_123`
 
 ---
 
