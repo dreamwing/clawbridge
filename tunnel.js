@@ -58,7 +58,7 @@ function startTunnel(port, token) {
             const text = d.toString();
             console.log(`[CF] ${text}`);
             if (text.includes('Registered tunnel connection')) {
-                resolve('https://captain.deck.clawbridge.app'); // Hardcoded success
+                resolve('https://captain-deck.clawbridge.app'); // Hardcoded success
             }
         });
 

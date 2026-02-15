@@ -1,41 +1,5 @@
 [
   {
-    "ts": "2026-02-15T16:25:02.317Z",
-    "task": "⚡ High CPU: systemd (27%)"
-  },
-  {
-    "ts": "2026-02-15T16:25:47.337Z",
-    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Docs: Add README_CN.md and remove broken image link\" && \\\ngit push origin master"
-  },
-  {
-    "ts": "2026-02-15T16:26:02.339Z",
-    "task": "⚡ High CPU: systemd (63%)"
-  },
-  {
-    "ts": "2026-02-15T16:26:26.347Z",
-    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add README.md README_CN.md && \\\ngit commit -m \"Docs: Remove sensitive examples and clarify domain setup instructions\" && \\\ngit push origin master"
-  },
-  {
-    "ts": "2026-02-15T16:27:02.355Z",
-    "task": "⚡ High CPU: systemd (23%)"
-  },
-  {
-    "ts": "2026-02-15T16:28:02.372Z",
-    "task": "⚡ High CPU: systemd (41%)"
-  },
-  {
-    "ts": "2026-02-15T16:29:02.383Z",
-    "task": "⚡ High CPU: systemd (20%)"
-  },
-  {
-    "ts": "2026-02-15T16:30:02.396Z",
-    "task": "⚡ High CPU: systemd (34%)"
-  },
-  {
-    "ts": "2026-02-15T16:30:17.403Z",
-    "task": "📜 feishu_push.js"
-  },
-  {
     "ts": "2026-02-15T16:31:02.412Z",
     "task": "⚡ High CPU: systemd (18%)"
   },
@@ -198,5 +162,41 @@
   {
     "ts": "2026-02-15T16:56:03.043Z",
     "task": "⚡ High CPU: systemd (18%)"
+  },
+  {
+    "ts": "2026-02-15T16:56:51.065Z",
+    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Docs: Final polish - Remove old names, add env sample and service templates\" && \\\ngit push origin master"
+  },
+  {
+    "ts": "2026-02-15T16:57:03.064Z",
+    "task": "⚡ High CPU: systemd (13%)"
+  },
+  {
+    "ts": "2026-02-15T16:58:03.088Z",
+    "task": "⚡ High CPU: systemd (16%)"
+  },
+  {
+    "ts": "2026-02-15T17:00:00.127Z",
+    "task": "🔧 read memory/pending_alerts.json"
+  },
+  {
+    "ts": "2026-02-15T17:00:18.124Z",
+    "task": "📜 feishu_push.js"
+  },
+  {
+    "ts": "2026-02-15T17:00:57.141Z",
+    "task": "🔧 read memory/pending_alerts.json"
+  },
+  {
+    "ts": "2026-02-15T17:02:03.154Z",
+    "task": "⚡ High CPU: systemd (16%)"
+  },
+  {
+    "ts": "2026-02-15T17:03:18.183Z",
+    "task": "🔧 exec cd /root/clawd/skills/clawbridge-dashboard && \\\ngit add . && \\\ngit commit -m \"Docs: Final polish - Remove old names, add env sample and service templates\" && \\\ngit push origin master"
+  },
+  {
+    "ts": "2026-02-15T17:04:03.191Z",
+    "task": "⚡ High CPU: systemd (15%)"
   }
 ]

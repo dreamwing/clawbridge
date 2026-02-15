@@ -66,7 +66,7 @@ systemctl enable --now clawbridge-tunnel
 
 1.  Go back to **Cloudflare Tunnel** configuration page.
 2.  Click **Public Hostname** tab -> **Add a public hostname**.
-3.  **Subdomain**: e.g., `ops` (or `captain.deck` for style).
+3.  **Subdomain**: e.g., `captain-deck` (Use dashes for free SSL compatibility).
 4.  **Domain**: Select your domain (e.g., `clawbridge.app`).
 5.  **Service**: `HTTP` -> `localhost:3000`.
 6.  Save.
@@ -74,9 +74,9 @@ systemctl enable --now clawbridge-tunnel
 ### Accessing the Dashboard
 Visit your URL with the key you set in `.env`:
 
-**URL**: `https://<your-domain>/?key=<ACCESS_KEY>`
+**URL**: `https://<your-subdomain>.<your-domain>/?key=<ACCESS_KEY>`
 
-*Example*: `https://ops.example.com/?key=my-secret-password`
+*Example*: `https://captain-deck.clawbridge.app/?key=my-secret-password`
 
 ---
 
