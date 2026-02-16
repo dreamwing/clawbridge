@@ -183,6 +183,7 @@
 
     <h1>
         <img id="app-logo" src="app-icon.png" alt="Logo">
+        <span id="status-dot" class="status-dot" style="margin-right:10px;"></span>
         ClawBridge
     </h1>
 
@@ -462,13 +463,13 @@
                 document.getElementById('mem-val').innerText = data.mem + '%';
                 if(data.timezone) document.getElementById('server-tz').innerText = data.timezone;
                 
-                const logo = document.getElementById('app-logo');
+                const dot = document.getElementById('status-dot');
                 if (data.status === 'busy') {
-                    logo.className = 'status-busy';
+                    dot.className = 'status-dot busy';
                     document.getElementById('activity-status').innerText = '● Busy';
                     document.getElementById('activity-status').style.color = 'var(--warning)';
                 } else {
-                    logo.className = 'status-active';
+                    dot.className = 'status-dot active';
                     document.getElementById('activity-status').innerText = '● Idle';
                     document.getElementById('activity-status').style.color = 'var(--success)';
                 }
@@ -478,7 +479,7 @@
                     lastTask = data.task;
                 }
             } catch(e) {
-                document.getElementById('app-logo').className = 'status-error';
+                document.getElementById('status-dot').className = 'status-dot error';
             }
         }
 
