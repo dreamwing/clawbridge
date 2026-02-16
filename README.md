@@ -1,110 +1,78 @@
-# ClawBridge Dashboard 🌉
+# ClawBridge 🌉
 
-**🇺🇸 English** | [🇨🇳 中文](./README_CN.md)
+> **The Missing Mobile Link for OpenClaw/Clawdbot Agents.**
 
-**ClawBridge** is a lightweight, real-time mission control center designed for **Clawdbot** and **OpenClaw** agents.
+ClawBridge is a lightweight, mobile-first dashboard designed to run alongside your **Clawdbot** instance. It provides real-time monitoring, cost tracking, and task management from any device.
 
-It provides a mobile-friendly interface to monitor your AI agent's "brain" (thinking process), "hands" (tool execution), "wallet" (token usage), and "schedule" (cron jobs) form anywhere via a secure Cloudflare Tunnel.
+![ClawBridge Preview](https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard/raw/master/public/icon.svg)
 
 ## ✨ Features
 
-*   **👁️ The All-Seeing Eye**: Real-time feed of AI thoughts (`🧠`), tools (`🔧`), and file changes (`📄`).
-*   **💰 Token Economy**: Track daily costs and model usage breakdown.
-*   **🎮 Mission Control**: Monitor and trigger Cron jobs.
-*   **🛡️ Enterprise Stability**: Systemd auto-healing and secure Magic Link access.
+*   **📱 Mobile-First App Shell**: Native-like experience with PWA support (Add to Home Screen).
+*   **🩺 System Vitals**: Real-time CPU & Memory usage monitoring.
+*   **📜 Live Activity Feed**: Watch your agent "think" and execute tools in real-time.
+*   **💰 Token Economy**: Track spending (Input/Output cost) with daily trends and monthly forecasts. Supports 340+ models via OpenRouter pricing.
+*   **🚀 Mission Control**: View and manually trigger Cron jobs safely.
+*   **🛡️ Secure**: Token-based Magic Link authentication. No external dependencies.
 
----
+## 🚀 Quick Start (Install Script)
 
-## 🛠️ Installation
+The easiest way to install or update ClawBridge.
 
-### 1. Clone & Install
-```bash
-cd /root/clawd/skills
-git clone https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard.git clawbridge-dashboard
-cd clawbridge-dashboard
-npm install
-```
+1.  **Run the installer**:
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/dreamwing/clawbridge-openclaw-mobile-dashboard/master/install.sh | bash
+    ```
 
-### 2. Configuration
-Copy the example config:
-```bash
-cp .env.example .env
-nano .env
-```
+2.  **Access**: The script will output a magic URL (e.g., `http://YOUR_IP:3000/?key=...`). Open this on your phone.
 
-**Environment Variables Explained:**
+## ⚙️ Manual Installation
 
-```ini
-# .env Configuration
+If you prefer to set it up yourself:
 
-# 1. ACCESS_KEY (Required)
-# This serves as your password. You will use it to log in via the Magic Link.
-# Example Login URL: https://your-domain.com/?key=my_secure_password_123
-ACCESS_KEY=my_secure_password_123
+1.  **Clone the repo**:
+    ```bash
+    git clone https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard.git
+    cd clawbridge-openclaw-mobile-dashboard
+    ```
 
-# 2. TUNNEL_TOKEN (Required)
-# The credential from Cloudflare Zero Trust to establish the secure tunnel.
-# See "How to get TUNNEL_TOKEN" below.
-TUNNEL_TOKEN=eyJhIjoi...
+2.  **Install dependencies**:
+    ```bash
+    npm install --production
+    ```
 
-# 3. ENABLE_EMBEDDED_TUNNEL (Optional)
-# Set to 'false' (Recommended) if you run the tunnel via Systemd (see step 3).
-# Set to 'true' if you want the Node.js server to manage the tunnel process itself (Simple mode).
-ENABLE_EMBEDDED_TUNNEL=false
-```
+3.  **Configure**:
+    Create a `.env` file:
+    ```bash
+    ACCESS_KEY=your_secret_password_here
+    PORT=3000
+    ```
 
-**How to get `TUNNEL_TOKEN`:**
-1.  Go to **[Cloudflare Zero Trust](https://one.dash.cloudflare.com/)** -> **Networks** -> **Tunnels**.
-2.  Click **Create a tunnel**.
-3.  Choose **Cloudflared** as the connector.
-4.  Name it (e.g., `clawbridge`) -> Save.
-5.  In the "Install and run a connector" section, look at the command.
-6.  Copy the long string after `--token`. It starts with `eyJh...`.
-    *   *Example*: `cloudflared service install eyJhIjoi...` -> Copy `eyJhIjoi...`
+4.  **Run**:
+    ```bash
+    node index.js
+    ```
 
-### 3. Deploy via Systemd (Recommended)
+## 🧩 Configuration
 
-We provide template files (`.service`) in the repository.
+### Custom Model Pricing
+ClawBridge comes with a comprehensive pricing list (`data/config/pricing.sample.json`). To customize rates:
 
-1.  **Edit the service files** to match your actual paths (`User`, `WorkingDirectory`, `ExecStart`).
-2.  **Paste your Token** into `clawbridge-tunnel.service` (replace `<YOUR_TOKEN_HERE>`).
+1.  Copy the sample to the active config:
+    ```bash
+    cp data/config/pricing.sample.json data/config/pricing.json
+    ```
+2.  Edit `data/config/pricing.json`. Keys match the model names in your logs (e.g., `openai/gpt-4o`).
 
-```bash
-# Copy to systemd directory
-cp clawbridge-dashboard.service /etc/systemd/system/
-cp clawbridge-tunnel.service /etc/systemd/system/
+### PWA (Add to Home Screen)
+1.  Open ClawBridge in Safari (iOS) or Chrome (Android).
+2.  Tap **Share** -> **Add to Home Screen**.
+3.  Launch it like a native app (full screen, no address bar).
 
-# Reload and Start
-systemctl daemon-reload
-systemctl enable --now clawbridge-dashboard
-systemctl enable --now clawbridge-tunnel
-```
+## 🔒 Security Note
+*   ClawBridge runs locally on your server.
+*   Data is stored in `data/` and is **NOT** uploaded to any cloud.
+*   Ensure your firewall allows traffic on Port 3000 (or use a Tunnel).
 
----
-
-## 🌐 Domain Setup
-
-1.  Go back to **Cloudflare Tunnel** configuration page.
-2.  Click **Public Hostname** tab -> **Add a public hostname**.
-3.  **Subdomain**: e.g., `dreamwing-deck` (Use dashes for free SSL compatibility).
-4.  **Domain**: Select your domain (e.g., `clawbridge.app`).
-5.  **Service**: `HTTP` -> `localhost:3000`.
-6.  Save.
-
-### Option B: Use ClawBridge Deck (Invite Only)
-If you don't have a domain, we provide free subdomains under `clawbridge.app` for community members.
-*   **Format**: `https://<your-id>-deck.clawbridge.app`
-*   **Example**: `https://dreamwing-deck.clawbridge.app`
-*   **How to get**: Currently manually provisioned. Please [Open an Issue](https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard/issues) to request a slot.
-
-### Accessing the Dashboard
-Visit your URL with the key you set in `.env`:
-
-**URL**: `https://<your-subdomain>.<your-domain>/?key=<ACCESS_KEY>`
-
-*Example*: `https://dreamwing-deck.clawbridge.app/?key=my_secure_password_123`
-
----
-
-## 📄 License
-MIT License. Created by [DreamWing](https://github.com/dreamwing).
+## License
+MIT

@@ -1,106 +1,76 @@
-# ClawBridge 仪表盘 🌉
+# ClawBridge 🌉 (中文文档)
 
-[🇺🇸 English](./README.md) | **🇨🇳 中文**
+> **为 OpenClaw/Clawdbot 量身打造的移动端控制台。**
 
-**ClawBridge** 是一个专为 **Clawdbot** 和 **OpenClaw** 智能体设计的轻量级、实时任务控制中心。
+ClawBridge 是一个轻量级、移动端优先的仪表盘，专为监控和管理 **Clawdbot** 智能体而生。无论你身在何处，都能实时掌握 Agent 的思考过程、成本消耗和任务状态。
 
 ## ✨ 核心功能
-*   **👁️ 全知之眼**: 实时监控 AI 思考 (`🧠`)、工具调用 (`🔧`) 和文件变动 (`📄`)。
-*   **💰 代币经济**: 每日 Token 消耗与成本趋势图。
-*   **🎮 任务控制**: Cron 定时任务的健康状态与手动触发。
-*   **🛡️ 稳定安全**: Systemd 守护与 Magic Link 认证。
 
----
+*   **📱 原生级体验**: 支持 PWA (添加到主屏幕)，全屏运行，如同原生 App。
+*   **🩺 系统监控**: 实时查看服务器 CPU 和内存负载。
+*   **📜 实时日志流**: 看着你的 Agent "思考"、调用工具、读写文件。
+*   **💰 成本账单**: 每日 Token 消耗统计、趋势图、月度预测。内置 340+ 模型（含 DeepSeek, Claude, GPT-4o）的最新价格表。
+*   **🚀 任务中心**: 查看 Cron 定时任务状态，支持手动触发执行。
+*   **🛡️ 安全隐私**: 基于 Magic Link 鉴权。数据纯本地存储，绝不上传云端。
 
-## 🛠️ 安装指南
+## 🚀 快速开始 (一键安装)
 
-### 1. 克隆与安装
-```bash
-cd /root/clawd/skills
-git clone https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard.git clawbridge-dashboard
-cd clawbridge-dashboard
-npm install
-```
+这是安装或更新 ClawBridge 最简单的方法。
 
-### 2. 配置文件
-复制示例文件并修改：
-```bash
-cp .env.example .env
-nano .env
-```
+1.  **运行安装脚本**:
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/dreamwing/clawbridge-openclaw-mobile-dashboard/master/install.sh | bash
+    ```
 
-**配置项详细说明：**
+2.  **访问**: 脚本运行结束后会输出一个专属链接 (例如 `http://YOUR_IP:3000/?key=...`)。请复制并在手机浏览器打开。
 
-```ini
-# .env 配置文件
+## ⚙️ 手动安装
 
-# 1. ACCESS_KEY (必填)
-# 这是您的访问密码。登录时需要将其作为 URL 参数。
-# 示例登录链接: https://your-domain.com/?key=my_secure_password_123
-ACCESS_KEY=my_secure_password_123
+如果你更喜欢自己动手：
 
-# 2. TUNNEL_TOKEN (必填)
-# Cloudflare Zero Trust 提供的隧道凭证。
-# 请参考下方的 "如何获取 TUNNEL_TOKEN"。
-TUNNEL_TOKEN=eyJhIjoi...
+1.  **克隆仓库**:
+    ```bash
+    git clone https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard.git
+    cd clawbridge-openclaw-mobile-dashboard
+    ```
 
-# 3. ENABLE_EMBEDDED_TUNNEL (可选)
-# 默认为 false (推荐)，表示使用 Systemd 来管理隧道进程，更稳定。
-# 设为 true 则由 Node.js 服务直接启动隧道 (适合简单测试)。
-ENABLE_EMBEDDED_TUNNEL=false
-```
+2.  **安装依赖**:
+    ```bash
+    npm install --production
+    ```
 
-**如何获取 `TUNNEL_TOKEN`:**
-1.  登录 **[Cloudflare Zero Trust](https://one.dash.cloudflare.com/)** -> **Networks** -> **Tunnels**。
-2.  点击 **Create a tunnel** (创建隧道)。
-3.  选择 **Cloudflared** 连接器。
-4.  在安装命令中，找到 `--token` 后面的长字符串（以 `eyJh...` 开头）。
-5.  复制这个 Token 填入 `.env`。
+3.  **配置**:
+    创建一个 `.env` 文件:
+    ```bash
+    ACCESS_KEY=这里填你的密码
+    PORT=3000
+    ```
 
-### 3. 部署服务 (推荐 Systemd)
+4.  **运行**:
+    ```bash
+    node index.js
+    ```
 
-仓库中提供了 `.service` 模板文件。
+## 🧩 高级配置
 
-1.  **修改模板**：打开 `clawbridge-dashboard.service` 和 `clawbridge-tunnel.service`，确保路径 (`WorkingDirectory`, `ExecStart`) 与您的实际安装路径一致。
-2.  **填入 Token**：在 `clawbridge-tunnel.service` 中，将 `<YOUR_TOKEN_HERE>` 替换为您的真实 Token。
+### 自定义模型价格
+ClawBridge 内置了一份详尽的价格表 (`data/config/pricing.sample.json`)。如果你使用的是特殊渠道 API 或私有模型，可以自定义价格：
 
-```bash
-# 复制到系统目录
-cp clawbridge-dashboard.service /etc/systemd/system/
-cp clawbridge-tunnel.service /etc/systemd/system/
+1.  复制样本文件：
+    ```bash
+    cp data/config/pricing.sample.json data/config/pricing.json
+    ```
+2.  编辑 `data/config/pricing.json`。Key 需要与日志中的模型名称匹配 (例如 `deepseek/deepseek-chat`)。
 
-# 启动服务
-systemctl daemon-reload
-systemctl enable --now clawbridge-dashboard
-systemctl enable --now clawbridge-tunnel
-```
+### PWA (安装到手机)
+1.  在 Safari (iOS) 或 Chrome (Android) 中打开 ClawBridge 链接。
+2.  点击 **分享** 按钮 -> 选择 **添加到主屏幕**。
+3.  现在的它就是一个全屏运行的独立 App 了！
 
----
+## 🔒 安全说明
+*   ClawBridge 运行在你的私有服务器上。
+*   所有统计数据存储在 `data/` 目录下，**绝不会** 上传到任何外部服务器。
+*   请确保你的防火墙允许 3000 端口流量 (或配合 Cloudflare Tunnel 使用)。
 
-## 🌐 域名配置
-
-### 方案 A：使用自有域名 (推荐)
-1.  登录 **Cloudflare Zero Trust** 后台。
-2.  点击 **Public Hostname** -> **Add a public hostname**。
-3.  **Subdomain**: 输入子域名（如 `dreamwing-deck`，为了兼容免费 SSL 请使用连字符）。
-4.  **Domain**: 选择您的域名（如 `clawbridge.app`）。
-5.  **Service**: 选择 `HTTP`，地址填 `localhost:3000`。
-6.  保存。
-
-### 方案 B：申请 ClawBridge Deck (邀请制)
-如果您没有域名，我们可以提供免费的 `clawbridge.app` 子域名。
-*   **格式**: `https://<您的ID>-deck.clawbridge.app`
-*   **示例**: `https://dreamwing-deck.clawbridge.app`
-*   **申请方式**: 目前仅限人工发放。请在 GitHub [提交 Issue](https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard/issues) 联系管理员。
-
-### 访问仪表盘
-使用您在 `.env` 中设置的 Key 访问：
-
-**URL**: `https://<您的域名>/?key=<ACCESS_KEY>`
-
-*示例*: `https://dreamwing-deck.clawbridge.app/?key=my_secure_password_123`
-
----
-
-## 📄 许可证
-MIT License. Created by [DreamWing](https://github.com/dreamwing).
+## 许可证
+MIT

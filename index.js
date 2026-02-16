@@ -311,9 +311,16 @@ app.get('/api/tokens', (req, res) => {
     }
 });
 
+// API: Trigger Token Analysis
+app.post('/api/tokens/refresh', (req, res) => {
+    runAnalyzer();
+    res.json({ status: 'triggered', message: 'Analysis started. Refresh in a few seconds.' });
+});
+
 // Helper: Run Analyzer (Child Process)
 function runAnalyzer() {
-    exec(`node "${ANALYZE_SCRIPT}"`, (err, stdout, stderr) => {
+    const nodePath = process.execPath; // Use the exact same node binary running this script
+    exec(`"${nodePath}" "${ANALYZE_SCRIPT}"`, (err, stdout, stderr) => {
         if (err) console.error('[Analyzer] Error:', stderr);
         // else console.log('[Analyzer] Updated stats');
     });

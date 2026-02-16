@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ClawBridge</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
             --bg: #0f172a;
@@ -215,6 +219,20 @@
                     <span style="font-size:11px; color:var(--text-dim);">Est. Monthly</span>
                     <span style="font-size:12px; font-weight:600; color:var(--accent);" id="monthly-forecast">--</span>
                 </div>
+            </div>
+
+            <!-- Meta Info & Refresh -->
+            <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; flex-direction:column;">
+                    <span style="font-size:10px; color:var(--text-dim);">LAST UPDATED</span>
+                    <span style="font-size:11px; font-family:monospace;" id="token-updated">Never</span>
+                </div>
+                <button class="btn" style="width:auto; padding:6px 12px; font-size:12px; background:var(--accent);" onclick="refreshTokenStats()">
+                    ↻ Refresh
+                </button>
+            </div>
+            <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;">
+                System automatically recalculates every hour.
             </div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
@@ -602,6 +620,57 @@
             await fetchAuth(API + '/gateway/restart', { method: 'POST' });
         }
 
+        async function refreshTokenStats() {
+            const btn = document.querySelector('#view-tokens button');
+            const origText = btn.innerText;
+            const timeEl = document.getElementById('token-updated');
+            const initialTime = timeEl.innerText;
+            
+            // Set Loading State (Immediate Countdown)
+            btn.innerText = '⏳ Calc... (10s)';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            
+            try {
+                // 1. Trigger
+                await fetchAuth(API + '/tokens/refresh', { method: 'POST' });
+                
+                // 2. Poll for changes
+                let attempts = 0;
+                const poll = setInterval(async () => {
+                    attempts++;
+                    const remaining = 10 - attempts;
+                    btn.innerText = `⏳ Calc... (${remaining}s)`; 
+                    
+                    try {
+                        const res = await fetchAuth(API + '/tokens');
+                        const data = await res.json();
+                        
+                        // Parse time to compare string difference
+                        const newDate = new Date(data.updatedAt);
+                        const newTimeStr = newDate.toLocaleTimeString();
+                        
+                        // If time changed OR attempts > 10
+                        if (newTimeStr !== initialTime || attempts > 10) {
+                            clearInterval(poll);
+                            fetchTokens(); // Refresh UI
+                            
+                            btn.innerText = origText;
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            
+                            if (attempts > 10) console.warn('Refresh timed out (no change detected)');
+                        }
+                    } catch(e) { clearInterval(poll); }
+                }, 1000);
+                
+            } catch(e) {
+                alert('Trigger failed');
+                btn.innerText = origText;
+                btn.disabled = false;
+            }
+        }
+
         // --- TOKENS ---
         async function fetchTokens() {
             try {
@@ -609,6 +678,12 @@
                 const res = await fetchAuth(API + '/tokens');
                 const data = await res.json();
                 document.getElementById('token-card').style.display = 'block';
+                
+                if (data.updatedAt) {
+                    const date = new Date(data.updatedAt);
+                    document.getElementById('token-updated').innerText = date.toLocaleTimeString();
+                }
+
                 if (data.today) {
                     document.getElementById('token-cost').innerText = '$' + data.today.cost.toFixed(4);
                     document.getElementById('token-in').innerText = (data.today.input/1000).toFixed(1) + 'k';
@@ -671,11 +746,17 @@
                             bar.onclick = () => {
                                 Array.from(chart.children).forEach(c => c.style.opacity = '0.4');
                                 bar.style.opacity = '1';
-                                document.getElementById('daily-detail').style.display = 'block';
+                                const detail = document.getElementById('daily-detail');
+                                detail.style.display = 'block';
                                 document.getElementById('detail-date').innerText = day;
                                 document.getElementById('detail-cost').innerText = '$' + stats.cost.toFixed(4);
                                 document.getElementById('detail-input').innerText = (stats.input/1000).toFixed(1) + 'k';
                                 document.getElementById('detail-output').innerText = (stats.output/1000).toFixed(1) + 'k';
+                                
+                                // Auto Scroll to Detail (Delayed for render)
+                                setTimeout(() => {
+                                    detail.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }, 50);
                             };
                             chart.appendChild(bar);
                             const label = document.createElement('div');
