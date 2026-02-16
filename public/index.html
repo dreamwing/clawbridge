@@ -605,7 +605,8 @@
         // --- TOKENS ---
         async function fetchTokens() {
             try {
-                const res = await fetchAuth('token_stats.json');
+                // Use API, not static file
+                const res = await fetchAuth(API + '/tokens');
                 const data = await res.json();
                 document.getElementById('token-card').style.display = 'block';
                 if (data.today) {

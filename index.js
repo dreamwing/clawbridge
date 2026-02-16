@@ -17,6 +17,8 @@ const wss = new WebSocketServer({ server });
 const SECRET_KEY = process.env.ACCESS_KEY || 'default-insecure';
 const TUNNEL_TOKEN = process.env.TUNNEL_TOKEN;
 const LOG_DIR = path.join(__dirname, 'data/logs');
+const TOKEN_FILE = path.join(__dirname, 'data/token_stats/latest.json');
+const ANALYZE_SCRIPT = path.join(__dirname, 'scripts/analyze.js');
 
 app.use(express.json());
 
@@ -281,12 +283,8 @@ app.get('/api/logs', (req, res) => {
     }
 
     try {
-        // Read entire file (usually small, <1MB/day)
-        // Optimization: For huge files, use `read-last-lines` package or stream reading
         const content = fs.readFileSync(logFile, 'utf8');
         const lines = content.trim().split('\n');
-        
-        // Parse from end (newest first)
         const logs = [];
         for (let i = lines.length - 1; i >= 0; i--) {
             if (!lines[i]) continue;
@@ -295,7 +293,6 @@ app.get('/api/logs', (req, res) => {
             } catch(e) {}
             if (logs.length >= limit) break;
         }
-        
         res.json(logs);
     } catch(e) {
         console.error(e);
@@ -303,10 +300,33 @@ app.get('/api/logs', (req, res) => {
     }
 });
 
-// Background Loop
+// API: Tokens (Auth Protected)
+app.get('/api/tokens', (req, res) => {
+    if (!fs.existsSync(TOKEN_FILE)) return res.json({});
+    try {
+        const data = fs.readFileSync(TOKEN_FILE, 'utf8');
+        res.json(JSON.parse(data));
+    } catch(e) {
+        res.status(500).json({ error: 'Read failed' });
+    }
+});
+
+// Helper: Run Analyzer (Child Process)
+function runAnalyzer() {
+    exec(`node "${ANALYZE_SCRIPT}"`, (err, stdout, stderr) => {
+        if (err) console.error('[Analyzer] Error:', stderr);
+        // else console.log('[Analyzer] Updated stats');
+    });
+}
+
+// Background Loop & Scheduler
 setInterval(() => {
     checkSystemStatus(() => {});
 }, 3000);
+
+// Run Analyzer on Start + Every Hour
+runAnalyzer();
+setInterval(runAnalyzer, 60 * 60 * 1000);
 
 // API: Kill
 app.post('/api/kill', (req, res) => {
