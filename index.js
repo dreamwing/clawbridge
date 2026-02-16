@@ -37,20 +37,28 @@ app.use((req, res, next) => {
             </head>
             <body>
                 <script>
-                    const storedKey = localStorage.getItem('claw_key');
-                    if (storedKey === '${SECRET_KEY}') {
-                        if (!location.search.includes('key=')) {
-                            location.href = location.pathname + '?key=' + storedKey;
-                        }
-                    } else {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    
+                    // 1. If URL has key but we are here -> Key was rejected by server
+                    if (urlParams.has('key')) {
+                        alert('❌ Access Denied: Invalid Key');
+                        localStorage.removeItem('claw_key');
+                        // Redirect to clean URL to restart flow
+                        window.location.href = window.location.pathname;
+                    }
+                    
+                    // 2. If we have a stored key (and clean URL), try to auto-login
+                    else if (localStorage.getItem('claw_key')) {
+                        const key = localStorage.getItem('claw_key');
+                        window.location.href = window.location.pathname + '?key=' + key;
+                    }
+                    
+                    // 3. No key, No storage -> Prompt User
+                    else {
                         const input = prompt('🔑 ClawBridge Access Key:');
-                        if (input === '${SECRET_KEY}') {
+                        if (input) {
                             localStorage.setItem('claw_key', input);
-                            location.href = location.pathname + '?key=' + input;
-                        } else {
-                            alert('❌ Access Denied');
-                            localStorage.removeItem('claw_key');
-                            location.reload();
+                            window.location.href = window.location.pathname + '?key=' + input;
                         }
                     }
                 </script>

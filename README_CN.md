@@ -4,6 +4,10 @@
 
 ClawBridge 是一个轻量级、移动端优先的仪表盘，专为监控和管理 **Clawdbot** 智能体而生。无论你身在何处，都能实时掌握 Agent 的思考过程、成本消耗和任务状态。
 
+<p align="center">
+  <img src="public/icon.svg" width="120" alt="ClawBridge Logo">
+</p>
+
 ## ✨ 核心功能
 
 *   **📱 原生级体验**: 支持 PWA (添加到主屏幕)，全屏运行，如同原生 App。

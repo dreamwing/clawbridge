@@ -4,7 +4,9 @@
 
 ClawBridge is a lightweight, mobile-first dashboard designed to run alongside your **Clawdbot** instance. It provides real-time monitoring, cost tracking, and task management from any device.
 
-![ClawBridge Preview](https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard/raw/master/public/icon.svg)
+<p align="center">
+  <img src="public/icon.svg" width="120" alt="ClawBridge Logo">
+</p>
 
 ## ✨ Features
 
