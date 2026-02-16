@@ -1,6 +1,12 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect width="512" height="512" rx="120" fill="#0F172A"/>
-<path d="M120 256C120 256 180 340 256 340C332 340 392 256 392 256" stroke="#3B82F6" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M256 340V120" stroke="#3B82F6" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="256" cy="120" r="40" fill="#3B82F6"/>
+<!-- Left Claw/Tower -->
+<path d="M140 360 L140 200 L200 140 L240 180" stroke="#3B82F6" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- Right Claw/Tower -->
+<path d="M372 360 L372 200 L312 140 L272 180" stroke="#3B82F6" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- Bridge Window (The Eye) -->
+<path d="M200 280 H312" stroke="#F59E0B" stroke-width="24" stroke-linecap="round"/>
+<circle cx="256" cy="280" r="12" fill="#F59E0B"/>
+<!-- Base Structure -->
+<path d="M120 360 H392" stroke="#3B82F6" stroke-width="32" stroke-linecap="round"/>
 </svg>
