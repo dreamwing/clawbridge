@@ -82,10 +82,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Helper: Get Active Context
 function getActiveContext() {
     try {
-        const sessionsPath = '/root/.clawdbot/agents/main/sessions/sessions.json';
-        if (!fs.existsSync(sessionsPath)) return null;
+        // Updated Path for OpenClaw V2
+        // Dynamic path resolution based on CWD
+        const sessionsPath = path.join(process.cwd(), '../../.openclaw/sessions/sessions.json');
+        
+        // Fallback absolute path
+        const altSessionsPath = '/root/clawd/.openclaw/sessions/sessions.json';
+        
+        let targetPath = sessionsPath;
+        if (!fs.existsSync(targetPath) && fs.existsSync(altSessionsPath)) {
+            targetPath = altSessionsPath;
+        }
 
-        const sessions = JSON.parse(fs.readFileSync(sessionsPath, 'utf8'));
+        if (!fs.existsSync(targetPath)) return null;
+
+        const sessions = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
         let latestSession = null;
         let maxTime = 0;
         
@@ -208,73 +219,78 @@ function scanFile(filePath) {
 function checkSystemStatus(callback) {
     checkFileChanges();
 
-    const cmd = "ps -eo pid,pcpu,comm,args --sort=-pcpu | head -n 15";
-    exec(cmd, (err, stdout) => {
-        if (err) return callback({ status: 'error', task: 'Monitor Error' });
+    exec("df -h / | awk 'NR==2 {print $5}'", (errDisk, stdoutDisk) => {
+        const diskUsage = stdoutDisk ? stdoutDisk.trim() : '--%';
 
-        const lines = stdout.trim().split('\n').slice(1);
-        let activities = [];
-        let totalCpu = 0;
-        let topProc = null;
+        const cmd = "ps -eo pid,pcpu,comm,args --sort=-pcpu | head -n 15";
+        exec(cmd, (err, stdout) => {
+            if (err) return callback({ status: 'error', task: 'Monitor Error' });
 
-        lines.forEach((line, index) => {
-            const parts = line.trim().split(/\s+/);
-            const cpu = parseFloat(parts[1]);
-            const comm = parts[2];
-            const args = parts.slice(3).join(' ');
+            const lines = stdout.trim().split('\n').slice(1);
+            let activities = [];
+            let totalCpu = 0;
+            let topProc = null;
 
-            if (!isNaN(cpu)) totalCpu += cpu;
+            lines.forEach((line, index) => {
+                const parts = line.trim().split(/\s+/);
+                const cpu = parseFloat(parts[1]);
+                const comm = parts[2];
+                const args = parts.slice(3).join(' ');
+
+                if (!isNaN(cpu)) totalCpu += cpu;
+                
+                // Capture Top Process Name (Row 0)
+                if (index === 0) {
+                    topProc = `${comm} (${Math.round(cpu)}%)`;
+                }
+
+                if (comm === 'node' && args.includes('scripts/')) {
+                    const script = args.match(/scripts\/([a-zA-Z0-9_.-]+)/)?.[1] || 'Script';
+                    activities.push(`📜 ${script}`);
+                }
+                
+                if (['grep', 'find', 'curl', 'wget', 'git', 'tar', 'python', 'python3'].includes(comm)) {
+                    let detail = args.split(' ').pop();
+                    if (comm === 'grep') detail = args.match(/"([^"]+)"/)?.[1] || detail;
+                    if (detail && detail.length > 500) detail = detail.substring(0, 500) + '...';
+                    activities.push(`🔧 ${comm} ${detail}`);
+                }
+            });
+
+            activities = [...new Set(activities)];
+            const context = getActiveContext();
             
-            // Capture Top Process Name (Row 0)
-            if (index === 0) {
-                topProc = `${comm} (${Math.round(cpu)}%)`;
-            }
-
-            if (comm === 'node' && args.includes('scripts/')) {
-                const script = args.match(/scripts\/([a-zA-Z0-9_.-]+)/)?.[1] || 'Script';
-                activities.push(`📜 ${script}`);
-            }
+            let status = 'idle';
+            let taskText = 'System Idle';
             
-            if (['grep', 'find', 'curl', 'wget', 'git', 'tar', 'python', 'python3'].includes(comm)) {
-                let detail = args.split(' ').pop();
-                if (comm === 'grep') detail = args.match(/"([^"]+)"/)?.[1] || detail;
-                if (detail && detail.length > 500) detail = detail.substring(0, 500) + '...';
-                activities.push(`🔧 ${comm} ${detail}`);
+            if (context) {
+                status = 'busy';
+                taskText = context;
+            } else if (activities.length > 0) {
+                status = 'busy';
+                taskText = activities.join(', ');
+            } else if (totalCpu > 15.0) {
+                status = 'busy';
+                taskText = `⚡ High CPU: ${topProc || 'Unknown'}`;
             }
-        });
 
-        activities = [...new Set(activities)];
-        const context = getActiveContext();
-        
-        let status = 'idle';
-        let taskText = 'System Idle';
-        
-        if (context) {
-            status = 'busy';
-            taskText = context;
-        } else if (activities.length > 0) {
-            status = 'busy';
-            taskText = activities.join(', ');
-        } else if (totalCpu > 15.0) {
-            status = 'busy';
-            taskText = `⚡ High CPU: ${topProc || 'Unknown'}`;
-        }
-
-        if (taskText === 'System Idle') {
-            if (lastRecordedTask !== 'System Idle') {
-                lastRecordedTask = 'System Idle'; 
+            if (taskText === 'System Idle') {
+                if (lastRecordedTask !== 'System Idle') {
+                    lastRecordedTask = 'System Idle'; 
+                }
+            } else {
+                logActivity(taskText);
             }
-        } else {
-            logActivity(taskText);
-        }
 
-        callback({
-            status: status,
-            task: taskText,
-            cpu: Math.round(totalCpu),
-            mem: Math.round((1 - os.freemem() / os.totalmem()) * 100),
-            timezone: process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-            lastHeartbeat: new Date().toISOString()
+            callback({
+                status: status,
+                task: taskText,
+                cpu: Math.round(totalCpu),
+                mem: Math.round((1 - os.freemem() / os.totalmem()) * 100),
+                disk: diskUsage,
+                timezone: process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+                lastHeartbeat: new Date().toISOString()
+            });
         });
     });
 }
@@ -351,17 +367,38 @@ setInterval(() => {
 runAnalyzer();
 setInterval(runAnalyzer, 60 * 60 * 1000);
 
-// API: Kill
+// API: Kill (Graceful Shutdown)
 app.post('/api/kill', (req, res) => {
-    exec("pkill -f 'node scripts/'", () => res.json({status:'killed'}));
+    // 1. Try SIGTERM (Graceful)
+    exec("pkill -SIGTERM -f 'node scripts/'", (err) => {
+        // 2. Wait 3s, then check and Force Kill if needed
+        setTimeout(() => {
+            exec("pgrep -f 'node scripts/'", (err, stdout) => {
+                if (!err && stdout) {
+                    console.log('Force killing stuck scripts...');
+                    exec("pkill -SIGKILL -f 'node scripts/'");
+                }
+            });
+        }, 3000);
+        res.json({status:'stopping', message: 'Sent SIGTERM. Will force kill in 3s if needed.'});
+    });
 });
 
 // API: Restart Gateway
 app.post('/api/gateway/restart', (req, res) => {
-    exec("pkill -f 'clawdbot gateway' || true", () => {
+    // Graceful Stop first
+    exec("pkill -SIGTERM -f 'openclaw gateway' || true", () => {
         setTimeout(() => {
-            exec("/root/.nvm/versions/node/v22.22.0/bin/clawdbot gateway start --background", () => {
-                 res.json({status:'restarted'});
+            // Force start (using 'openclaw' in PATH)
+            exec("openclaw gateway start --background", (err, stdout, stderr) => {
+                 if (err) {
+                     // Fallback to absolute path if PATH fails
+                     exec("/root/.nvm/versions/node/v22.22.0/bin/openclaw gateway start --background", () => {
+                        res.json({status:'restarted (fallback path)'});
+                     });
+                 } else {
+                     res.json({status:'restarted'});
+                 }
             });
         }, 2000);
     });
@@ -369,7 +406,8 @@ app.post('/api/gateway/restart', (req, res) => {
 
 // API: Cron
 app.get('/api/cron', (req, res) => {
-    exec('/root/.nvm/versions/node/v22.22.0/bin/clawdbot cron list --json', { maxBuffer: 1024 * 1024 * 5 }, (err, stdout) => {
+    // Use 'openclaw' command instead of hardcoded path
+    exec('openclaw cron list --json', { maxBuffer: 1024 * 1024 * 5 }, (err, stdout) => {
         if (!err) {
             try {
                 const data = JSON.parse(stdout);
@@ -377,7 +415,7 @@ app.get('/api/cron', (req, res) => {
             } catch (e) {}
         }
         try {
-            const fileData = fs.readFileSync('/root/.clawdbot/cron/jobs.json', 'utf8');
+            const fileData = fs.readFileSync('/root/clawd/.openclaw/cron/jobs.json', 'utf8');
             const json = JSON.parse(fileData);
             return res.json(json.jobs || []);
         } catch(e) {
@@ -387,7 +425,8 @@ app.get('/api/cron', (req, res) => {
 });
 
 app.post('/api/run/:id', (req, res) => {
-    exec(`/root/.nvm/versions/node/v22.22.0/bin/clawdbot cron run ${req.params.id}`);
+    // Use 'openclaw' command
+    exec(`openclaw cron run ${req.params.id}`);
     res.json({status:'triggered'});
 });
 

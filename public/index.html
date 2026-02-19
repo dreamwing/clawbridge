@@ -97,12 +97,12 @@
         .status-dot.busy { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
         .status-dot.error { background: var(--danger); }
 
-        .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; flex-shrink: 0;}
+        .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; flex-shrink: 0;}
         .metric-box { 
-            background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--border);
+            background: rgba(0,0,0,0.2); padding: 15px 5px; border-radius: 12px; text-align: center; border: 1px solid var(--border);
         }
-        .metric-val { font-size: 28px; font-weight: 700; line-height: 1.2; }
-        .metric-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
+        .metric-val { font-size: 24px; font-weight: 700; line-height: 1.2; }
+        .metric-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
 
         /* Adaptive Feed */
         .feed-wrapper {
@@ -203,6 +203,10 @@
                 <div class="metric-box">
                     <div class="metric-val" id="mem-val">--%</div>
                     <div class="metric-label">Memory</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-val" id="disk-val">--%</div>
+                    <div class="metric-label">Disk</div>
                 </div>
             </div>
             
@@ -337,12 +341,12 @@
                 <span class="info-val" id="server-tz">--</span>
             </div>
             <div class="info-row">
-                <span class="info-label">Engine</span>
-                <span class="info-val"><a href="https://github.com/clawdbot/clawdbot" target="_blank" style="color:var(--accent); text-decoration:none;">ClawdBot (OpenClaw)</a></span>
+                <span class="info-label">Core</span>
+                <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank" style="color:var(--accent); text-decoration:none;">OpenClaw v2.1</a></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Dashboard</span>
-                <span class="info-val"><a href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard" target="_blank" style="color:var(--accent); text-decoration:none;">Private Repo</a></span>
+                <span class="info-val">v2.0.0</span>
             </div>
             <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
                 ClawBridge is the mobile-first dashboard for your AI Agent runtime. 
@@ -461,6 +465,7 @@
                 
                 document.getElementById('cpu-val').innerText = data.cpu + '%';
                 document.getElementById('mem-val').innerText = data.mem + '%';
+                if(data.disk) document.getElementById('disk-val').innerText = data.disk;
                 if(data.timezone) document.getElementById('server-tz').innerText = data.timezone;
                 
                 const dot = document.getElementById('status-dot');
@@ -590,6 +595,11 @@
                     const duration = job.state?.lastDurationMs ? (job.state.lastDurationMs / 1000).toFixed(0) + 's' : '';
                     const cron = job.schedule?.expr || 'Manual';
                     
+                    // Extract script path
+                    const text = job.payload?.text || '';
+                    const match = text.match(/'([^']+\.js)'/) || text.match(/"([^"]+\.js)"/);
+                    const scriptPath = match ? match[1] : null;
+                    
                     let nextText = '';
                     if (nextRun) {
                         const now = Date.now();
@@ -605,9 +615,18 @@
 
                     const div = document.createElement('div');
                     div.className = 'job-item';
+                    
+                    let pathHtml = '';
+                    if (scriptPath) {
+                        pathHtml = `<div style="font-family:monospace; font-size:10px; color:var(--text-dim); margin-top:3px; word-break:break-all; opacity:0.7;">
+                            📄 ${scriptPath}
+                        </div>`;
+                    }
+
                     div.innerHTML = `
                         <div class="job-info">
                             <div class="job-name">${job.name}</div>
+                            ${pathHtml}
                             <div class="job-meta">
                                 <span class="badge ${badgeClass}">${status.toUpperCase()}</span>
                                 <span class="job-sched">${cron}</span>

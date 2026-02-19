@@ -11,7 +11,14 @@ const CACHE_FILE = path.join(DATA_DIR, 'cache.json');
 
 // History Path
 const HOME_DIR = os.homedir();
-const HISTORY_DIR = path.join(HOME_DIR, '.clawdbot/agents/main/sessions/');
+// V2.1 Path Update: Support both old (.clawdbot) and new (.openclaw) paths
+const NEW_PATH = path.join(HOME_DIR, '.openclaw/sessions/');
+const OLD_PATH = path.join(HOME_DIR, '.clawdbot/agents/main/sessions/');
+
+let HISTORY_DIR = NEW_PATH;
+if (!fs.existsSync(NEW_PATH) && fs.existsSync(OLD_PATH)) {
+    HISTORY_DIR = OLD_PATH;
+}
 
 // Timezone
 const APP_TIMEZONE = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
