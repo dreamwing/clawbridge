@@ -424,6 +424,24 @@ app.get('/api/cron', (req, res) => {
     });
 });
 
+// API: Memory Feed
+app.get('/api/memory', (req, res) => {
+    const tz = 'Asia/Shanghai';
+    const date = new Date().toLocaleDateString('en-CA', { timeZone: tz }); // YYYY-MM-DD
+    const memPath = `/root/clawd/memory/${date}.md`;
+    
+    if (!fs.existsSync(memPath)) {
+        return res.json({ date, content: '*No memory log for today yet.*' });
+    }
+    
+    try {
+        const content = fs.readFileSync(memPath, 'utf8');
+        res.json({ date, content });
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to read memory' });
+    }
+});
+
 app.post('/api/run/:id', (req, res) => {
     // Use 'openclaw' command
     exec(`openclaw cron run ${req.params.id}`);

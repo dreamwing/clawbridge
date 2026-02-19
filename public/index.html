@@ -222,6 +222,19 @@
         </div>
     </div>
 
+    <!-- VIEW: MEMORY -->
+    <div id="view-memory" class="view-container">
+        <div class="card">
+            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <span style="font-weight:600">Daily Memory</span>
+                <div style="font-family:monospace; font-size:12px; color:var(--text-dim)" id="memory-date">--</div>
+            </div>
+            <div id="memory-content" style="font-size:14px; line-height:1.6; color:var(--text-dim); white-space: pre-wrap;">
+                Loading...
+            </div>
+        </div>
+    </div>
+
     <!-- VIEW: TOKENS -->
     <div id="view-tokens" class="view-container">
         <div class="card" id="token-card">
@@ -361,6 +374,10 @@
             <div class="nav-icon">🏠</div>
             <div>Home</div>
         </a>
+        <a class="nav-item" onclick="switchTab('memory')">
+            <div class="nav-icon">🧠</div>
+            <div>Memory</div>
+        </a>
         <a class="nav-item" onclick="switchTab('tokens')">
             <div class="nav-icon">💰</div>
             <div>Tokens</div>
@@ -410,7 +427,7 @@
             document.getElementById('view-' + tab).classList.add('active');
             
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const icons = { 'home': 0, 'tokens': 1, 'missions': 2, 'settings': 3 };
+            const icons = { 'home': 0, 'memory': 1, 'tokens': 2, 'missions': 3, 'settings': 4 };
             document.querySelectorAll('.nav-item')[icons[tab]].classList.add('active');
 
             currentTab = tab;
@@ -425,6 +442,30 @@
 
             if (tab === 'tokens') {
                 fetchTokens();
+            }
+            
+            if (tab === 'memory') {
+                fetchMemory();
+            }
+        }
+        
+        async function fetchMemory() {
+            try {
+                const res = await fetchAuth(API + '/memory');
+                const data = await res.json();
+                document.getElementById('memory-date').innerText = data.date;
+                
+                // Simple Markdown Rendering
+                let html = data.content
+                    .replace(/^# (.*$)/gim, '<h3>$1</h3>') // H1 -> H3
+                    .replace(/^## (.*$)/gim, '<h4>$1</h4>') // H2 -> H4
+                    .replace(/^### (.*$)/gim, '<strong>$1</strong>') // H3 -> Bold
+                    .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>') // Bold
+                    .replace(/^\- (.*$)/gim, '• $1'); // List
+                
+                document.getElementById('memory-content').innerHTML = html;
+            } catch(e) {
+                document.getElementById('memory-content').innerText = 'Failed to load memory.';
             }
         }
 
