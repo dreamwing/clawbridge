@@ -39,14 +39,18 @@ function startTunnel(port, token) {
 
         child.stderr.on('data', d => {
             const text = d.toString();
-            // console.log(`[CF] ${text}`); // Debug
-
+            
             // Capture Quick Tunnel URL
             const match = text.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
-            if (match && !token && !urlFound) {
-                urlFound = true;
-                console.log(`[Tunnel] Quick URL: ${match[0]}`);
-                resolve(match[0]);
+            if (match && !token) {
+                const url = match[0];
+                if (!urlFound) {
+                    urlFound = true;
+                    console.log(`\n🌊 [Quick Tunnel] URL Generated: ${url}`);
+                    // Write to a temporary file so install.sh or other tools can read it easily
+                    try { fs.writeFileSync(path.join(__dirname, '.quick_tunnel_url'), url); } catch(e){}
+                    resolve(url);
+                }
             }
 
             // Capture Permanent Success
