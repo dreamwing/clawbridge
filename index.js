@@ -12,10 +12,21 @@ const app = express();
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
-// Config
+// Config & Paths
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.ACCESS_KEY || 'default-insecure';
 const TUNNEL_TOKEN = process.env.TUNNEL_TOKEN;
+
+// Dynamic Path Resolution
+// 1. Workspace: Assume we are in <workspace>/skills/clawbridge-dashboard
+const WORKSPACE_DIR = process.env.OPENCLAW_WORKSPACE || path.resolve(__dirname, '../../');
+// 2. State: Default to ~/.openclaw
+const HOME_DIR = os.homedir();
+const STATE_DIR = process.env.OPENCLAW_STATE_DIR || path.join(HOME_DIR, '.openclaw');
+
+console.log(`[Init] Workspace: ${WORKSPACE_DIR}`);
+console.log(`[Init] State Dir: ${STATE_DIR}`);
+
 const LOG_DIR = path.join(__dirname, 'data/logs');
 const TOKEN_FILE = path.join(__dirname, 'data/token_stats/latest.json');
 const ANALYZE_SCRIPT = path.join(__dirname, 'scripts/analyze.js');
@@ -82,22 +93,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Helper: Get Active Context
 function getActiveContext() {
     try {
-        // Updated Path for OpenClaw V2 (Standard)
-        const sessionsPath = '/root/.openclaw/agents/main/sessions/sessions.json';
+        // Standard V2 Path
+        const sessionsPath = path.join(STATE_DIR, 'agents/main/sessions/sessions.json');
         
-        // Fallback: Local dev or legacy paths
+        // Fallback Paths
         const altPaths = [
-            path.join(process.cwd(), '../../.openclaw/sessions/sessions.json'),
-            '/root/clawd/.openclaw/sessions/sessions.json',
-            '/root/.clawdbot/agents/main/sessions/sessions.json'
+            sessionsPath,
+            '/root/.openclaw/agents/main/sessions/sessions.json', // Your actual path
+            path.join(WORKSPACE_DIR, '.openclaw/sessions/sessions.json'), 
+            path.join(HOME_DIR, '.clawdbot/agents/main/sessions/sessions.json')
         ];
         
-        let targetPath = sessionsPath;
-        if (!fs.existsSync(targetPath)) {
-            const found = altPaths.find(p => fs.existsSync(p));
-            if (found) targetPath = found;
-            else return null;
+        let targetPath = null;
+        for (const p of altPaths) {
+            if (fs.existsSync(p)) { targetPath = p; break; }
         }
+
+        if (!targetPath) return null;
 
         const sessions = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
         let latestSession = null;
@@ -182,8 +194,8 @@ function logActivity(task) {
 
 // --- File Watcher ---
 let fileState = {}; 
-const WATCH_DIRS = ['/root/clawd/memory', '/root/clawd/scripts'];
-const WATCH_FILES = ['/root/clawd/MEMORY.md', '/root/clawd/AGENTS.md', '/root/clawd/HEARTBEAT.md'];
+const WATCH_DIRS = [path.join(WORKSPACE_DIR, 'memory'), path.join(WORKSPACE_DIR, 'scripts')];
+const WATCH_FILES = ['MEMORY.md', 'AGENTS.md', 'HEARTBEAT.md'].map(f => path.join(WORKSPACE_DIR, f));
 
 function checkFileChanges() {
     WATCH_FILES.forEach(f => scanFile(f));
@@ -209,7 +221,7 @@ function scanFile(filePath) {
         if (!fileState[filePath]) {
             fileState[filePath] = mtime;
             if (Date.now() - ctime < 60000) { 
-                const rel = filePath.replace('/root/clawd/', '');
+                const rel = path.relative(WORKSPACE_DIR, filePath);
                 logActivity(`📄 Created: ${rel}`);
             }
             return;
@@ -218,7 +230,7 @@ function scanFile(filePath) {
         if (mtime > fileState[filePath]) {
             fileState[filePath] = mtime;
             if (Date.now() - mtime < 60000) { 
-                const rel = filePath.replace('/root/clawd/', '');
+                const rel = path.relative(WORKSPACE_DIR, filePath);
                 logActivity(`📝 Updated: ${rel}`);
             }
         }
