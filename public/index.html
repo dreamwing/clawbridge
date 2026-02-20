@@ -380,6 +380,17 @@
                 <span class="info-label">ClawBridge Skill</span>
                 <span class="info-val"><a href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard" target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-dash">--</a></span>
             </div>
+            
+            <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+                <h4 style="margin:0 0 10px 0;">Remote Access</h4>
+                <input type="text" id="tunnel-token" placeholder="Paste Cloudflare Tunnel Token..." style="width:100%; box-sizing:border-box; padding:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); border-radius:6px; margin-bottom:10px;">
+                <button class="btn" style="background:rgba(255,255,255,0.1); font-size:12px; padding:8px;" onclick="saveToken()">
+                    Update Tunnel Token & Restart
+                </button>
+                <div style="font-size:10px; color:var(--text-dim); margin-top:8px;">
+                    Get token from <a href="https://one.dash.cloudflare.com" target="_blank" style="color:var(--accent)">Cloudflare Zero Trust</a> > Access > Tunnels.
+                </div>
+            </div>
             <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
                 ClawBridge is the mobile-first dashboard for your AI Agent runtime. 
                 <br>Designed for monitoring, cost tracking, and task management.
@@ -961,6 +972,26 @@
             const threshold = 50;
             if (touchEndX < touchStartX - threshold) navMemory(1); // Swipe Left -> Next Day
             if (touchEndX > touchStartX + threshold) navMemory(-1); // Swipe Right -> Prev Day
+        }
+        
+        async function saveToken() {
+            const token = document.getElementById('tunnel-token').value.trim();
+            if(!token) return alert('Please paste a token');
+            
+            if(!confirm('This will restart the dashboard service. Continue?')) return;
+            
+            try {
+                const res = await fetchAuth(API + '/config/token', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ token })
+                });
+                const data = await res.json();
+                alert(data.message || 'Saved');
+                setTimeout(() => location.reload(), 3000);
+            } catch(e) {
+                alert('Save failed: ' + e.message);
+            }
         }
         
     </script>

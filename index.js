@@ -8190,6 +8190,34 @@ app.post('/api/run/:id', (req, res) => {
     res.json({status:'triggered'});
 });
 
+// API: Update Tunnel Token
+app.post('/api/config/token', (req, res) => {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+
+    try {
+        const envPath = path.join(__dirname, '.env');
+        let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+        
+        // Remove existing token lines
+        envContent = envContent.replace(/^TUNNEL_TOKEN=.*$/gm, '').replace(/^ENABLE_EMBEDDED_TUNNEL=.*$/gm, '');
+        
+        // Append new token
+        envContent += `\nTUNNEL_TOKEN=${token.trim()}\nENABLE_EMBEDDED_TUNNEL=true\n`;
+        
+        fs.writeFileSync(envPath, envContent.trim() + '\n');
+        
+        // Restart service via systemd if possible, or just exit to let supervisor restart
+        // Here we just exit, assuming systemd/docker will restart us.
+        res.json({ status: 'ok', message: 'Token saved. Restarting...' });
+        
+        setTimeout(() => process.exit(0), 1000);
+        
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // WS Heartbeat
 setInterval(() => {
     wss.clients.forEach(c => c.send(JSON.stringify({type:'heartbeat', ts:Date.now()})));
