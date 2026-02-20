@@ -338,12 +338,23 @@
         <div class="card">
             <h3 style="margin-top:0">Danger Zone</h3>
             <div style="display:grid; gap:15px;">
-                <button class="btn btn-restart" onclick="restartGateway()">
-                    <span>♻️</span> Restart Gateway Service
-                </button>
-                <button class="btn btn-danger" onclick="killAll()">
-                    <span>🛑</span> Emergency Stop All Scripts
-                </button>
+                <div>
+                    <button class="btn btn-restart" onclick="restartGateway()">
+                        <span>♻️</span> Restart Gateway Service
+                    </button>
+                    <div style="font-size:11px; color:var(--text-dim); margin-top:5px; text-align:center;">
+                        Current PID: <span id="gateway-pid" style="font-family:monospace; color:var(--accent)">--</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <button class="btn btn-danger" onclick="killAll()">
+                        <span>🛑</span> Emergency Stop All Scripts
+                    </button>
+                    <div id="running-scripts-list" style="font-size:11px; color:var(--text-dim); margin-top:8px; padding:0 5px;">
+                        <!-- Scripts injected here -->
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -567,6 +578,27 @@
                 if(data.versions) {
                     document.getElementById('ver-core').innerText = data.versions.core;
                     document.getElementById('ver-dash').innerText = 'v' + data.versions.dashboard + ' (GitHub)';
+                }
+                
+                // Update PID
+                if(data.gatewayPid) {
+                    document.getElementById('gateway-pid').innerText = data.gatewayPid;
+                } else {
+                    document.getElementById('gateway-pid').innerText = 'Stopped / Not Found';
+                }
+
+                // Update Scripts List
+                const scriptList = document.getElementById('running-scripts-list');
+                if (data.scripts && data.scripts.length > 0) {
+                    const items = data.scripts.map(s => 
+                        `<div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">
+                            <span>${s.name}</span>
+                            <span style="opacity:0.5">${s.pid}</span>
+                        </div>`
+                    ).join('');
+                    scriptList.innerHTML = `<div style="margin-bottom:4px; font-weight:600; color:var(--text)">Running (${data.scripts.length}):</div>` + items;
+                } else {
+                    scriptList.innerHTML = '<div style="opacity:0.5; text-align:center;">No scripts running</div>';
                 }
                 
                 const dot = document.getElementById('status-dot');
