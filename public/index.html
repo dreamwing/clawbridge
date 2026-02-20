@@ -362,12 +362,12 @@
                 <span class="info-val" id="server-tz">--</span>
             </div>
             <div class="info-row">
-                <span class="info-label">Core</span>
-                <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-core">Loading...</a></span>
+                <span class="info-label">OpenClaw Core</span>
+                <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-core">--</a></span>
             </div>
             <div class="info-row">
-                <span class="info-label">Dashboard</span>
-                <span class="info-val"><a href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard" target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-dash">Loading...</a></span>
+                <span class="info-label">ClawBridge Skill</span>
+                <span class="info-val"><a href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard" target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-dash">--</a></span>
             </div>
             <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
                 ClawBridge is the mobile-first dashboard for your AI Agent runtime. 
@@ -566,7 +566,7 @@
                 if(data.timezone) document.getElementById('server-tz').innerText = data.timezone;
                 if(data.versions) {
                     document.getElementById('ver-core').innerText = data.versions.core;
-                    document.getElementById('ver-dash').innerText = 'v' + data.versions.dashboard;
+                    document.getElementById('ver-dash').innerText = 'v' + data.versions.dashboard + ' (GitHub)';
                 }
                 
                 const dot = document.getElementById('status-dot');

@@ -231,13 +231,13 @@ function getVersions() {
 
     // 2. OpenClaw Core Version
     try {
-        const cmd = `${getOpenClawCommand()} --version`;
-        core = execSync(cmd).toString().trim();
+        const corePkg = JSON.parse(fs.readFileSync('/root/.nvm/versions/node/v22.22.0/lib/node_modules/openclaw/package.json', 'utf8'));
+        core = `v${corePkg.version}`;
     } catch(e) {
-        // Fallback: try reading core package.json if standard path
+        // Fallback: try CLI if file read fails
         try {
-            const corePkg = JSON.parse(fs.readFileSync('/root/.nvm/versions/node/v22.22.0/lib/node_modules/openclaw/package.json', 'utf8'));
-            core = `v${corePkg.version}`;
+            const cmd = `${getOpenClawCommand()} --version`;
+            core = execSync(cmd).toString().trim();
         } catch(err) {}
     }
 
