@@ -121,7 +121,16 @@ if [[ "$ENABLE_TUNNEL" =~ ^[Yy]$ ]]; then
     if [ ! -z "$CF_TOKEN" ]; then
         echo "TUNNEL_TOKEN=$CF_TOKEN" >> "$ENV_FILE"
         echo "ENABLE_EMBEDDED_TUNNEL=true" >> "$ENV_FILE"
-        echo "✅ Token saved. Tunnel will start with dashboard."
+        
+        echo -e "\n${BLUE}🔗 Public Domain Configuration${NC}"
+        echo "If you have mapped a domain (e.g. dash.mysite.com) to this tunnel in Cloudflare Zero Trust,"
+        read -p "Enter it here to display in the dashboard (optional): " CF_DOMAIN
+        
+        if [ ! -z "$CF_DOMAIN" ]; then
+             echo "APP_DOMAIN=$CF_DOMAIN" >> "$ENV_FILE"
+        fi
+        
+        echo "✅ Remote access configured."
         
         # Restart service to pick up new env
         if [ "$USE_USER_SYSTEMD" = true ]; then

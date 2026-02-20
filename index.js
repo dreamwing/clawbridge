@@ -579,9 +579,7 @@ app.post('/api/run/:id', (req, res) => {
 
 // API: Update Tunnel Token (DEPRECATED: Removed for security)
 // Config should be done via install script or manual .env editing
-app.post('/api/config/token', (req, res) => {
-    res.status(403).json({ error: 'Configuration via UI is disabled. Please edit .env file manually.' });
-});
+// app.post('/api/config/token', (req, res) => { ... });
 
 // API: Get Config (Safe subset)
 app.get('/api/config', (req, res) => {
