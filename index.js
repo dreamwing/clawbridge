@@ -577,35 +577,10 @@ app.post('/api/run/:id', (req, res) => {
     res.json({status:'triggered'});
 });
 
-// API: Update Tunnel Token
+// API: Update Tunnel Token (DEPRECATED: Removed for security)
+// Config should be done via install script or manual .env editing
 app.post('/api/config/token', (req, res) => {
-    const { token, domain } = req.body;
-    if (!token) return res.status(400).json({ error: 'Token required' });
-
-    try {
-        const envPath = path.join(__dirname, '.env');
-        let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
-        
-        // Remove existing lines
-        envContent = envContent.replace(/^TUNNEL_TOKEN=.*$/gm, '')
-                               .replace(/^ENABLE_EMBEDDED_TUNNEL=.*$/gm, '')
-                               .replace(/^APP_DOMAIN=.*$/gm, '');
-        
-        // Append new config
-        envContent += `\nTUNNEL_TOKEN=${token.trim()}\nENABLE_EMBEDDED_TUNNEL=true\n`;
-        if (domain) {
-            envContent += `APP_DOMAIN=${domain.trim()}\n`;
-        }
-        
-        fs.writeFileSync(envPath, envContent.trim() + '\n');
-        
-        res.json({ status: 'ok', message: 'Config saved. Restarting...' });
-        
-        setTimeout(() => process.exit(0), 1000);
-        
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
+    res.status(403).json({ error: 'Configuration via UI is disabled. Please edit .env file manually.' });
 });
 
 // API: Get Config (Safe subset)

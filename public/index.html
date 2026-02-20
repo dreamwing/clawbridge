@@ -345,19 +345,10 @@
                 <a href="#" target="_blank" id="remote-link" style="color:var(--text); font-weight:600; text-decoration:none; font-size:13px;">--</a>
             </div>
 
-            <input type="text" id="tunnel-token" placeholder="Paste Cloudflare Tunnel Token" style="width:100%; box-sizing:border-box; padding:12px; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); border-radius:6px; margin-bottom:10px; font-family:monospace;">
-            
-            <input type="text" id="tunnel-domain" placeholder="Public Domain (e.g. dash.mysite.com)" style="width:100%; box-sizing:border-box; padding:12px; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text); border-radius:6px; margin-bottom:10px; font-family:monospace;">
-            
-            <button class="btn" style="background:var(--accent); font-size:13px; padding:10px;" onclick="saveToken()">
-                Save & Connect
-            </button>
-            
-            <div style="font-size:10px; color:var(--text-dim); margin-top:12px; line-height:1.4;">
-                1. Go to <a href="https://one.dash.cloudflare.com" target="_blank" style="color:var(--text-dim); text-decoration:underline;">Cloudflare Zero Trust</a> > Access > Tunnels.<br>
-                2. Create a tunnel, copy the Token.<br>
-                3. Configure a Public Hostname (e.g. <code>dash.yoursite.com</code>) pointing to <code>http://localhost:3000</code>.<br>
-                4. Paste Token and Domain above.
+            <div style="font-size:11px; color:var(--text-dim); line-height:1.5;">
+                Configuration is managed via environment variables (<code>.env</code>) or during installation.
+                <br><br>
+                To update, edit <code>TUNNEL_TOKEN</code> and <code>APP_DOMAIN</code> in the skill directory.
             </div>
         </div>
 
