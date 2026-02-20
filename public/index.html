@@ -334,17 +334,10 @@
 
     <!-- VIEW: SETTINGS -->
     <div id="view-settings" class="view-container">
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0">Remote Access</h3>
-                <span id="remote-badge" style="font-size:10px; background:rgba(255,255,255,0.05); color:var(--text-dim); padding:2px 6px; border-radius:4px;">OFFLINE</span>
-            </div>
-            
-            <div style="font-size:11px; color:var(--text-dim); line-height:1.5;">
-                Expose this dashboard via Cloudflare Tunnel.
-                <br><br>
-                Managed via environment variables (<code>.env</code>) or during installation.
-            </div>
+        <!-- Remote Access Status Only (No Config) -->
+        <div id="remote-status" style="margin-bottom:15px; padding:12px; background:rgba(34, 197, 94, 0.1); border:1px solid rgba(34, 197, 94, 0.2); border-radius:12px; display:none; text-align:center;">
+            <div style="font-size:10px; color:var(--success); font-weight:bold; margin-bottom:4px; letter-spacing:1px;">ONLINE</div>
+            <a href="#" target="_blank" id="remote-link" style="color:var(--text); font-weight:600; text-decoration:none; font-size:14px;">--</a>
         </div>
 
         <div class="card">
