@@ -78,7 +78,14 @@ function getActiveContext() {
 
         if (!targetPath) return null;
 
-        const sessions = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
+        let sessions;
+        try {
+             const fileContent = fs.readFileSync(targetPath, 'utf8');
+             sessions = JSON.parse(fileContent);
+        } catch (e) {
+             return null; // File might be empty/corrupt during write
+        }
+        
         let latestSession = null;
         let maxTime = 0;
         
@@ -120,12 +127,45 @@ function getActiveContext() {
                             if (tool.name === 'web_search') argStr = `"${tool.arguments.query}"`;
                             else if (tool.name === 'read') argStr = tool.arguments.path || tool.arguments.file_path;
                             else if (tool.name === 'exec') argStr = tool.arguments.command;
-                            else if (tool.name === 'message') argStr = JSON.stringify(tool.arguments).substring(0,5000); 
+                            else if (tool.name === 'message' || tool.name === 'sessions_send') {
+                                // Skip chat replies from "Tool Calls" section
+                                // We rely on the Text Content parser below to capture conversation
+                                // But if text content extraction is disabled/filtered, we might miss it.
+                                // For now, let's keep suppressing redundant tool calls.
+                                continue; 
+                            }
                             else argStr = JSON.stringify(tool.arguments);
                         }
                         if (argStr && argStr.length > 5000) argStr = argStr.substring(0, 5000) + '...';
                         events.push(`🔧 ${tool.name} ${argStr}`);
                     }
+                    
+                    // 3. Extract Text Content (if it's not empty/generic)
+                    /* 
+                       Logic Update: 
+                       User explicitly requested to HIDE text that duplicates chat history.
+                       Since OpenClaw sends the 'text' block to the user as a chat message,
+                       showing it here IS duplicating the chat history.
+                       
+                       We ONLY want to show internal activities (Thinking, Tools).
+                       We do NOT want to show the final "Output" text, because the user
+                       already sees that in their chat app.
+                       
+                       Exception: If there are NO tools and NO thinking, and we hide text,
+                       the dashboard will show nothing for that turn. 
+                       But maybe that's what the user wants? "Live Activity" = "Background Work".
+                       Chat is "Foreground".
+                       
+                       Let's completely comment out the Text Extraction for now to strictly follow orders.
+                    */
+                    /*
+                    const textPart = content.find(c => c.type === 'text');
+                    if (textPart && textPart.text && textPart.text.trim().length > 0 && textPart.text !== "NO_REPLY") {
+                        let t = textPart.text.trim();
+                        if (t.length > 5000) t = t.substring(0, 5000) + '...';
+                        events.push(`💬 ${t}`);
+                    }
+                    */
 
                     if (events.length > 0) {
                         return { id: msgId, events: events };
@@ -282,10 +322,15 @@ function checkSystemStatus(callback) {
                 
                 if (ctx) {
                     status = 'busy';
-                    if (ctx.id !== lastProcessedId) {
+                    
+                    // ID-based deduplication (Robust)
+                    const currentId = String(ctx.id).trim();
+                    const lastId = String(lastProcessedId).trim();
+
+                    if (currentId !== lastId) {
                         ctx.events.forEach(evt => logActivity(evt));
-                        lastProcessedId = ctx.id;
-                        try { fs.writeFileSync(ID_FILE, lastProcessedId); } catch(e){}
+                        lastProcessedId = currentId;
+                        try { fs.writeFileSync(ID_FILE, currentId, 'utf8'); } catch(e){ console.error('ID Save Failed:', e); }
                     }
                     taskText = ctx.events[ctx.events.length - 1];
                 } else if (activities.length > 0) {
