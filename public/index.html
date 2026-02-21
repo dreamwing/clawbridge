@@ -212,8 +212,9 @@
         ClawBridge
     </h1>
 
-    <div id="quick-tunnel-alert" style="display:none; width:100%; background:rgba(234, 179, 8, 0.15); border:1px solid rgba(234, 179, 8, 0.3); padding:8px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:12px; color:var(--warning);">
-        <strong>⚠️ Temporary Session:</strong> This link expires on restart. <a onclick="switchTab('settings')" style="text-decoration:underline; cursor:pointer;">Configure Permanent Link</a>
+    <div id="quick-tunnel-alert" style="display:none; width:100%; background:rgba(234, 179, 8, 0.15); border:1px solid rgba(234, 179, 8, 0.3); padding:8px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:12px; color:var(--warning); cursor:pointer;" onclick="showTokenHelp()">
+        <strong>⚠️ Temporary Session:</strong> This URL will expire on restart.
+        <br><span style="text-decoration:underline; font-weight:600;">Tap here to configure a Permanent Domain</span>
     </div>
 
     <!-- LEGEND MODAL -->
@@ -246,6 +247,44 @@
                 </div>
                 <div style="margin-top:10px; font-size:10px; color:var(--text-dim); line-height:1.4; border-top:1px solid var(--border); padding-top:10px;">
                     <strong>Note:</strong> Monitoring polls every 3 seconds to minimize CPU usage. Extremely short-lived scripts (<3s) may not be captured in real-time logs.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOKEN HELP MODAL -->
+    <div id="token-modal" class="modal-overlay" onclick="if(event.target===this) toggleTokenHelp(false)">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <span class="modal-title">Configure Permanent Link</span>
+                <button class="modal-close" onclick="toggleTokenHelp(false)">×</button>
+            </div>
+            <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
+                <p style="margin-top:0">To keep your URL fixed, you need a Cloudflare Tunnel Token.</p>
+                
+                <div style="margin-bottom:15px;">
+                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Where to find your Token?</div>
+                    <div style="font-size:12px; color:var(--text-dim); line-height:1.4;">
+                        1. Go to <a href="https://one.dash.cloudflare.com/" target="_blank" style="color:var(--accent)">Cloudflare Zero Trust</a> > Access > Tunnels.<br>
+                        2. Create a tunnel, choose "Docker", and copy the token from the install command (the string after <code style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">--token</code>).
+                    </div>
+                </div>
+
+                <div style="margin-bottom:15px;">
+                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask your Agent (Chat)</div>
+                    <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">Send this message to OpenClaw:</div>
+                    <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; font-family:monospace; font-size:11px; border:1px solid var(--border); user-select:all;">
+                        Run this command to fix my dashboard URL:<br>
+                        <span style="color:var(--accent)">cd skills/clawbridge-dashboard && ./install.sh --token=YOUR_TOKEN</span>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal Command</div>
+                    <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; font-family:monospace; font-size:11px; word-break:break-all; border:1px solid var(--border); cursor:pointer;" onclick="navigator.clipboard.writeText(this.innerText); alert('Copied!')">
+                        cd ~/skills/clawbridge-dashboard && ./install.sh --token=<span style="color:var(--accent)">YOUR_TOKEN</span>
+                    </div>
+                    <div style="font-size:10px; margin-top:4px; text-align:right;">(Click to copy)</div>
                 </div>
             </div>
         </div>
@@ -1082,6 +1121,16 @@
         
         function toggleLegend(show) {
             const modal = document.getElementById('legend-modal');
+            if(show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        }
+
+        function showTokenHelp() {
+            toggleTokenHelp(true);
+        }
+
+        function toggleTokenHelp(show) {
+            const modal = document.getElementById('token-modal');
             if(show) modal.classList.add('active');
             else modal.classList.remove('active');
         }
