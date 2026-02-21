@@ -5,6 +5,7 @@ const { WebSocketServer } = require('ws');
 const { exec, execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const https = require('https'); // Explicit require for proxy
 const os = require('os');
 const tunnel = require('./tunnel');
 
@@ -539,6 +540,26 @@ app.get('/api/memory', (req, res) => {
 app.post('/api/run/:id', (req, res) => {
     exec(`${getOpenClawCommand()} cron run ${req.params.id}`);
     res.json({status:'triggered'});
+});
+
+const https = require('https');
+
+app.get('/api/check_update', (req, res) => {
+    const url = 'https://clawbridge.app/api/version';
+    
+    https.get(url, { timeout: 3000 }, (apiRes) => {
+        let data = '';
+        apiRes.on('data', chunk => data += chunk);
+        apiRes.on('end', () => {
+            try {
+                res.json(JSON.parse(data));
+            } catch (e) {
+                res.json({ error: 'Invalid JSON', version: '0.0.0' });
+            }
+        });
+    }).on('error', (e) => {
+        res.json({ error: 'Update check failed', version: '0.0.0' });
+    });
 });
 
 app.get('/api/config', (req, res) => {

@@ -212,7 +212,12 @@
         ClawBridge
     </h1>
 
-    <div id="quick-tunnel-alert" style="display:none; width:100%; background:rgba(234, 179, 8, 0.15); border:1px solid rgba(234, 179, 8, 0.3); padding:8px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:12px; color:var(--warning); cursor:pointer;" onclick="showTokenHelp()">
+    <div id="update-alert" style="display:none; width:100%; background:rgba(34, 197, 94, 0.15); border:1px solid rgba(34, 197, 94, 0.3); padding:8px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:12px; color:var(--success); cursor:pointer;" onclick="showUpdateHelp()">
+        ✨ <strong>New Version Available:</strong> <span id="update-ver">v1.1.0</span>
+        <br><span style="text-decoration:underline; font-weight:600;">Tap here to Update</span>
+    </div>
+
+    <div id="quick-tunnel-alert" style="display:none; width:100%; background:rgba(234, 197, 94, 0.15); border:1px solid rgba(234, 179, 8, 0.3); padding:8px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:12px; color:var(--warning); cursor:pointer;" onclick="showTokenHelp()">
         <strong>⚠️ Temporary Session:</strong> This URL will expire on restart.
         <br><span style="text-decoration:underline; font-weight:600;">Tap here to configure a Permanent Domain</span>
     </div>
@@ -286,6 +291,38 @@
                     </div>
                     <div style="font-size:10px; margin-top:4px; text-align:right;">(Click to copy)</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPDATE HELP MODAL -->
+    <div id="update-modal" class="modal-overlay" onclick="if(event.target===this) toggleUpdateHelp(false)">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <span class="modal-title">Update Available</span>
+                <button class="modal-close" onclick="toggleUpdateHelp(false)">×</button>
+            </div>
+            <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
+                <p style="margin-top:0">A new version of ClawBridge is ready.</p>
+                
+                <div style="margin-bottom:15px;">
+                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask Agent</div>
+                    <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; font-family:monospace; font-size:11px; border:1px solid var(--border); user-select:all;">
+                        "Update ClawBridge to the latest version."
+                    </div>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal</div>
+                    <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; font-family:monospace; font-size:11px; word-break:break-all; border:1px solid var(--border); cursor:pointer;" onclick="navigator.clipboard.writeText(this.innerText); alert('Copied!')">
+                        curl -sL https://clawbridge.app/install.sh | bash
+                    </div>
+                    <div style="font-size:10px; margin-top:4px; text-align:right;">(Click to copy)</div>
+                </div>
+
+                <button class="btn" style="background:rgba(255,255,255,0.1); color:var(--text-dim); font-size:12px; padding:10px;" onclick="skipVersion()">
+                    Skip this version
+                </button>
             </div>
         </div>
     </div>
@@ -1096,6 +1133,7 @@
 
         fetchHistory();
         fetchStatus();
+        checkUpdate(); // Check on load
         
         setInterval(fetchStatus, 5000); 
 
@@ -1133,6 +1171,43 @@
             const modal = document.getElementById('token-modal');
             if(show) modal.classList.add('active');
             else modal.classList.remove('active');
+        }
+
+        function toggleUpdateHelp(show) {
+            const modal = document.getElementById('update-modal');
+            if(show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        }
+
+        function showUpdateHelp() { toggleUpdateHelp(true); }
+
+        function skipVersion() {
+            const ver = document.getElementById('update-ver').innerText;
+            localStorage.setItem('clawbridge_skip_version', ver);
+            toggleUpdateHelp(false);
+            document.getElementById('update-alert').style.display = 'none';
+        }
+
+        async function checkUpdate() {
+            try {
+                // Get Local Version
+                const statusRes = await fetchAuth(API + '/status');
+                const statusData = await statusRes.json();
+                const currentVer = statusData.versions?.dashboard || '0.0.0';
+
+                // Get Remote Version (via Backend Proxy)
+                const checkRes = await fetchAuth(API + '/check_update');
+                const remoteData = await checkRes.json();
+                const remoteVer = remoteData.version;
+
+                if (remoteVer && remoteVer !== currentVer && remoteVer > currentVer) {
+                    // Check skipped
+                    if (localStorage.getItem('clawbridge_skip_version') === remoteVer) return;
+                    
+                    document.getElementById('update-ver').innerText = 'v' + remoteVer;
+                    document.getElementById('update-alert').style.display = 'block';
+                }
+            } catch(e) {}
         }
 
         async function saveToken() {
