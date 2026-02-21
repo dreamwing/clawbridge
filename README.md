@@ -37,7 +37,7 @@
 Run this one-liner on your OpenClaw server (Ubuntu/Debian):
 
 ```bash
-curl -sL https://raw.githubusercontent.com/dreamwing/clawbridge/master/setup.sh | bash
+curl -sL https://clawbridge.app/install.sh | bash
 ```
 
 That's it. The script will:

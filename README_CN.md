@@ -37,7 +37,7 @@
 在您的 OpenClaw 服务器（Ubuntu/Debian）上运行这行命令：
 
 ```bash
-curl -sL https://raw.githubusercontent.com/dreamwing/clawbridge/master/setup.sh | bash
+curl -sL https://clawbridge.app/install.sh | bash
 ```
 
 脚本会自动检测环境、生成安全密钥、并直接给出一个可访问的 URL。

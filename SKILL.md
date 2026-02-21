@@ -8,7 +8,7 @@
   <license>MIT</license>
   <tags>dashboard,monitoring,mobile,ui,control-panel,cost-tracking</tags>
   <install>
-    curl -sL https://raw.githubusercontent.com/dreamwing/clawbridge/master/setup.sh | bash
+    curl -sL https://clawbridge.app/install.sh | bash
   </install>
 </skill>
 
@@ -26,7 +26,7 @@ ClawBridge is a lightweight, mobile-first web interface for OpenClaw. It runs as
 ## Installation
 
 ```bash
-curl -sL https://raw.githubusercontent.com/dreamwing/clawbridge/master/setup.sh | bash
+curl -sL https://clawbridge.app/install.sh | bash
 ```
 
 See [README.md](https://github.com/dreamwing/clawbridge/blob/master/README.md) for full documentation.
