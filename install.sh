@@ -132,19 +132,37 @@ else
     EXTRACTED_DIR=$(find "$TMP_DIR" -maxdepth 1 -type d -name "clawbridge-*" | head -n 1)
 
     # 4. Data Migration (Hot-Swap)
-    if [ -d "$TARGET_DIR" ]; then
-        echo "♻️  Migrating configuration and data..."
-        [ -f "$TARGET_DIR/.env" ] && cp "$TARGET_DIR/.env" "$EXTRACTED_DIR/"
-        [ -d "$TARGET_DIR/data" ] && cp -r "$TARGET_DIR/data" "$EXTRACTED_DIR/"
-        [ -f "$TARGET_DIR/.quick_tunnel_url" ] && cp "$TARGET_DIR/.quick_tunnel_url" "$EXTRACTED_DIR/"
-        
-        rm -rf "$TARGET_DIR"
+    if [ "$TARGET_DIR" == "." ]; then
+        echo "♻️  Migrating configuration and data (In-Place)..."
+        # When running inside target, we must copy config TO temp dir first
+        # Because in step 5 we will overwrite current dir with temp dir content
+        # Wait, the previous logic copied FROM target TO temp. That is correct.
+        [ -f ".env" ] && cp ".env" "$EXTRACTED_DIR/"
+        [ -d "data" ] && cp -r "data" "$EXTRACTED_DIR/"
+        [ -f ".quick_tunnel_url" ] && cp ".quick_tunnel_url" "$EXTRACTED_DIR/"
     else
-        mkdir -p skills
+        if [ -d "$TARGET_DIR" ]; then
+            echo "♻️  Migrating configuration and data..."
+            [ -f "$TARGET_DIR/.env" ] && cp "$TARGET_DIR/.env" "$EXTRACTED_DIR/"
+            [ -d "$TARGET_DIR/data" ] && cp -r "$TARGET_DIR/data" "$EXTRACTED_DIR/"
+            [ -f "$TARGET_DIR/.quick_tunnel_url" ] && cp "$TARGET_DIR/.quick_tunnel_url" "$EXTRACTED_DIR/"
+            
+            rm -rf "$TARGET_DIR"
+        else
+            mkdir -p skills
+        fi
     fi
 
     # 5. Final Move
-    mv "$EXTRACTED_DIR" "$TARGET_DIR"
+    echo "🔄 Applying update..."
+    if [ "$TARGET_DIR" == "." ]; then
+        # Overwrite current dir with new content
+        cp -rf "$EXTRACTED_DIR"/* .
+        cp -rf "$EXTRACTED_DIR"/.[!.]* . 2>/dev/null || true
+    else
+        mv "$EXTRACTED_DIR" "$TARGET_DIR"
+    fi
+    
     rm -rf "$TMP_DIR"
     echo "✅ Code updated to $VER_STRING"
     NEEDS_BUILD=true
