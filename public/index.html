@@ -54,6 +54,19 @@
         .modal-title { font-weight: 700; font-size: 16px; }
         .modal-close { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; padding: 5px; }
         
+        /* Alert Box Styles */
+        .alert-box {
+            width: 100%; 
+            max-width: 480px; 
+            padding: 8px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            text-align: center; 
+            font-size: 12px; 
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        
         /* Legend Grid */
         .legend-grid { display: grid; gap: 12px; }
         .legend-item { display: flex; align-items: flex-start; gap: 12px; }
@@ -220,12 +233,12 @@
         ClawBridge
     </h1>
 
-    <div id="update-alert" style="display:none; width:100%; background:rgba(34, 197, 94, 0.15); border:1px solid rgba(34, 197, 94, 0.3); padding:8px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:12px; color:var(--success); cursor:pointer;" onclick="showUpdateHelp()">
+    <div id="update-alert" class="alert-box" style="display:none; background:rgba(34, 197, 94, 0.15); border:1px solid rgba(34, 197, 94, 0.3); color:var(--success);" onclick="showUpdateHelp()">
         ✨ <strong>New Version Available:</strong> <span id="update-ver">v1.1.0</span>
         <br><span style="text-decoration:underline; font-weight:600;">Tap here to Update</span>
     </div>
 
-    <div id="quick-tunnel-alert" style="display:none; width:100%; background:rgba(234, 197, 94, 0.15); border:1px solid rgba(234, 179, 8, 0.3); padding:8px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:12px; color:var(--warning); cursor:pointer;" onclick="showTokenHelp()">
+    <div id="quick-tunnel-alert" class="alert-box" style="display:none; background:rgba(234, 197, 94, 0.15); border:1px solid rgba(234, 179, 8, 0.3); color:var(--warning);" onclick="showTokenHelp()">
         <strong>⚠️ Temporary Session:</strong> This URL will expire on restart.
         <br><span style="text-decoration:underline; font-weight:600;">Tap here to configure a Permanent Domain</span>
     </div>
