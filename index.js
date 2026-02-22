@@ -514,18 +514,28 @@ app.post('/api/gateway/restart', (req, res) => {
 });
 
 app.get('/api/cron', (req, res) => {
+    // 1. FAST PATH: Read state file directly (ms)
+    // This avoids spawning a heavy node process for 'openclaw cron list'
+    try {
+        const v2Path = path.join(STATE_DIR, 'cron/jobs.json');
+        // Legacy fallback
+        const legacyPath = path.join(HOME_DIR, '.clawdbot/cron/jobs.json');
+        
+        let target = fs.existsSync(v2Path) ? v2Path : (fs.existsSync(legacyPath) ? legacyPath : null);
+        
+        if (target) {
+             const fileData = fs.readFileSync(target, 'utf8');
+             const json = JSON.parse(fileData);
+             // If we have valid jobs data, return it immediately
+             if (json.jobs) return res.json(json.jobs);
+        }
+    } catch(e) { 
+        // Silent fail, fallthrough to CLI
+    }
+
+    // 2. SLOW PATH: CLI Fallback (Authoritative but heavy)
     const cmd = `${getOpenClawCommand()} cron list --json`;
     exec(cmd, { maxBuffer: 1024 * 1024 * 5 }, (err, stdout, stderr) => {
-        if (err) {
-            try {
-                const v2Path = path.join(STATE_DIR, 'cron/jobs.json');
-                let fileData;
-                if (fs.existsSync(v2Path)) fileData = fs.readFileSync(v2Path, 'utf8');
-                else fileData = fs.readFileSync(path.join(HOME_DIR, '.clawdbot/cron/jobs.json'), 'utf8');
-                const json = JSON.parse(fileData);
-                return res.json(json.jobs || []);
-            } catch(e) { return res.json([]); }
-        }
         try {
             const data = JSON.parse(stdout);
             if (data.jobs) return res.json(data.jobs);
