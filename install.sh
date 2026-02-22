@@ -41,7 +41,7 @@ if [ "$INSTALL_MODE" == "git" ]; then
         git stash >/dev/null 2>&1 || true
         
         echo "⬇️  Fetching updates..."
-        git fetch --all --tags --prune
+        git fetch --all --tags --force --prune
         
         # Find latest tag
         LATEST_TAG=$(git tag -l "v*" | sort -V | tail -n1)
