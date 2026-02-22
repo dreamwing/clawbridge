@@ -1,6 +1,6 @@
 {
   "name": "clawbridge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Local Agent Dashboard with Zero-Config Cloudflare Tunnel for Mobile Control",
   "main": "index.js",
   "scripts": {
