@@ -21,16 +21,26 @@ const TUNNEL_TOKEN = process.env.TUNNEL_TOKEN;
 const HOME_DIR = os.homedir();
 const STATE_DIR = process.env.OPENCLAW_STATE_DIR || path.join(HOME_DIR, '.openclaw');
 
+const CACHE_TTL_MS = 60000; // 60s cache
+let memoryCache = { data: null, ts: 0 };
+let workspaceCache = null;
+
 // Dynamic Path Resolution
 function findWorkspace() {
     // 1. Explicit env var (Highest priority)
     if (process.env.OPENCLAW_WORKSPACE) return process.env.OPENCLAW_WORKSPACE;
 
-    // 2. Relative path (Default installation structure: .../openclaw/skills/clawbridge)
-    const relative = path.resolve(__dirname, '../../');
-    if (fs.existsSync(path.join(relative, 'memory'))) return relative;
+    // 2. Return cached
+    if (workspaceCache) return workspaceCache;
 
-    // 3. Common path probing (For standalone/sandbox installs)
+    // 3. Relative path (Default installation structure: .../openclaw/skills/clawbridge)
+    const relative = path.resolve(__dirname, '../../');
+    if (fs.existsSync(path.join(relative, 'memory'))) {
+        workspaceCache = relative;
+        return relative;
+    }
+
+    // 4. Common path probing (For standalone/sandbox installs)
     const candidates = [
         '/root/clawd',
         path.join(HOME_DIR, 'clawd'), // Legacy clawdbot/clawd path
@@ -41,11 +51,13 @@ function findWorkspace() {
     for (const p of candidates) {
         if (fs.existsSync(path.join(p, 'memory'))) {
             console.log(`[Init] Probed workspace found: ${p}`);
+            workspaceCache = p;
             return p;
         }
     }
 
-    // 4. Fallback
+    // 5. Fallback
+    workspaceCache = relative;
     return relative;
 }
 
@@ -549,12 +561,24 @@ app.get('/api/memory', (req, res) => {
     if (req.query.list === 'true') {
         const memoryDir = path.join(WORKSPACE_DIR, 'memory');
         if (!fs.existsSync(memoryDir)) return res.json([]);
+        
+        // Cache Check
+        if (memoryCache.data && (Date.now() - memoryCache.ts < CACHE_TTL_MS)) {
+            return res.json(memoryCache.data);
+        }
+
         try {
             const files = fs.readdirSync(memoryDir)
                 .filter(f => f.match(/^\d{4}-\d{2}-\d{2}\.md$/))
                 .sort().reverse()
                 .slice(0, 30); // Limit to last 30 days 
-            return res.json(files.map(f => f.replace('.md', '')));
+            
+            const list = files.map(f => f.replace('.md', ''));
+            
+            // Update Cache
+            memoryCache = { data: list, ts: Date.now() };
+            
+            return res.json(list);
         } catch(e) { return res.json([]); }
     }
 
