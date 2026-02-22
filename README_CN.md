@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/app-icon.png" width="120" alt="ClawBridge Logo" />
   <h1>ClawBridge Dashboard</h1>
-  <p><strong>OpenClaw Agent 的移动端控制台。</strong></p>
+  <p><strong>OpenClaw 的移动端控制台 (Mobile Dashboard) 与任务中心 (Mission Control)。</strong></p>
 
   <a href="https://clawbridge.app">
     <img src="https://img.shields.io/badge/官网-clawbridge.app-3b82f6?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Website" />
@@ -19,15 +19,16 @@
 
 ---
 
-**ClawBridge** 将您的 OpenClaw Agent 变成一个随身携带的伙伴。无论身在何处，您都可以通过手机实时查看 Agent 的思考过程、追踪 Token 消耗、管理后台任务。
+**ClawBridge** 是专为 OpenClaw Agent 打造的 **Mobile Dashboard**（移动端仪表盘）。它不仅是您的随身 **Mission Control**（任务控制台），还能让您通过手机实时监控 Agent 的思考过程、追踪 Token 成本、管理后台 Cron 任务。
 
 ## ✨ 核心功能
 
+*   **📱 移动端优先**: 专为手机屏幕优化的 UI，随时随地查看日志和状态，无需缩放。
 *   **🧠 实时动态 (Live Activity)**: 像看朋友圈一样查看 Agent 的“思考”和“工具调用”。支持并行日志捕获（不会漏掉后台脚本）和智能去重。
 *   **💰 Token 经济学**: 精确追踪每日/每月的 LLM 成本和 Token 用量趋势。拒绝账单刺客。
 *   **📜 记忆时间轴**: 浏览 Agent 的每日日志和长期记忆演变。
-*   **🚀 任务控制台**: 查看 Cron 定时任务状态，并支持从手机端手动触发脚本。
-*   **⚡ 零门槛安装**: 
+*   **🚀 任务控制台**: 查看 Cron 定时任务状态，并支持从手机端手动触发脚本、重启服务或终止进程。
+*   **⚡ 零门槛远程**: 
     *   **自动端口**: 3000 被占用？自动切换到 3001。
     *   **智能网络**: 自动检测 **Tailscale/WireGuard**，优先使用内网穿透，安全第一。
     *   **快速通道**: 如果没有 VPN，自动通过 Cloudflare 生成临时公网链接，开箱即用。

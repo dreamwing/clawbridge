@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/app-icon.png" width="120" alt="ClawBridge Logo" />
   <h1>ClawBridge Dashboard</h1>
-  <p><strong>Mobile-First Mission Control for OpenClaw Agents.</strong></p>
+  <p><strong>The OpenClaw Mobile Dashboard & Mission Control.</strong></p>
 
   <a href="https://clawbridge.app">
     <img src="https://img.shields.io/badge/Website-clawbridge.app-3b82f6?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Website" />
@@ -19,15 +19,16 @@
 
 ---
 
-**ClawBridge** turns your OpenClaw agent into a pocket-sized companion. Monitor real-time thoughts, track token costs, and manage missions from anywhere—securely and instantly.
+**ClawBridge** is the definitive **Mobile Dashboard** for OpenClaw agents. It serves as your pocket-sized **Mission Control**—monitor real-time thoughts, track token costs, and manage background tasks from anywhere, securely and instantly.
 
 ## ✨ Key Features
 
+*   **📱 Mobile-First Dashboard**: Optimized for phone screens. View logs, stats, and controls without squinting.
 *   **🧠 Live Activity Feed**: Watch your agent "think" and execute tools in real-time. Features intelligent parallel logging (no missed background tasks) and deduplication.
 *   **💰 Token Economy**: Track daily/monthly LLM costs and usage trends. Know exactly where your money goes.
-*   **📜 Memory Timeline**: Browse your agent's daily logs and long-term memory evolution.
-*   **🚀 Mission Control**: View status of Cron jobs and manually trigger scripts from your phone.
-*   **⚡ Zero-Friction Install**: 
+*   **📜 Memory Timeline**: Browse your agent's daily journals and long-term memory evolution.
+*   **🚀 Mission Control**: Trigger cron jobs, restart services, or kill runaway scripts directly from the UI.
+*   **⚡ Zero-Config Remote**: 
     *   **Auto-Port**: Automatically finds an available port if 3000 is busy.
     *   **Smart Networking**: Auto-detects **Tailscale/WireGuard** for direct secure access.
     *   **Quick Tunnel**: If no VPN is found, auto-generates a temporary public URL via Cloudflare (Zero Config).
