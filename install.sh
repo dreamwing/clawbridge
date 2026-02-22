@@ -8,7 +8,14 @@ set -e
 echo "🌊 ClawBridge Installer"
 echo "-----------------------"
 
-TARGET_DIR="skills/clawbridge"
+# Detect if running from inside the installation directory
+if [ "$(basename "$PWD")" == "clawbridge" ] && [ "$(basename "$(dirname "$PWD")")" == "skills" ]; then
+    TARGET_DIR="."
+    echo "📂 Detected execution from inside installation directory."
+else
+    TARGET_DIR="skills/clawbridge"
+fi
+
 NEEDS_BUILD=true
 BACKUP_MSG=""
 
