@@ -51,6 +51,9 @@ SERVICE_NAME=${CLAW_SERVICE_NAME:-clawbridge}
 
 # Stop existing service if it exists (Safe stop)
 systemctl --user stop "$SERVICE_NAME" >/dev/null 2>&1 || true
+if command -v systemctl &> /dev/null; then
+    systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
+fi
 
 # 2. Install Dependencies
 echo "📦 Installing dependencies..."
