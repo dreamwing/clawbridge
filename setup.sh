@@ -46,8 +46,11 @@ fi
 APP_DIR=$(pwd)
 echo -e "${GREEN}📂 Installing in: $APP_DIR${NC}"
 
+# Allow custom service name via env var (for testing/parallel installs)
+SERVICE_NAME=${CLAW_SERVICE_NAME:-clawbridge}
+
 # Stop existing service if it exists (Safe stop)
-systemctl --user stop clawbridge >/dev/null 2>&1 || true
+systemctl --user stop "$SERVICE_NAME" >/dev/null 2>&1 || true
 
 # 2. Install Dependencies
 echo "📦 Installing dependencies..."
@@ -108,7 +111,7 @@ else
 fi
 
 # 4. Setup Systemd (Root required for system-wide, but let's try user first)
-SERVICE_FILE="$HOME/.config/systemd/user/clawbridge.service"
+SERVICE_FILE="$HOME/.config/systemd/user/${SERVICE_NAME}.service"
 USE_USER_SYSTEMD=true
 
 if [ ! -d "$HOME/.config/systemd/user" ]; then
@@ -119,14 +122,14 @@ fi
 if ! systemctl --user list-units >/dev/null 2>&1; then
     echo -e "${YELLOW}⚠️  User-level systemd not available. Generating standard systemd file...${NC}"
     USE_USER_SYSTEMD=false
-    SERVICE_FILE="/tmp/clawbridge.service"
+    SERVICE_FILE="/tmp/${SERVICE_NAME}.service"
 fi
 
 NODE_PATH=$(which node)
 
 cat > "$SERVICE_FILE" <<EOF
 [Unit]
-Description=ClawBridge Dashboard
+Description=ClawBridge Dashboard (${SERVICE_NAME})
 After=network.target
 
 [Service]
@@ -144,17 +147,17 @@ EOF
 echo "📝 Service file created at: $SERVICE_FILE"
 
 if [ "$USE_USER_SYSTEMD" = true ]; then
-    echo "🚀 Enabling User Service..."
+    echo "🚀 Enabling User Service ($SERVICE_NAME)..."
     systemctl --user daemon-reload
-    systemctl --user enable clawbridge
-    systemctl --user restart clawbridge
+    systemctl --user enable "$SERVICE_NAME"
+    systemctl --user restart "$SERVICE_NAME"
     echo -e "${GREEN}✅ Service started!${NC}"
 else
     echo -e "${YELLOW}👉 Please run the following command with sudo to install the service:${NC}"
-    echo "sudo mv $SERVICE_FILE /etc/systemd/system/clawbridge.service"
+    echo "sudo mv $SERVICE_FILE /etc/systemd/system/${SERVICE_NAME}.service"
     echo "sudo systemctl daemon-reload"
-    echo "sudo systemctl enable clawbridge"
-    echo "sudo systemctl start clawbridge"
+    echo "sudo systemctl enable ${SERVICE_NAME}"
+    echo "sudo systemctl start ${SERVICE_NAME}"
 fi
 
 # 5. Remote Access (Cloudflare Tunnel)
@@ -268,7 +271,7 @@ if [[ "$ENABLE_TUNNEL" =~ ^[Yy]$ ]] || [ "$USE_VPN" = true ]; then
     if [ "$USE_USER_SYSTEMD" = true ]; then
         # Ensure we don't have a zombie process holding the port
         pkill -f "node index.js" || true
-        systemctl --user restart clawbridge
+        systemctl --user restart "$SERVICE_NAME"
     fi
 fi
 
@@ -303,7 +306,7 @@ if [ "$QUICK_TUNNEL" = true ] || [ -z "$CF_TOKEN" ]; then
         done
         
         if [ ! -f "$APP_DIR/.quick_tunnel_url" ]; then
-            echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: journalctl --user -u clawbridge -f${NC}"
+            echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: journalctl --user -u ${SERVICE_NAME} -f${NC}"
         fi
     fi
 fi
@@ -313,4 +316,3 @@ echo -e "\n📊 Initializing data analytics..."
 "$NODE_PATH" "$APP_DIR/scripts/analyze.js" >/dev/null 2>&1 || true
 
 echo -e "🔑 Secret Key: $RAND_KEY"
-
