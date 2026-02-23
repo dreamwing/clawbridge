@@ -34,73 +34,81 @@ let COST_MAP = {
 if (fs.existsSync(PRICING_FILE)) {
     try {
         COST_MAP = { ...COST_MAP, ...JSON.parse(fs.readFileSync(PRICING_FILE, 'utf8')) };
-    } catch(e) {}
+    } catch (e) { }
 }
 
 function calcCost(model, input, output, cacheRead = 0) {
     const key = Object.keys(COST_MAP).find(k => model && model.includes(k)) || 'default';
     const rate = COST_MAP[key];
-    
-    // Add cacheRead if available (Gemini specific, usually 50% or 25% of input cost)
-    const cacheRate = rate.cacheRead || (rate.input * 0.25); 
 
-    return (input / 1000000 * rate.input) + 
-           (output / 1000000 * rate.output) + 
-           (cacheRead / 1000000 * cacheRate);
+    // Add cacheRead if available (Gemini specific, usually 50% or 25% of input cost)
+    const cacheRate = rate.cacheRead || (rate.input * 0.25);
+
+    return (input / 1000000 * rate.input) +
+        (output / 1000000 * rate.output) +
+        (cacheRead / 1000000 * cacheRate);
 }
 
-// Core Logic: Parse Single File
+// Core Logic: Parse Single File (Stream-based to avoid OOM on large files)
+// 🛡️ REPAIR (2026-02-24): Use SUM instead of MAX to fix undercounting
+// Also capture cacheRead for Gemini.
 function processFile(filePath) {
-    const content = fs.readFileSync(filePath, 'utf8');
-    const lines = content.trim().split('\n');
-    
-    let totalInput = 0;
-    let totalOutput = 0;
-    let totalCacheRead = 0;
-    let totalCost = 0;
-    let lastModel = 'unknown';
+    return new Promise((resolve, reject) => {
+        const readline = require('readline');
+        const stream = fs.createReadStream(filePath, { encoding: 'utf8' });
+        const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
 
-    // 🛡️ REPAIR (2026-02-24): Use SUM instead of MAX to fix undercounting
-    // Also capture cacheRead for Gemini.
-    lines.forEach(line => {
-        try {
-            const entry = JSON.parse(line);
-            if (entry.type !== 'message') return;
+        let totalInput = 0;
+        let totalOutput = 0;
+        let totalCacheRead = 0;
+        let totalCost = 0;
+        let lastModel = 'unknown';
 
-            const usage = entry.usage || (entry.message && entry.message.usage);
-            if (usage) {
-                // If it's a message event, we sum the usage of this specific turn
-                totalInput += (usage.input || usage.inputTokens || 0);
-                totalOutput += (usage.output || usage.outputTokens || 0);
-                totalCacheRead += (usage.cacheRead || 0);
+        rl.on('line', (line) => {
+            try {
+                const entry = JSON.parse(line);
+                if (entry.type !== 'message') return;
 
-                if (usage.cost && typeof usage.cost.total === 'number') {
-                    totalCost += usage.cost.total;
+                const usage = entry.usage || (entry.message && entry.message.usage);
+                if (usage) {
+                    totalInput += (usage.input || usage.inputTokens || 0);
+                    totalOutput += (usage.output || usage.outputTokens || 0);
+                    totalCacheRead += (usage.cacheRead || 0);
+
+                    if (usage.cost && typeof usage.cost.total === 'number') {
+                        totalCost += usage.cost.total;
+                    }
                 }
+
+                const m = entry.model || (entry.message && entry.message.model);
+                if (m) lastModel = m;
+            } catch (e) { }
+        });
+
+        rl.on('close', () => {
+            // If internal cost tracking is missing, fallback to pricing map
+            if (totalCost === 0 && (totalInput > 0 || totalOutput > 0)) {
+                totalCost = calcCost(lastModel, totalInput, totalOutput, totalCacheRead);
             }
-            
-            const m = entry.model || (entry.message && entry.message.model);
-            if (m) lastModel = m;
-        } catch(e) {}
+
+            resolve({
+                input: totalInput,
+                output: totalOutput,
+                cacheRead: totalCacheRead,
+                cost: totalCost,
+                model: lastModel
+            });
+        });
+
+        rl.on('error', (err) => {
+            reject(err);
+        });
     });
-
-    // If internal cost tracking is missing, fallback to pricing map
-    if (totalCost === 0 && (totalInput > 0 || totalOutput > 0)) {
-        totalCost = calcCost(lastModel, totalInput, totalOutput, totalCacheRead);
-    }
-
-    return {
-        input: totalInput,
-        output: totalOutput,
-        cacheRead: totalCacheRead,
-        cost: totalCost,
-        model: lastModel
-    };
 }
 
 async function analyze() {
     if (!fs.existsSync(HISTORY_DIR)) {
-        const emptyData = { updatedAt: new Date().toISOString(), today: {}, total: {cost:0}, history: {} };
+        const emptyData = { updatedAt: new Date().toISOString(), today: {}, total: { cost: 0 }, history: {} };
         if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
         fs.writeFileSync(OUTPUT_FILE, JSON.stringify(emptyData));
         return;
@@ -111,15 +119,15 @@ async function analyze() {
         if (fs.existsSync(CACHE_FILE)) {
             cache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
         }
-    } catch(e) {}
+    } catch (e) { }
 
     const files = fs.readdirSync(HISTORY_DIR).filter(f => f.endsWith('.jsonl'));
-    const newCache = {}; 
-    
-    const history = {}; 
+    const newCache = {};
+
+    const history = {};
     const grandTotal = { input: 0, output: 0, cost: 0, models: {} };
 
-    files.forEach(file => {
+    for (const file of files) {
         try {
             const filePath = path.join(HISTORY_DIR, file);
             const stat = fs.statSync(filePath);
@@ -130,7 +138,8 @@ async function analyze() {
             if (cache[file] && cache[file].mtime === mtime) {
                 stats = cache[file].stats;
             } else {
-                stats = processFile(filePath);
+                // Cache Miss - Reprocess (async stream-based)
+                stats = await processFile(filePath);
             }
 
             newCache[file] = { mtime, stats };
@@ -153,8 +162,8 @@ async function analyze() {
                 grandTotal.models[m].output += stats.output;
                 grandTotal.models[m].cost += stats.cost;
             }
-        } catch (e) {}
-    });
+        } catch (e) { }
+    }
 
     const todayStr = getLocalDate();
     const todayUsage = history[todayStr] || { input: 0, output: 0, cost: 0 };

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -19,9 +20,10 @@
             --danger: #ef4444;
             --success: #22c55e;
             --warning: #eab308;
-            --border: rgba(255,255,255,0.05);
+            --border: rgba(255, 255, 255, 0.05);
             --nav-height: 60px;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
@@ -35,57 +37,134 @@
             min-height: 100vh;
             box-sizing: border-box;
         }
-        
+
         /* Modal Styles */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
-            z-index: 2000; display: none; opacity: 0; transition: opacity 0.2s;
-            align-items: center; justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            align-items: center;
+            justify-content: center;
         }
-        .modal-overlay.active { display: flex; opacity: 1; }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
         .modal-content {
-            background: var(--card); border: 1px solid var(--border);
-            width: 90%; max-width: 320px; border-radius: 16px; padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.2s;
+            background: var(--card);
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 320px;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            transform: scale(0.95);
+            transition: transform 0.2s;
         }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .modal-title { font-weight: 700; font-size: 16px; }
-        .modal-close { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; padding: 5px; }
-        
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
         /* Alert Box Styles */
         .alert-box {
-            width: 100%; 
-            max-width: 480px; 
-            padding: 8px; 
-            border-radius: 8px; 
-            margin-bottom: 15px; 
-            text-align: center; 
-            font-size: 12px; 
+            width: 100%;
+            max-width: 480px;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 12px;
             cursor: pointer;
             box-sizing: border-box;
         }
-        
+
         /* Legend Grid */
-        .legend-grid { display: grid; gap: 12px; }
-        .legend-item { display: flex; align-items: flex-start; gap: 12px; }
-        .legend-icon { font-size: 18px; width: 24px; text-align: center; }
-        .legend-text strong { display: block; font-size: 13px; margin-bottom: 2px; }
-        .legend-text span { font-size: 11px; color: var(--text-dim); line-height: 1.3; display: block; }
+        .legend-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .legend-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .legend-text strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .legend-text span {
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.3;
+            display: block;
+        }
 
         /* App Logo Status */
         #app-logo {
-            width: 32px; 
-            height: 32px; 
-            border-radius: 8px; 
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             margin-right: 12px;
-            border: 2px solid transparent; /* Status Border */
+            border: 2px solid transparent;
+            /* Status Border */
             transition: all 0.3s;
         }
-        #app-logo.status-active { border-color: var(--success); box-shadow: 0 0 10px rgba(34, 197, 94, 0.3); }
-        #app-logo.status-busy { border-color: var(--warning); box-shadow: 0 0 10px rgba(234, 179, 8, 0.3); }
-        #app-logo.status-error { border-color: var(--danger); }
+
+        #app-logo.status-active {
+            border-color: var(--success);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+        }
+
+        #app-logo.status-busy {
+            border-color: var(--warning);
+            box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
+        }
+
+        #app-logo.status-error {
+            border-color: var(--danger);
+        }
 
         /* View Containers */
         .view-container {
@@ -94,27 +173,49 @@
             display: none;
             animation: fadeIn 0.2s ease-out;
         }
-        
+
         /* Adaptive Home View */
         #view-home.active {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - var(--nav-height) - 100px); /* Fill screen minus header/nav */
+            height: calc(100vh - var(--nav-height) - 100px);
+            /* Fill screen minus header/nav */
         }
+
         #view-home .card {
             flex: 1;
             display: flex;
             flex-direction: column;
             margin-bottom: 0;
         }
-        
-        /* Normal Views */
-        .view-container.active:not(#view-home) { display: block; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        h1 { margin: 0 0 15px 0; font-weight: 800; letter-spacing: -0.5px; font-size: 24px; display: flex; align-items: center; flex-shrink: 0;}
-        
+        /* Normal Views */
+        .view-container.active:not(#view-home) {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            margin: 0 0 15px 0;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
         .card {
             background: var(--card);
             border-radius: 16px;
@@ -127,108 +228,357 @@
         }
 
         .status-dot {
-            width: 10px; height: 10px; border-radius: 50%; background: var(--text-dim);
-            display: inline-block; margin-right: 10px;
-            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            display: inline-block;
+            margin-right: 10px;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
         }
-        .status-dot.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
-        .status-dot.busy { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
-        .status-dot.error { background: var(--danger); }
 
-        .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; flex-shrink: 0;}
-        .metric-box { 
-            background: rgba(0,0,0,0.2); padding: 15px 5px; border-radius: 12px; text-align: center; border: 1px solid var(--border);
+        .status-dot.active {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
         }
-        .metric-val { font-size: 24px; font-weight: 700; line-height: 1.2; }
-        .metric-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
+
+        .status-dot.busy {
+            background: var(--warning);
+            box-shadow: 0 0 8px var(--warning);
+        }
+
+        .status-dot.error {
+            background: var(--danger);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 15px;
+            flex-shrink: 0;
+        }
+
+        .metric-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px 5px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .metric-val {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
 
         /* Adaptive Feed */
         .feed-wrapper {
             margin-top: 20px;
-            flex: 1; /* Grow to fill space */
+            flex: 1;
+            /* Grow to fill space */
             display: flex;
             flex-direction: column;
-            min-height: 0; /* Required for nested flex scroll */
+            min-height: 0;
+            /* Required for nested flex scroll */
         }
-        
+
         #activity-feed {
-            flex: 1; /* Grow inside wrapper */
-            background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; 
-            padding: 10px; overflow-y: auto; font-family: monospace; font-size: 12px; display: block; scroll-behavior: smooth;
-            height: auto; /* Override fixed height */
+            flex: 1;
+            /* Grow inside wrapper */
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            display: block;
+            scroll-behavior: smooth;
+            height: auto;
+            /* Override fixed height */
         }
 
         /* Token Chart */
-        #trend-chart div { transition: height 0.3s; cursor: pointer; }
-        #trend-chart div:hover { opacity: 1 !important; transform: scaleY(1.05); }
-        #trend-labels div { flex: 1; text-align: center; }
+        #trend-chart div {
+            transition: height 0.3s;
+            cursor: pointer;
+        }
+
+        #trend-chart div:hover {
+            opacity: 1 !important;
+            transform: scaleY(1.05);
+        }
+
+        #trend-labels div {
+            flex: 1;
+            text-align: center;
+        }
 
         .btn {
-            border: none; padding: 14px; font-size: 14px; font-weight: 600; border-radius: 8px;
-            cursor: pointer; transition: all 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+            border: none;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
         }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
-        .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
-        .btn-restart { background: rgba(59, 130, 246, 0.15); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.3); }
 
-        .job-list { display: flex; flex-direction: column; gap: 8px; }
-        .job-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 14px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid var(--border);
+        .btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
         }
-        .job-info { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
-        .job-name { font-size: 14px; font-weight: 600; color: var(--text); }
-        .job-meta { font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;}
-        .job-sched { font-family: monospace; background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 3px; color: #a5b4fc; }
-        .job-next { color: var(--accent); font-weight: 500; }
-        
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
-        .badge.ok { background: rgba(34, 197, 94, 0.15); color: var(--success); }
-        .badge.fail { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
-        .badge.pending { background: rgba(148, 163, 184, 0.15); color: var(--text-dim); }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-restart {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .job-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .job-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .job-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .job-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .job-meta {
+            font-size: 11px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .job-sched {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1px 4px;
+            border-radius: 3px;
+            color: #a5b4fc;
+        }
+
+        .job-next {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge.ok {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+        }
+
+        .badge.fail {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .badge.pending {
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--text-dim);
+        }
 
         .run-icon {
-            background: var(--accent); width: 32px; height: 32px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            border: none; cursor: pointer; color: white; font-size: 16px; margin-left: 10px; flex-shrink: 0;
+            background: var(--accent);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 16px;
+            margin-left: 10px;
+            flex-shrink: 0;
         }
-        
+
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 64px;
-            background: #0f172a; border-top: 1px solid #1e293b;
-            display: flex; justify-content: space-around; align-items: center; z-index: 1000; padding: 0 8px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 64px;
+            background: #0f172a;
+            border-top: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            padding: 0 8px;
             padding-bottom: env(safe-area-inset-bottom);
         }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-            color: #475569; font-size: 9px; font-weight: 500; text-decoration: none;
-            width: 48px; transition: color 0.2s; cursor: pointer;
-        }
-        .nav-item:hover { color: #94a3b8; }
-        .nav-item.active { color: var(--accent); }
-        .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
-        .nav-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; transition: stroke-width 0.2s; }
-        .nav-item.active .nav-icon svg { stroke-width: 2.5; }
 
-        .refresh-btn { background: none; border: none; color: var(--accent); font-size: 20px; cursor: pointer; padding: 0; }
-        .skeleton { height: 40px; background: rgba(255,255,255,0.05); border-radius: 8px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 0.8; } 100% { opacity: 0.5; } }
-        
-        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px;}
-        .info-row:last-child { border-bottom: none; }
-        .info-label { color: var(--text-dim); }
-        .info-val { font-family: monospace; }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #475569;
+            font-size: 9px;
+            font-weight: 500;
+            text-decoration: none;
+            width: 48px;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            color: #94a3b8;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            transition: stroke-width 0.2s;
+        }
+
+        .nav-item.active .nav-icon svg {
+            stroke-width: 2.5;
+        }
+
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .skeleton {
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-dim);
+        }
+
+        .info-val {
+            font-family: monospace;
+        }
 
         .copy-box {
-            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; 
-            border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             transition: background 0.2s;
         }
-        .copy-box:active { background: rgba(255,255,255,0.05); }
-        .copy-icon { font-size: 14px; opacity: 0.7; }
 
+        .copy-box:active {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .copy-icon {
+            font-size: 14px;
+            opacity: 0.7;
+        }
     </style>
 </head>
+
 <body>
 
     <h1>
@@ -237,12 +587,16 @@
         ClawBridge
     </h1>
 
-    <div id="update-alert" class="alert-box" style="display:none; background:rgba(34, 197, 94, 0.15); border:1px solid rgba(34, 197, 94, 0.3); color:var(--success);" onclick="showUpdateHelp()">
+    <div id="update-alert" class="alert-box"
+        style="display:none; background:rgba(34, 197, 94, 0.15); border:1px solid rgba(34, 197, 94, 0.3); color:var(--success);"
+        onclick="showUpdateHelp()">
         ✨ <strong>New Version Available:</strong> <span id="update-ver">v1.1.0</span>
         <br><span style="text-decoration:underline; font-weight:600;">Tap here to Update</span>
     </div>
 
-    <div id="quick-tunnel-alert" class="alert-box" style="display:none; background:rgba(234, 197, 94, 0.15); border:1px solid rgba(234, 179, 8, 0.3); color:var(--warning);" onclick="showTokenHelp()">
+    <div id="quick-tunnel-alert" class="alert-box"
+        style="display:none; background:rgba(234, 197, 94, 0.15); border:1px solid rgba(234, 179, 8, 0.3); color:var(--warning);"
+        onclick="showTokenHelp()">
         <strong>⚠️ Temporary Session:</strong> This URL will expire on restart.
         <br><span style="text-decoration:underline; font-weight:600;">Tap here to configure a Permanent Domain</span>
     </div>
@@ -257,1018 +611,1082 @@
             <div class="legend-grid">
                 <div class="legend-item">
                     <span class="legend-icon">🔧</span>
-                    <div class="legend-text"><strong style="color:#fbbf24">Tool Call</strong><span>External actions (search, exec, write)</span></div>
+                    <div class="legend-text"><strong style="color:#fbbf24">Tool Call</strong><span>External actions
+                            (search, exec, write)</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">🧠</span>
-                    <div class="legend-text"><strong style="color:#60a5fa">Thinking</strong><span>AI reasoning & planning process</span></div>
+                    <div class="legend-text"><strong style="color:#60a5fa">Thinking</strong><span>AI reasoning &
+                            planning process</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">📜</span>
-                    <div class="legend-text"><strong style="color:#c084fc">Script</strong><span>Background automation (Cron jobs)</span></div>
+                    <div class="legend-text"><strong style="color:#c084fc">Script</strong><span>Background automation
+                            (Cron jobs)</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">📄</span>
-                    <div class="legend-text"><strong style="color:#4ade80">File IO</strong><span>Workspace file creation or updates</span></div>
+                    <div class="legend-text"><strong style="color:#4ade80">File IO</strong><span>Workspace file creation
+                            or updates</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">⚡</span>
-                    <div class="legend-text"><strong style="color:#f8fafc">System</strong><span>High CPU or resource alerts</span></div>
+                    <div class="legend-text"><strong style="color:#f8fafc">System</strong><span>High CPU or resource
+                            alerts</span></div>
                 </div>
-                <div style="margin-top:10px; font-size:10px; color:var(--text-dim); line-height:1.4; border-top:1px solid var(--border); padding-top:10px;">
-                    <strong>Note:</strong> Monitoring polls every 3 seconds to minimize CPU usage. Extremely short-lived scripts (<3s) may not be captured in real-time logs.
+                <div
+                    style="margin-top:10px; font-size:10px; color:var(--text-dim); line-height:1.4; border-top:1px solid var(--border); padding-top:10px;">
+                    <strong>Note:</strong> Monitoring polls every 3 seconds to minimize CPU usage. Extremely short-lived
+                    scripts (<3s) may not be captured in real-time logs. </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- TOKEN HELP MODAL -->
-    <div id="token-modal" class="modal-overlay" onclick="if(event.target===this) toggleTokenHelp(false)">
-        <div class="modal-content" style="max-width:400px;">
-            <div class="modal-header">
-                <span class="modal-title">Configure Permanent Link</span>
-                <button class="modal-close" onclick="toggleTokenHelp(false)">×</button>
-            </div>
-            <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
-                <p style="margin-top:0">To keep your URL fixed, you need a Cloudflare Tunnel Token.</p>
-                
-                <div style="margin-bottom:15px;">
-                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Where to find your Token?</div>
-                    <div style="font-size:12px; color:var(--text-dim); line-height:1.4;">
-                        1. Go to <a href="https://one.dash.cloudflare.com/" target="_blank" style="color:var(--accent)">Cloudflare Zero Trust</a> > Access > Tunnels.<br>
-                        2. Create a tunnel, choose "Docker" (easiest to copy) or your OS, and grab the token string (starts with <code style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">ey...</code>).
-                    </div>
+        <!-- TOKEN HELP MODAL -->
+        <div id="token-modal" class="modal-overlay" onclick="if(event.target===this) toggleTokenHelp(false)">
+            <div class="modal-content" style="max-width:400px;">
+                <div class="modal-header">
+                    <span class="modal-title">Configure Permanent Link</span>
+                    <button class="modal-close" onclick="toggleTokenHelp(false)">×</button>
                 </div>
+                <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
+                    <p style="margin-top:0">To keep your URL fixed, you need a Cloudflare Tunnel Token.</p>
 
-                <div style="margin-bottom:15px;">
-                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask your Agent (Chat)</div>
-                    <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">Send this message to OpenClaw:</div>
-                    <div class="copy-box" onclick="copyText(this, 'Run this command to fix my dashboard URL:\ncd skills/clawbridge && ./install.sh --token=YOUR_TOKEN')">
-                        <div style="flex:1; font-family:monospace; font-size:11px;">
-                            Run this command to fix my dashboard URL:<br>
-                            <span style="color:var(--accent)">cd skills/clawbridge && ./install.sh --token=YOUR_TOKEN</span>
+                    <div style="margin-bottom:15px;">
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Where to find your Token?
                         </div>
-                        <span class="copy-icon">📋</span>
-                    </div>
-                </div>
-
-                <div>
-                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal Command</div>
-                    <div class="copy-box" onclick="copyText(this, 'cd ~/skills/clawbridge && ./install.sh --token=YOUR_TOKEN')">
-                        <div style="flex:1; font-family:monospace; font-size:11px; word-break:break-all;">
-                            cd ~/skills/clawbridge && ./install.sh --token=<span style="color:var(--accent)">YOUR_TOKEN</span>
+                        <div style="font-size:12px; color:var(--text-dim); line-height:1.4;">
+                            1. Go to <a href="https://one.dash.cloudflare.com/" target="_blank"
+                                style="color:var(--accent)">Cloudflare Zero Trust</a> > Access > Tunnels.<br>
+                            2. Create a tunnel, choose "Docker" (easiest to copy) or your OS, and grab the token string
+                            (starts with <code
+                                style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">ey...</code>).
                         </div>
-                        <span class="copy-icon">📋</span>
+                    </div>
+
+                    <div style="margin-bottom:15px;">
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask your Agent
+                            (Chat)</div>
+                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">Send this message to
+                            OpenClaw:</div>
+                        <div class="copy-box"
+                            onclick="copyText(this, 'Run this command to fix my dashboard URL:\ncd skills/clawbridge && ./install.sh --token=YOUR_TOKEN')">
+                            <div style="flex:1; font-family:monospace; font-size:11px;">
+                                Run this command to fix my dashboard URL:<br>
+                                <span style="color:var(--accent)">cd skills/clawbridge && ./install.sh
+                                    --token=YOUR_TOKEN</span>
+                            </div>
+                            <span class="copy-icon">📋</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal Command
+                        </div>
+                        <div class="copy-box"
+                            onclick="copyText(this, 'cd ~/skills/clawbridge && ./install.sh --token=YOUR_TOKEN')">
+                            <div style="flex:1; font-family:monospace; font-size:11px; word-break:break-all;">
+                                cd ~/skills/clawbridge && ./install.sh --token=<span
+                                    style="color:var(--accent)">YOUR_TOKEN</span>
+                            </div>
+                            <span class="copy-icon">📋</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- UPDATE HELP MODAL -->
-    <div id="update-modal" class="modal-overlay" onclick="if(event.target===this) toggleUpdateHelp(false)">
-        <div class="modal-content" style="max-width:400px;">
-            <div class="modal-header">
-                <span class="modal-title">Update Available</span>
-                <button class="modal-close" onclick="toggleUpdateHelp(false)">×</button>
-            </div>
-            <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
-                <p style="margin-top:0">A new version of ClawBridge is ready.</p>
-                
-                <div style="margin-bottom:15px;">
-                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask Agent</div>
-                    <div class="copy-box" onclick="copyText(this, 'Read https://clawbridge.app/SKILL.md and update ClawBridge to the latest version. Notify me when the service is back online.')">
-                        <div style="flex:1; font-family:monospace; font-size:11px;">"Read SKILL.md and update..."</div>
-                        <span class="copy-icon">📋</span>
-                    </div>
+        <!-- UPDATE HELP MODAL -->
+        <div id="update-modal" class="modal-overlay" onclick="if(event.target===this) toggleUpdateHelp(false)">
+            <div class="modal-content" style="max-width:400px;">
+                <div class="modal-header">
+                    <span class="modal-title">Update Available</span>
+                    <button class="modal-close" onclick="toggleUpdateHelp(false)">×</button>
                 </div>
+                <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
+                    <p style="margin-top:0">A new version of ClawBridge is ready.</p>
 
-                <div style="margin-bottom:20px;">
-                    <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal</div>
-                    <div class="copy-box" onclick="copyText(this, 'curl -sL &quot;https://clawbridge.app/install.sh?ref=update&quot; | bash')">
-                        <div style="flex:1; font-family:monospace; font-size:11px; word-break:break-all;">curl -sL "https://clawbridge.app/install.sh?ref=update" | bash</div>
-                        <span class="copy-icon">📋</span>
+                    <div style="margin-bottom:15px;">
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask Agent</div>
+                        <div class="copy-box"
+                            onclick="copyText(this, 'Read https://clawbridge.app/SKILL.md and update ClawBridge to the latest version. Notify me when the service is back online.')">
+                            <div style="flex:1; font-family:monospace; font-size:11px;">"Read SKILL.md and update..."
+                            </div>
+                            <span class="copy-icon">📋</span>
+                        </div>
                     </div>
-                </div>
 
-                <button class="btn" style="background:rgba(255,255,255,0.1); color:var(--text-dim); font-size:12px; padding:10px;" onclick="skipVersion()">
-                    Skip this version
-                </button>
+                    <div style="margin-bottom:20px;">
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal</div>
+                        <div class="copy-box"
+                            onclick="copyText(this, 'curl -sL &quot;https://clawbridge.app/install.sh?ref=update&quot; | bash')">
+                            <div style="flex:1; font-family:monospace; font-size:11px; word-break:break-all;">curl -sL
+                                "https://clawbridge.app/install.sh?ref=update" | bash</div>
+                            <span class="copy-icon">📋</span>
+                        </div>
+                    </div>
+
+                    <button class="btn"
+                        style="background:rgba(255,255,255,0.1); color:var(--text-dim); font-size:12px; padding:10px;"
+                        onclick="skipVersion()">
+                        Skip this version
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- VIEW: HOME (Status + Logs) -->
-    <div id="view-home" class="view-container active">
-        <div class="card">
-            <div class="section-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                <span style="font-weight:600">System Status</span>
-                <small style="font-family:monospace; color:var(--text-dim)" id="heartbeat">--:--:--</small>
+        <!-- VIEW: HOME (Status + Logs) -->
+        <div id="view-home" class="view-container active">
+            <div class="card">
+                <div class="section-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                    <span style="font-weight:600">System Status</span>
+                    <small style="font-family:monospace; color:var(--text-dim)" id="heartbeat">--:--:--</small>
+                </div>
+
+                <div class="metrics">
+                    <div class="metric-box">
+                        <div class="metric-val" id="cpu-val">--%</div>
+                        <div class="metric-label">CPU Load</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-val" id="mem-val">--%</div>
+                        <div class="metric-label">Memory</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-val" id="disk-val">--%</div>
+                        <div class="metric-label">Disk</div>
+                    </div>
+                </div>
+
+                <div class="feed-wrapper">
+                    <div
+                        style="font-size:11px; color:var(--text-dim); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span>LIVE ACTIVITY</span>
+                            <button onclick="toggleLegend(true)"
+                                style="background:none; border:none; color:var(--text-dim); cursor:pointer; padding:0; font-size:12px; opacity:0.5; transition:opacity 0.2s;"
+                                onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">
+                                ⓘ
+                            </button>
+                        </div>
+                        <span id="activity-status" style="color:var(--success)">● Live</span>
+                    </div>
+                    <div id="activity-feed">
+                        <div style="color:var(--text-dim); font-style:italic; padding:5px;">Connecting...</div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="metrics">
-                <div class="metric-box">
-                    <div class="metric-val" id="cpu-val">--%</div>
-                    <div class="metric-label">CPU Load</div>
+        </div>
+
+        <!-- VIEW: MEMORY -->
+        <div id="view-memory" class="view-container">
+            <div class="card">
+                <div class="section-header"
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="font-weight:600">Memory Timeline</span>
+                    <select id="memory-selector" onchange="fetchMemory(this.value)"
+                        style="background:rgba(255,255,255,0.1); border:none; color:var(--text); padding:4px 8px; border-radius:4px; font-size:12px;">
+                        <option value="">Today</option>
+                    </select>
                 </div>
-                <div class="metric-box">
-                    <div class="metric-val" id="mem-val">--%</div>
-                    <div class="metric-label">Memory</div>
+
+                <div id="memory-content"
+                    style="font-size:14px; line-height:1.6; color:var(--text-dim); white-space: pre-wrap;">
+                    Loading...
                 </div>
-                <div class="metric-box">
-                    <div class="metric-val" id="disk-val">--%</div>
-                    <div class="metric-label">Disk</div>
+
+                <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                    <button class="btn" style="width:48%; background:rgba(255,255,255,0.05); color:var(--text);"
+                        onclick="navMemory(-1)">← Previous</button>
+                    <button class="btn" style="width:48%; background:rgba(255,255,255,0.05); color:var(--text);"
+                        onclick="navMemory(1)">Next →</button>
                 </div>
             </div>
-            
-            <div class="feed-wrapper">
-                <div style="font-size:11px; color:var(--text-dim); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span>LIVE ACTIVITY</span>
-                        <button onclick="toggleLegend(true)" style="background:none; border:none; color:var(--text-dim); cursor:pointer; padding:0; font-size:12px; opacity:0.5; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">
-                            ⓘ
+        </div>
+
+        <!-- VIEW: TOKENS -->
+        <!-- VIEW: MISSIONS -->
+        <div id="view-missions" class="view-container">
+            <div class="card">
+                <div class="section-header"
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="font-weight:600">Mission Control</span>
+                    <button class="refresh-btn" onclick="fetchJobs()">↻</button>
+                </div>
+                <div id="job-list" class="job-list">
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                </div>
+            </div>
+        </div>
+        <div id="view-tokens" class="view-container">
+            <div class="card" id="token-card">
+                <div class="section-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                    <span style="font-weight:600">Token Economy</span>
+                    <div style="font-size:12px; color:var(--text-dim)">
+                        Total: <span style="color:var(--text); font-weight:bold" id="grand-total-cost">--</span>
+                    </div>
+                </div>
+
+                <div style="text-align:center; padding: 20px 0;">
+                    <div style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">
+                        Today's Cost</div>
+                    <div style="font-size:42px; font-weight:800; color:var(--success); margin:10px 0;" id="token-cost">
+                        --</div>
+
+                    <!-- Forecast Banner -->
+                    <div
+                        style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px; margin-top:5px;">
+                        <span style="font-size:11px; color:var(--text-dim);">Est. Monthly</span>
+                        <span style="font-size:12px; font-weight:600; color:var(--accent);"
+                            id="monthly-forecast">--</span>
+                    </div>
+                </div>
+
+                <!-- Meta Info & Refresh -->
+                <div
+                    style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size:10px; color:var(--text-dim);">LAST UPDATED</span>
+                        <span style="font-size:11px; font-family:monospace;" id="token-updated">Never</span>
+                    </div>
+                    <button class="btn" style="width:auto; padding:6px 12px; font-size:12px; background:var(--accent);"
+                        onclick="refreshTokenStats()">
+                        ↻ Refresh
+                    </button>
+                </div>
+                <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;">
+                    System automatically recalculates every hour.
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                    <div class="metric-box" style="padding:10px;">
+                        <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">INPUT (READ)</div>
+                        <div style="font-size:16px; font-weight:600;" id="token-in">--</div>
+                    </div>
+                    <div class="metric-box" style="padding:10px;">
+                        <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">OUTPUT (WRITE)</div>
+                        <div style="font-size:16px; font-weight:600;" id="token-out">--</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:20px;">
+                    <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">COST TREND (7 DAYS)</div>
+                    <div id="trend-chart"
+                        style="display:flex; align-items:flex-end; gap:8px; height:100px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                    </div>
+                    <div id="trend-labels"
+                        style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim); margin-top:6px; padding:0 4px;">
+                    </div>
+                </div>
+
+                <!-- Top Models List -->
+                <div style="margin-top:25px;">
+                    <div
+                        style="font-size:11px; color:var(--text-dim); margin-bottom:10px; display:flex; justify-content:space-between;">
+                        <span>TOP MODELS</span>
+                        <span>COST</span>
+                    </div>
+                    <div id="top-models-list">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <div id="daily-detail"
+                    style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:15px; margin-top:20px; border:1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <span style="font-size:14px; font-weight:bold; color:var(--text)" id="detail-date">--</span>
+                        <span style="font-size:16px; font-weight:bold; color:var(--success)" id="detail-cost">--</span>
+                    </div>
+                    <div style="display:flex; gap:15px; font-size:12px; color:var(--text-dim);">
+                        <span>In: <span id="detail-input" style="color:var(--text)">--</span></span>
+                        <span>Out: <span id="detail-output" style="color:var(--text)">--</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: SETTINGS -->
+        <div id="view-settings" class="view-container">
+            <div class="card">
+                <h3 style="margin-top:0">Danger Zone</h3>
+                <div style="display:grid; gap:15px;">
+                    <div>
+                        <button class="btn btn-restart" onclick="restartGateway()">
+                            <span>♻️</span> Restart Gateway Service
                         </button>
+                        <div style="font-size:11px; color:var(--text-dim); margin-top:5px; text-align:center;">
+                            Current PID: <span id="gateway-pid"
+                                style="font-family:monospace; color:var(--accent)">--</span>
+                        </div>
                     </div>
-                    <span id="activity-status" style="color:var(--success)">● Live</span>
-                </div>
-                <div id="activity-feed">
-                    <div style="color:var(--text-dim); font-style:italic; padding:5px;">Connecting...</div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- VIEW: MEMORY -->
-    <div id="view-memory" class="view-container">
-        <div class="card">
-            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span style="font-weight:600">Memory Timeline</span>
-                <select id="memory-selector" onchange="fetchMemory(this.value)" style="background:rgba(255,255,255,0.1); border:none; color:var(--text); padding:4px 8px; border-radius:4px; font-size:12px;">
-                    <option value="">Today</option>
-                </select>
-            </div>
-            
-            <div id="memory-content" style="font-size:14px; line-height:1.6; color:var(--text-dim); white-space: pre-wrap;">
-                Loading...
-            </div>
-            
-            <div style="display:flex; justify-content:space-between; margin-top:20px;">
-                <button class="btn" style="width:48%; background:rgba(255,255,255,0.05); color:var(--text);" onclick="navMemory(-1)">← Previous</button>
-                <button class="btn" style="width:48%; background:rgba(255,255,255,0.05); color:var(--text);" onclick="navMemory(1)">Next →</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- VIEW: TOKENS -->
-    <!-- VIEW: MISSIONS -->
-    <div id="view-missions" class="view-container">
-        <div class="card">
-            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span style="font-weight:600">Mission Control</span>
-                <button class="refresh-btn" onclick="fetchJobs()">↻</button>
-            </div>
-            <div id="job-list" class="job-list">
-                <div class="skeleton"></div>
-                <div class="skeleton"></div>
-            </div>
-        </div>
-    </div>
-    <div id="view-tokens" class="view-container">
-        <div class="card" id="token-card">
-            <div class="section-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                <span style="font-weight:600">Token Economy</span>
-                <div style="font-size:12px; color:var(--text-dim)">
-                    Total: <span style="color:var(--text); font-weight:bold" id="grand-total-cost">--</span>
-                </div>
-            </div>
-
-            <div style="text-align:center; padding: 20px 0;">
-                <div style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">Today's Cost</div>
-                <div style="font-size:42px; font-weight:800; color:var(--success); margin:10px 0;" id="token-cost">--</div>
-                
-                <!-- Forecast Banner -->
-                <div style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px; margin-top:5px;">
-                    <span style="font-size:11px; color:var(--text-dim);">Est. Monthly</span>
-                    <span style="font-size:12px; font-weight:600; color:var(--accent);" id="monthly-forecast">--</span>
-                </div>
-            </div>
-
-            <!-- Meta Info & Refresh -->
-            <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
-                <div style="display:flex; flex-direction:column;">
-                    <span style="font-size:10px; color:var(--text-dim);">LAST UPDATED</span>
-                    <span style="font-size:11px; font-family:monospace;" id="token-updated">Never</span>
-                </div>
-                <button class="btn" style="width:auto; padding:6px 12px; font-size:12px; background:var(--accent);" onclick="refreshTokenStats()">
-                    ↻ Refresh
-                </button>
-            </div>
-            <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;">
-                System automatically recalculates every hour.
-            </div>
-
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-                <div class="metric-box" style="padding:10px;">
-                    <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">INPUT (READ)</div>
-                    <div style="font-size:16px; font-weight:600;" id="token-in">--</div>
-                </div>
-                <div class="metric-box" style="padding:10px;">
-                    <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">OUTPUT (WRITE)</div>
-                    <div style="font-size:16px; font-weight:600;" id="token-out">--</div>
-                </div>
-            </div>
-
-            <div style="margin-top:20px;">
-                <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">COST TREND (7 DAYS)</div>
-                <div id="trend-chart" style="display:flex; align-items:flex-end; gap:8px; height:100px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1);"></div>
-                <div id="trend-labels" style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim); margin-top:6px; padding:0 4px;"></div>
-            </div>
-
-            <!-- Top Models List -->
-            <div style="margin-top:25px;">
-                <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px; display:flex; justify-content:space-between;">
-                    <span>TOP MODELS</span>
-                    <span>COST</span>
-                </div>
-                <div id="top-models-list">
-                    <!-- Injected via JS -->
-                </div>
-            </div>
-
-            <div id="daily-detail" style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:15px; margin-top:20px; border:1px solid var(--border);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                    <span style="font-size:14px; font-weight:bold; color:var(--text)" id="detail-date">--</span>
-                    <span style="font-size:16px; font-weight:bold; color:var(--success)" id="detail-cost">--</span>
-                </div>
-                <div style="display:flex; gap:15px; font-size:12px; color:var(--text-dim);">
-                    <span>In: <span id="detail-input" style="color:var(--text)">--</span></span>
-                    <span>Out: <span id="detail-output" style="color:var(--text)">--</span></span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- VIEW: SETTINGS -->
-    <div id="view-settings" class="view-container">
-        <div class="card">
-            <h3 style="margin-top:0">Danger Zone</h3>
-            <div style="display:grid; gap:15px;">
-                <div>
-                    <button class="btn btn-restart" onclick="restartGateway()">
-                        <span>♻️</span> Restart Gateway Service
-                    </button>
-                    <div style="font-size:11px; color:var(--text-dim); margin-top:5px; text-align:center;">
-                        Current PID: <span id="gateway-pid" style="font-family:monospace; color:var(--accent)">--</span>
-                    </div>
-                </div>
-                
-                <div>
-                    <button class="btn btn-danger" onclick="killAll()">
-                        <span>🛑</span> Emergency Stop All Scripts
-                    </button>
-                    <div id="running-scripts-list" style="font-size:11px; color:var(--text-dim); margin-top:8px; padding:0 5px;">
-                        <!-- Scripts injected here -->
+                    <div>
+                        <button class="btn btn-danger" onclick="killAll()">
+                            <span>🛑</span> Emergency Stop All Scripts
+                        </button>
+                        <div id="running-scripts-list"
+                            style="font-size:11px; color:var(--text-dim); margin-top:8px; padding:0 5px;">
+                            <!-- Scripts injected here -->
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card">
-            <h3 style="margin-top:0">About</h3>
-            <div class="info-row">
-                <span class="info-label">ClawBridge Version</span>
-                <span class="info-val" id="ver-num">Loading...</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Environment</span>
-                <span class="info-val">Node.js (Systemd)</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Server Timezone</span>
-                <span class="info-val" id="server-tz">--</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">OpenClaw Core</span>
-                <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-core">--</a></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">ClawBridge Source</span>
-                <span class="info-val"><a href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard" target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-dash">View GitHub</a></span>
-            </div>
-            
-            <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
-                ClawBridge is the mobile-first dashboard for your AI Agent runtime. 
-                <br>Designed for monitoring, cost tracking, and task management.
-            </div>
-        </div>
-    </div>
-    <div id="view-missions" class="view-container">
-        <div class="card">
-            <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span style="font-weight:600">Mission Control</span>
-                <button class="refresh-btn" onclick="fetchJobs()">↻</button>
-            </div>
-            <div id="job-list" class="job-list">
-                <div class="skeleton"></div>
-                <div class="skeleton"></div>
+            <div class="card">
+                <h3 style="margin-top:0">About</h3>
+                <div class="info-row">
+                    <span class="info-label">ClawBridge Version</span>
+                    <span class="info-val" id="ver-num">Loading...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Environment</span>
+                    <span class="info-val">Node.js (Systemd)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Server Timezone</span>
+                    <span class="info-val" id="server-tz">--</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">OpenClaw Core</span>
+                    <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank"
+                            style="color:var(--accent); text-decoration:none;" id="ver-core">--</a></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">ClawBridge Source</span>
+                    <span class="info-val"><a href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard"
+                            target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-dash">View
+                            GitHub</a></span>
+                </div>
+
+                <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
+                    ClawBridge is the mobile-first dashboard for your AI Agent runtime.
+                    <br>Designed for monitoring, cost tracking, and task management.
+                </div>
             </div>
         </div>
-    </div>
 
-    <nav class="bottom-nav">
-        <a class="nav-item active" onclick="switchTab('home')">
-            <div class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
-            <div>Home</div>
-        </a>
-        <a class="nav-item" onclick="switchTab('memory')">
-            <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.48-2.04z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.48-2.04z"></path></svg></div>
-            <div>Memory</div>
-        </a>
-        <a class="nav-item" onclick="switchTab('tokens')">
-            <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"></path><line x1="18" y1="12" x2="22" y2="12"></line><line x1="16" y1="9" x2="20" y2="9"></line><line x1="16" y1="15" x2="20" y2="15"></line></svg></div>
-            <div>Tokens</div>
-        </a>
-        <a class="nav-item" onclick="switchTab('missions')">
-            <div class="nav-icon"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>
-            <div>Missions</div>
-        </a>
-        <a class="nav-item" onclick="switchTab('settings')">
-            <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
-            <div>Settings</div>
-        </a>
-    </nav>
 
-    <script>
-        const API = '/api'; 
-        
-        // --- AUTH ---
-        const urlParams = new URLSearchParams(window.location.search);
-        let API_KEY = urlParams.get('key');
-        if (API_KEY) {
-            localStorage.setItem('claw_key', API_KEY);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        } else {
-            API_KEY = localStorage.getItem('claw_key');
-        }
-        if (!API_KEY && location.hostname !== 'localhost') {
-            API_KEY = prompt('🔑 Access Key:');
-            if (API_KEY) localStorage.setItem('claw_key', API_KEY);
-        }
+        <nav class="bottom-nav">
+            <a class="nav-item active" onclick="switchTab('home')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg></div>
+                <div>Home</div>
+            </a>
+            <a class="nav-item" onclick="switchTab('memory')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <path
+                            d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.48-2.04z">
+                        </path>
+                        <path
+                            d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.48-2.04z">
+                        </path>
+                    </svg></div>
+                <div>Memory</div>
+            </a>
+            <a class="nav-item" onclick="switchTab('tokens')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"></path>
+                        <line x1="18" y1="12" x2="22" y2="12"></line>
+                        <line x1="16" y1="9" x2="20" y2="9"></line>
+                        <line x1="16" y1="15" x2="20" y2="15"></line>
+                    </svg></div>
+                <div>Tokens</div>
+            </a>
+            <a class="nav-item" onclick="switchTab('missions')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg></div>
+                <div>Missions</div>
+            </a>
+            <a class="nav-item" onclick="switchTab('settings')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg></div>
+                <div>Settings</div>
+            </a>
+        </nav>
 
-        async function fetchAuth(url, options = {}) {
-            const headers = options.headers || {};
-            headers['x-claw-key'] = API_KEY;
-            options.headers = headers;
-            const res = await fetch(url, options);
-            if (res.status === 401) throw new Error('Auth Failed');
-            return res;
-        }
+        <script>
+            const API = '/api';
 
-        // --- TAB MANAGEMENT ---
-        let currentTab = 'home';
-        let cronInterval = null;
+            // --- Utility: HTML Escape ---
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
-            document.getElementById('view-' + tab).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const icons = { 'home': 0, 'memory': 1, 'tokens': 2, 'missions': 3, 'settings': 4 };
-            document.querySelectorAll('.nav-item')[icons[tab]].classList.add('active');
-
-            currentTab = tab;
-
-            // Logic Switching
-            if (tab === 'missions') {
-                fetchJobs(); 
-                if (!cronInterval) cronInterval = setInterval(fetchJobs, 15000); 
+            // --- AUTH ---
+            const urlParams = new URLSearchParams(window.location.search);
+            let API_KEY = urlParams.get('key');
+            if (API_KEY) {
+                localStorage.setItem('claw_key', API_KEY);
+                window.history.replaceState({}, document.title, window.location.pathname);
             } else {
-                if (cronInterval) { clearInterval(cronInterval); cronInterval = null; }
+                API_KEY = localStorage.getItem('claw_key');
+            }
+            if (!API_KEY && location.hostname !== 'localhost') {
+                API_KEY = prompt('🔑 Access Key:');
+                if (API_KEY) localStorage.setItem('claw_key', API_KEY);
             }
 
-            if (tab === 'tokens') {
-                fetchTokens();
+            async function fetchAuth(url, options = {}) {
+                const headers = options.headers || {};
+                headers['x-claw-key'] = API_KEY;
+                options.headers = headers;
+                const res = await fetch(url, options);
+                if (res.status === 401) throw new Error('Auth Failed');
+                return res;
             }
-            
-            if (tab === 'memory') {
-                initMemory();
-            }
-        }
-        
-        let memoryDates = [];
-        let currentMemIndex = 0;
 
-        async function initMemory() {
-            try {
-                const res = await fetchAuth(API + '/memory?list=true');
-                memoryDates = await res.json();
-                
-                const sel = document.getElementById('memory-selector');
-                sel.innerHTML = '';
-                memoryDates.forEach((d, i) => {
-                    const opt = document.createElement('option');
-                    opt.value = d;
-                    opt.innerText = d;
-                    sel.appendChild(opt);
-                });
-                
-                if (memoryDates.length > 0) {
-                    fetchMemory(memoryDates[0]);
+            // --- TAB MANAGEMENT ---
+            let currentTab = 'home';
+            let cronInterval = null;
+
+            function switchTab(tab) {
+                document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+                document.getElementById('view-' + tab).classList.add('active');
+
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                const icons = { 'home': 0, 'memory': 1, 'tokens': 2, 'missions': 3, 'settings': 4 };
+                document.querySelectorAll('.nav-item')[icons[tab]].classList.add('active');
+
+                currentTab = tab;
+
+                // Logic Switching
+                if (tab === 'missions') {
+                    fetchJobs();
+                    if (!cronInterval) cronInterval = setInterval(fetchJobs, 15000);
                 } else {
-                    document.getElementById('memory-content').innerText = 'No memories found.';
+                    if (cronInterval) { clearInterval(cronInterval); cronInterval = null; }
                 }
-            } catch(e) {}
-        }
 
-        async function fetchMemory(date) {
-            if(!date) return;
-            currentMemIndex = memoryDates.indexOf(date);
-            document.getElementById('memory-selector').value = date;
-            
-            try {
-                document.getElementById('memory-content').style.opacity = '0.5';
-                const res = await fetchAuth(API + '/memory?date=' + date);
-                const data = await res.json();
-                
-                // Simple Markdown Rendering
-                let html = (data.content || '')
-                    .replace(/^# (.*$)/gim, '<h3 style="margin-top:0;color:var(--accent)">$1</h3>')
-                    .replace(/^## (.*$)/gim, '<h4 style="margin:10px 0 5px;color:var(--text)">$1</h4>')
-                    .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
-                    .replace(/^\- (.*$)/gim, '• $1')
-                    .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" style="color:var(--accent)">$1</a>');
-                
-                document.getElementById('memory-content').innerHTML = html;
-                document.getElementById('memory-content').style.opacity = '1';
-            } catch(e) {
-                document.getElementById('memory-content').innerText = 'Failed to load memory.';
+                if (tab === 'tokens') {
+                    fetchTokens();
+                }
+
+                if (tab === 'memory') {
+                    initMemory();
+                }
             }
-        }
-        
-        function navMemory(delta) {
-            const newIndex = currentMemIndex - delta; // List is Newest->Oldest. So "Previous" (Back in time) means Index + 1
-            // Wait, UI says "Previous" (Back in time) -> Older Date. "Next" -> Newer Date.
-            // If list is [Today, Yesterday, ...], then Older is Index + 1.
-            
-            // Let's fix direction:
-            // "Previous Day" -> Go to Index + 1
-            // "Next Day" -> Go to Index - 1
-            
-            let target = currentMemIndex;
-            if (delta === -1) target++; // Previous button
-            else target--; // Next button
-            
-            if (target >= 0 && target < memoryDates.length) {
-                fetchMemory(memoryDates[target]);
+
+            let memoryDates = [];
+            let currentMemIndex = 0;
+
+            async function initMemory() {
+                try {
+                    const res = await fetchAuth(API + '/memory?list=true');
+                    memoryDates = await res.json();
+
+                    const sel = document.getElementById('memory-selector');
+                    sel.innerHTML = '';
+                    memoryDates.forEach((d, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = d;
+                        opt.innerText = d;
+                        sel.appendChild(opt);
+                    });
+
+                    if (memoryDates.length > 0) {
+                        fetchMemory(memoryDates[0]);
+                    } else {
+                        document.getElementById('memory-content').innerText = 'No memories found.';
+                    }
+                } catch (e) { }
             }
-        }
 
-        // --- HOME LOGIC ---
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = protocol + '//' + window.location.host;
-        let ws;
-        function connectWS() {
-            ws = new WebSocket(wsUrl);
-            ws.onopen = () => console.log('WS Connected');
-            ws.onclose = () => setTimeout(connectWS, 3000);
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if(data.type === 'heartbeat') {
-                    document.getElementById('heartbeat').innerText = new Date(data.ts).toLocaleTimeString();
+            async function fetchMemory(date) {
+                if (!date) return;
+                currentMemIndex = memoryDates.indexOf(date);
+                document.getElementById('memory-selector').value = date;
+
+                try {
+                    document.getElementById('memory-content').style.opacity = '0.5';
+                    const res = await fetchAuth(API + '/memory?date=' + date);
+                    const data = await res.json();
+
+                    // Simple Markdown Rendering
+                    let html = (data.content || '')
+                        .replace(/^# (.*$)/gim, '<h3 style="margin-top:0;color:var(--accent)">$1</h3>')
+                        .replace(/^## (.*$)/gim, '<h4 style="margin:10px 0 5px;color:var(--text)">$1</h4>')
+                        .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
+                        .replace(/^\- (.*$)/gim, '• $1')
+                        .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" style="color:var(--accent)">$1</a>');
+
+                    document.getElementById('memory-content').innerHTML = html;
+                    document.getElementById('memory-content').style.opacity = '1';
+                } catch (e) {
+                    document.getElementById('memory-content').innerText = 'Failed to load memory.';
                 }
-            };
-        }
-        connectWS();
+            }
 
-        function timeAgo(ms) {
-            if(!ms) return 'Never';
-            const sec = Math.floor((Date.now() - ms) / 1000);
-            if (sec < 60) return sec + 's ago';
-            const min = Math.floor(sec / 60);
-            if (min < 60) return min + 'm ago';
-            const hr = Math.floor(min / 60);
-            return hr + 'h ago';
-        }
+            function navMemory(delta) {
+                const newIndex = currentMemIndex - delta; // List is Newest->Oldest. So "Previous" (Back in time) means Index + 1
+                // Wait, UI says "Previous" (Back in time) -> Older Date. "Next" -> Newer Date.
+                // If list is [Today, Yesterday, ...], then Older is Index + 1.
 
-        let lastTask = '';
-        
-        async function fetchStatus() {
-            if (document.hidden) return; 
-            try {
-                const res = await fetchAuth(API + '/status');
-                const data = await res.json();
-                
-                document.getElementById('cpu-val').innerText = data.cpu + '%';
-                document.getElementById('mem-val').innerText = data.mem + '%';
-                if(data.disk) document.getElementById('disk-val').innerText = data.disk;
-                if(data.timezone) document.getElementById('server-tz').innerText = data.timezone;
-                if(data.versions) {
-                    document.getElementById('ver-core').innerText = data.versions.core;
-                    document.getElementById('ver-num').innerText = 'v' + data.versions.dashboard;
+                // Let's fix direction:
+                // "Previous Day" -> Go to Index + 1
+                // "Next Day" -> Go to Index - 1
+
+                let target = currentMemIndex;
+                if (delta === -1) target++; // Previous button
+                else target--; // Next button
+
+                if (target >= 0 && target < memoryDates.length) {
+                    fetchMemory(memoryDates[target]);
                 }
-                
-                // Update PID
-                if(data.gatewayPid) {
-                    document.getElementById('gateway-pid').innerText = data.gatewayPid;
-                } else {
-                    document.getElementById('gateway-pid').innerText = 'Stopped / Not Found';
-                }
+            }
 
-                // Update Scripts List
-                const scriptList = document.getElementById('running-scripts-list');
-                if (data.scripts && data.scripts.length > 0) {
-                    const items = data.scripts.map(s => 
-                        `<div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">
+            // --- HOME LOGIC ---
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = protocol + '//' + window.location.host;
+            let ws;
+            function connectWS() {
+                const wsAuthUrl = wsUrl + '?key=' + encodeURIComponent(API_KEY || '');
+                ws = new WebSocket(wsAuthUrl);
+                ws.onopen = () => console.log('WS Connected');
+                ws.onclose = () => setTimeout(connectWS, 3000);
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'heartbeat') {
+                        document.getElementById('heartbeat').innerText = new Date(data.ts).toLocaleTimeString();
+                    }
+                };
+            }
+            connectWS();
+
+            function timeAgo(ms) {
+                if (!ms) return 'Never';
+                const sec = Math.floor((Date.now() - ms) / 1000);
+                if (sec < 60) return sec + 's ago';
+                const min = Math.floor(sec / 60);
+                if (min < 60) return min + 'm ago';
+                const hr = Math.floor(min / 60);
+                return hr + 'h ago';
+            }
+
+            let lastTask = '';
+
+            async function fetchStatus() {
+                if (document.hidden) return;
+                try {
+                    const res = await fetchAuth(API + '/status');
+                    const data = await res.json();
+
+                    document.getElementById('cpu-val').innerText = data.cpu + '%';
+                    document.getElementById('mem-val').innerText = data.mem + '%';
+                    if (data.disk) document.getElementById('disk-val').innerText = data.disk;
+                    if (data.timezone) document.getElementById('server-tz').innerText = data.timezone;
+                    if (data.versions) {
+                        document.getElementById('ver-core').innerText = data.versions.core;
+                        document.getElementById('ver-num').innerText = 'v' + data.versions.dashboard;
+                    }
+
+                    // Update PID
+                    if (data.gatewayPid) {
+                        document.getElementById('gateway-pid').innerText = data.gatewayPid;
+                    } else {
+                        document.getElementById('gateway-pid').innerText = 'Stopped / Not Found';
+                    }
+
+                    // Update Scripts List
+                    const scriptList = document.getElementById('running-scripts-list');
+                    if (data.scripts && data.scripts.length > 0) {
+                        const items = data.scripts.map(s =>
+                            `<div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">
                             <span>${s.name}</span>
                             <span style="opacity:0.5">${s.pid}</span>
                         </div>`
-                    ).join('');
-                    scriptList.innerHTML = `<div style="margin-bottom:4px; font-weight:600; color:var(--text)">Running (${data.scripts.length}):</div>` + items;
-                } else {
-                    scriptList.innerHTML = '<div style="opacity:0.5; text-align:center;">No scripts running</div>';
-                }
-                
-                const dot = document.getElementById('status-dot');
-                if (data.status === 'busy') {
-                    dot.className = 'status-dot busy';
-                    document.getElementById('activity-status').innerText = '● Busy';
-                    document.getElementById('activity-status').style.color = 'var(--warning)';
-                } else {
-                    dot.className = 'status-dot active';
-                    document.getElementById('activity-status').innerText = '● Idle';
-                    document.getElementById('activity-status').style.color = 'var(--success)';
-                }
-
-                if (data.task && data.task !== 'System Idle' && data.task !== lastTask) {
-                    addFeedItem(new Date().toISOString(), data.task, 'prepend'); // Live updates go to top
-                    lastTask = data.task;
-                }
-            } catch(e) {
-                document.getElementById('status-dot').className = 'status-dot error';
-            }
-        }
-
-        function addFeedItem(ts, task, method = 'append') {
-            const feed = document.getElementById('activity-feed');
-            if (feed.children.length === 1 && feed.children[0].innerText.includes('Connecting')) {
-                feed.innerHTML = '';
-            }
-
-            // Deduplication Logic
-            const firstItem = feed.firstElementChild;
-            if (firstItem) {
-                const textSpan = firstItem.querySelector('span:last-child');
-                if (textSpan && textSpan.innerText === task) {
-                    // Match found! Update time instead of adding new row.
-                    const timeSpan = firstItem.querySelector('span:first-child');
-                    const time = new Date(ts).toLocaleTimeString('en-US', {hour12:false});
-                    timeSpan.innerText = time;
-                    
-                    // Flash effect
-                    firstItem.style.background = 'rgba(255,255,255,0.1)';
-                    setTimeout(() => firstItem.style.background = 'transparent', 300);
-                    return; 
-                }
-            }
-
-            const div = document.createElement('div');
-            const time = new Date(ts).toLocaleTimeString('en-US', {hour12:false});
-            
-            let color = 'var(--text)';
-            if (task.includes('🧠')) color = '#60a5fa';
-            if (task.includes('🔧')) color = '#fbbf24';
-            if (task.includes('📜')) color = '#c084fc';
-            if (task.includes('🤖')) color = '#34d399';
-            if (task.includes('📄')) color = '#22d3ee';
-            if (task.includes('📝')) color = '#4ade80';
-
-            // Sanitize to prevent HTML injection (which breaks layout/newlines)
-            const safeTask = task
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-
-            // Collapsed view: replace newlines with space
-            const collapsedTask = safeTask.replace(/\n/g, ' ');
-
-            div.innerHTML = `<span style="color:var(--text-dim); margin-right:8px; font-size:10px; vertical-align:middle;">${time}</span><span style="color:${color}; vertical-align:middle;">${collapsedTask}</span>`;
-            div.dataset.fullText = task; // Store raw text for expansion
-            
-            div.style.padding = '6px 4px';
-            div.style.minHeight = '18px';
-            div.style.lineHeight = '1.5';
-            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-            div.style.cursor = 'pointer';
-            div.style.whiteSpace = 'nowrap';
-            div.style.overflow = 'hidden';
-            div.style.textOverflow = 'ellipsis';
-            div.onclick = function() {
-                const contentSpan = this.querySelector('span:last-child');
-                if (this.style.whiteSpace === 'nowrap') {
-                    this.style.whiteSpace = 'pre-wrap';
-                    this.style.wordBreak = 'break-all';
-                    this.style.background = 'rgba(255,255,255,0.08)';
-                    this.style.padding = '8px';
-                    this.style.borderRadius = '4px';
-                    contentSpan.innerText = this.dataset.fullText; // Show full
-                } else {
-                    this.style.whiteSpace = 'nowrap';
-                    this.style.wordBreak = 'normal';
-                    this.style.background = 'transparent';
-                    this.style.padding = '6px 4px';
-                    contentSpan.innerText = this.dataset.fullText.replace(/\n/g, ' '); // Show collapsed
-                }
-            };
-            
-            if (method === 'prepend') {
-                feed.prepend(div);
-                feed.scrollTop = 0; // Scroll to top for new items
-            } else {
-                feed.appendChild(div);
-            }
-            
-            if (feed.children.length > 100) feed.removeChild(feed.children[feed.children.length - 1]);
-        }
-
-        async function fetchHistory() {
-            try {
-                const res = await fetchAuth(API + '/logs?limit=100');
-                if (!res.ok) return;
-                const history = await res.json(); // [Newest, ..., Oldest]
-                
-                const feed = document.getElementById('activity-feed');
-                feed.innerHTML = ''; 
-                
-                // Append in order: Newest at Top (via simple append order if list is New->Old? No.)
-                // If we want Newest at TOP:
-                // DOM:
-                // [Newest]
-                // [Older]
-                // [Oldest]
-                
-                // history array is [Newest, Older, Oldest]
-                // If we appendChild(Newest), then appendChild(Older)...
-                // Result:
-                // [Newest]
-                // [Older]
-                // Perfect.
-                
-                history.forEach(item => {
-                    addFeedItem(item.ts, item.task, 'append');
-                    lastTask = item.task; // Sync latest seen
-                });
-                
-                // No scroll to bottom needed
-            } catch(e) {}
-        }
-
-        // --- MISSIONS ---
-        async function fetchJobs() {
-            try {
-                const res = await fetchAuth(API + '/cron');
-                const jobs = await res.json();
-                jobs.sort((a, b) => (b.state?.lastRunAtMs || 0) - (a.state?.lastRunAtMs || 0));
-
-                const container = document.getElementById('job-list');
-                container.innerHTML = '';
-
-                if (jobs.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; opacity:0.5; padding:20px;">No jobs found</div>';
-                    return;
-                }
-
-                jobs.forEach(job => {
-                    if(!job.enabled) return;
-                    const lastRun = job.state?.lastRunAtMs;
-                    const nextRun = job.state?.nextRunAtMs;
-                    const status = job.state?.lastStatus || 'pending';
-                    const duration = job.state?.lastDurationMs ? (job.state.lastDurationMs / 1000).toFixed(0) + 's' : '';
-                    const cron = job.schedule?.expr || 'Manual';
-                    
-                    // Extract script path
-                    const text = job.payload?.text || '';
-                    const match = text.match(/'([^']+\.js)'/) || text.match(/"([^"]+\.js)"/);
-                    const scriptPath = match ? match[1] : null;
-                    
-                    let nextText = '';
-                    if (nextRun) {
-                        const now = Date.now();
-                        const diffMins = Math.round((nextRun - now) / 60000);
-                        const timeStr = new Date(nextRun).toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
-                        if (diffMins < 60) nextText = `🔜 ${timeStr} (in ${diffMins}m)`;
-                        else nextText = `🔜 ${timeStr} (in ${(diffMins/60).toFixed(1)}h)`;
+                        ).join('');
+                        scriptList.innerHTML = `<div style="margin-bottom:4px; font-weight:600; color:var(--text)">Running (${data.scripts.length}):</div>` + items;
+                    } else {
+                        scriptList.innerHTML = '<div style="opacity:0.5; text-align:center;">No scripts running</div>';
                     }
-                    
-                    let badgeClass = 'pending';
-                    if (status === 'ok') badgeClass = 'ok';
-                    if (status === 'error' || status === 'skipped') badgeClass = 'fail';
 
-                    const div = document.createElement('div');
-                    div.className = 'job-item';
-                    
-                    let pathHtml = '';
-                    if (scriptPath) {
-                        pathHtml = `<div style="font-family:monospace; font-size:10px; color:var(--text-dim); margin-top:3px; word-break:break-all; opacity:0.7;">
+                    const dot = document.getElementById('status-dot');
+                    if (data.status === 'busy') {
+                        dot.className = 'status-dot busy';
+                        document.getElementById('activity-status').innerText = '● Busy';
+                        document.getElementById('activity-status').style.color = 'var(--warning)';
+                    } else {
+                        dot.className = 'status-dot active';
+                        document.getElementById('activity-status').innerText = '● Idle';
+                        document.getElementById('activity-status').style.color = 'var(--success)';
+                    }
+
+                    if (data.task && data.task !== 'System Idle' && data.task !== lastTask) {
+                        addFeedItem(new Date().toISOString(), data.task, 'prepend'); // Live updates go to top
+                        lastTask = data.task;
+                    }
+                } catch (e) {
+                    document.getElementById('status-dot').className = 'status-dot error';
+                }
+            }
+
+            function addFeedItem(ts, task, method = 'append') {
+                const feed = document.getElementById('activity-feed');
+                if (feed.children.length === 1 && feed.children[0].innerText.includes('Connecting')) {
+                    feed.innerHTML = '';
+                }
+
+                // Deduplication Logic
+                const firstItem = feed.firstElementChild;
+                if (firstItem) {
+                    const textSpan = firstItem.querySelector('span:last-child');
+                    if (textSpan && textSpan.innerText === task) {
+                        // Match found! Update time instead of adding new row.
+                        const timeSpan = firstItem.querySelector('span:first-child');
+                        const time = new Date(ts).toLocaleTimeString('en-US', { hour12: false });
+                        timeSpan.innerText = time;
+
+                        // Flash effect
+                        firstItem.style.background = 'rgba(255,255,255,0.1)';
+                        setTimeout(() => firstItem.style.background = 'transparent', 300);
+                        return;
+                    }
+                }
+
+                const div = document.createElement('div');
+                const time = new Date(ts).toLocaleTimeString('en-US', { hour12: false });
+
+                let color = 'var(--text)';
+                if (task.includes('🧠')) color = '#60a5fa';
+                if (task.includes('🔧')) color = '#fbbf24';
+                if (task.includes('📜')) color = '#c084fc';
+                if (task.includes('🤖')) color = '#34d399';
+                if (task.includes('📄')) color = '#22d3ee';
+                if (task.includes('📝')) color = '#4ade80';
+
+                // Sanitize to prevent HTML injection (which breaks layout/newlines)
+                const safeTask = task
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+
+                // Collapsed view: replace newlines with space
+                const collapsedTask = safeTask.replace(/\n/g, ' ');
+
+                div.innerHTML = `<span style="color:var(--text-dim); margin-right:8px; font-size:10px; vertical-align:middle;">${time}</span><span style="color:${color}; vertical-align:middle;">${collapsedTask}</span>`;
+                div.dataset.fullText = task; // Store raw text for expansion
+
+                div.style.padding = '6px 4px';
+                div.style.minHeight = '18px';
+                div.style.lineHeight = '1.5';
+                div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                div.style.cursor = 'pointer';
+                div.style.whiteSpace = 'nowrap';
+                div.style.overflow = 'hidden';
+                div.style.textOverflow = 'ellipsis';
+                div.onclick = function () {
+                    const contentSpan = this.querySelector('span:last-child');
+                    if (this.style.whiteSpace === 'nowrap') {
+                        this.style.whiteSpace = 'pre-wrap';
+                        this.style.wordBreak = 'break-all';
+                        this.style.background = 'rgba(255,255,255,0.08)';
+                        this.style.padding = '8px';
+                        this.style.borderRadius = '4px';
+                        contentSpan.innerText = this.dataset.fullText; // Show full
+                    } else {
+                        this.style.whiteSpace = 'nowrap';
+                        this.style.wordBreak = 'normal';
+                        this.style.background = 'transparent';
+                        this.style.padding = '6px 4px';
+                        contentSpan.innerText = this.dataset.fullText.replace(/\n/g, ' '); // Show collapsed
+                    }
+                };
+
+                if (method === 'prepend') {
+                    feed.prepend(div);
+                    feed.scrollTop = 0; // Scroll to top for new items
+                } else {
+                    feed.appendChild(div);
+                }
+
+                if (feed.children.length > 100) feed.removeChild(feed.children[feed.children.length - 1]);
+            }
+
+            async function fetchHistory() {
+                try {
+                    const res = await fetchAuth(API + '/logs?limit=100');
+                    if (!res.ok) return;
+                    const history = await res.json(); // [Newest, ..., Oldest]
+
+                    const feed = document.getElementById('activity-feed');
+                    feed.innerHTML = '';
+
+                    // Append in order: Newest at Top (via simple append order if list is New->Old? No.)
+                    // If we want Newest at TOP:
+                    // DOM:
+                    // [Newest]
+                    // [Older]
+                    // [Oldest]
+
+                    // history array is [Newest, Older, Oldest]
+                    // If we appendChild(Newest), then appendChild(Older)...
+                    // Result:
+                    // [Newest]
+                    // [Older]
+                    // Perfect.
+
+                    history.forEach(item => {
+                        addFeedItem(item.ts, item.task, 'append');
+                        lastTask = item.task; // Sync latest seen
+                    });
+
+                    // No scroll to bottom needed
+                } catch (e) { }
+            }
+
+            // --- MISSIONS ---
+            async function fetchJobs() {
+                try {
+                    const res = await fetchAuth(API + '/cron');
+                    const jobs = await res.json();
+                    jobs.sort((a, b) => (b.state?.lastRunAtMs || 0) - (a.state?.lastRunAtMs || 0));
+
+                    const container = document.getElementById('job-list');
+                    container.innerHTML = '';
+
+                    if (jobs.length === 0) {
+                        container.innerHTML = '<div style="text-align:center; opacity:0.5; padding:20px;">No jobs found</div>';
+                        return;
+                    }
+
+                    jobs.forEach(job => {
+                        if (!job.enabled) return;
+                        const lastRun = job.state?.lastRunAtMs;
+                        const nextRun = job.state?.nextRunAtMs;
+                        const status = job.state?.lastStatus || 'pending';
+                        const duration = job.state?.lastDurationMs ? (job.state.lastDurationMs / 1000).toFixed(0) + 's' : '';
+                        const cron = job.schedule?.expr || 'Manual';
+
+                        // Extract script path
+                        const text = job.payload?.text || '';
+                        const match = text.match(/'([^']+\.js)'/) || text.match(/"([^"]+\.js)"/);
+                        const scriptPath = match ? match[1] : null;
+
+                        let nextText = '';
+                        if (nextRun) {
+                            const now = Date.now();
+                            const diffMins = Math.round((nextRun - now) / 60000);
+                            const timeStr = new Date(nextRun).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+                            if (diffMins < 60) nextText = `🔜 ${timeStr} (in ${diffMins}m)`;
+                            else nextText = `🔜 ${timeStr} (in ${(diffMins / 60).toFixed(1)}h)`;
+                        }
+
+                        let badgeClass = 'pending';
+                        if (status === 'ok') badgeClass = 'ok';
+                        if (status === 'error' || status === 'skipped') badgeClass = 'fail';
+
+                        const div = document.createElement('div');
+                        div.className = 'job-item';
+
+                        let pathHtml = '';
+                        if (scriptPath) {
+                            pathHtml = `<div style="font-family:monospace; font-size:10px; color:var(--text-dim); margin-top:3px; word-break:break-all; opacity:0.7;">
                             📄 ${scriptPath}
                         </div>`;
-                    }
-
-                    div.innerHTML = `
-                        <div class="job-info">
-                            <div class="job-name">${job.name}</div>
-                            ${pathHtml}
-                            <div class="job-meta">
-                                <span class="badge ${badgeClass}">${status.toUpperCase()}</span>
-                                <span class="job-sched">${cron}</span>
-                                <span>⏮️ ${timeAgo(lastRun)} ${duration ? `(${duration})` : ''}</span>
-                                <span class="job-next">${nextText}</span>
-                            </div>
-                        </div>
-                        <button class="run-icon" onclick="runJob('${job.id}')">▶</button>
-                    `;
-                    container.appendChild(div);
-                });
-            } catch(e) {}
-        }
-
-        async function runJob(id) {
-            if(!confirm('Execute task?')) return;
-            await fetchAuth(API + '/run/' + id, { method: 'POST' });
-            setTimeout(fetchJobs, 2000);
-        }
-
-        async function killAll() {
-            if(!confirm('⚠️ STOP ALL SCRIPTS?')) return;
-            await fetchAuth(API + '/kill', { method: 'POST' });
-        }
-
-        async function restartGateway() {
-            if(!confirm('♻️ RESTART GATEWAY?')) return;
-            await fetchAuth(API + '/gateway/restart', { method: 'POST' });
-        }
-
-        async function refreshTokenStats() {
-            const btn = document.querySelector('#view-tokens button');
-            const origText = btn.innerText;
-            const timeEl = document.getElementById('token-updated');
-            const initialTime = timeEl.innerText;
-            
-            // Set Loading State (Immediate Countdown)
-            btn.innerText = '⏳ Calc... (10s)';
-            btn.disabled = true;
-            btn.style.opacity = '0.7';
-            
-            try {
-                // 1. Trigger
-                await fetchAuth(API + '/tokens/refresh', { method: 'POST' });
-                
-                // 2. Poll for changes
-                let attempts = 0;
-                const poll = setInterval(async () => {
-                    attempts++;
-                    const remaining = 10 - attempts;
-                    btn.innerText = `⏳ Calc... (${remaining}s)`; 
-                    
-                    try {
-                        const res = await fetchAuth(API + '/tokens');
-                        const data = await res.json();
-                        
-                        // Parse time to compare string difference
-                        const newDate = new Date(data.updatedAt);
-                        const newTimeStr = newDate.toLocaleTimeString();
-                        
-                        // If time changed OR attempts > 10
-                        if (newTimeStr !== initialTime || attempts > 10) {
-                            clearInterval(poll);
-                            fetchTokens(); // Refresh UI
-                            
-                            btn.innerText = origText;
-                            btn.disabled = false;
-                            btn.style.opacity = '1';
-                            
-                            if (attempts > 10) console.warn('Refresh timed out (no change detected)');
                         }
-                    } catch(e) { clearInterval(poll); }
-                }, 1000);
-                
-            } catch(e) {
-                alert('Trigger failed');
-                btn.innerText = origText;
-                btn.disabled = false;
-            }
-        }
-
-        // --- TOKENS ---
-        async function fetchTokens() {
-            try {
-                // Use API, not static file
-                const res = await fetchAuth(API + '/tokens');
-                const data = await res.json();
-                document.getElementById('token-card').style.display = 'block';
-                
-                if (data.updatedAt) {
-                    const date = new Date(data.updatedAt);
-                    document.getElementById('token-updated').innerText = date.toLocaleTimeString();
-                }
-
-                if (data.today) {
-                    document.getElementById('token-cost').innerText = '$' + data.today.cost.toFixed(4);
-                    document.getElementById('token-in').innerText = (data.today.input/1000).toFixed(1) + 'k';
-                    document.getElementById('token-out').innerText = (data.today.output/1000).toFixed(1) + 'k';
-                }
-                if (data.total) {
-                    document.getElementById('grand-total-cost').innerText = '$' + data.total.cost.toFixed(2);
-                    
-                    // Forecast Logic
-                    const days = Object.keys(data.history || {}).length || 1;
-                    const avg = data.total.cost / days;
-                    const forecast = avg * 30;
-                    document.getElementById('monthly-forecast').innerText = '$' + forecast.toFixed(2);
-                }
-                
-                // Top Models
-                if (data.topModels) {
-                    const list = document.getElementById('top-models-list');
-                    list.innerHTML = '';
-                    data.topModels.slice(0, 5).forEach(m => {
-                        const div = document.createElement('div');
-                        div.style.display = 'flex';
-                        div.style.justifyContent = 'space-between';
-                        div.style.padding = '8px 0';
-                        div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-                        div.style.fontSize = '13px';
-                        
-                        // Clean Name
-                        let name = m.name.split('/').pop();
-                        if (name.length > 25) name = name.substring(0, 23) + '..';
 
                         div.innerHTML = `
+                        <div class="job-info">
+                            <div class="job-name">${escapeHtml(job.name)}</div>
+                            ${pathHtml}
+                            <div class="job-meta">
+                                <span class="badge ${badgeClass}">${escapeHtml(status.toUpperCase())}</span>
+                                <span class="job-sched">${escapeHtml(cron)}</span>
+                                <span>⏮️ ${timeAgo(lastRun)} ${duration ? `(${escapeHtml(duration)})` : ''}</span>
+                                <span class="job-next">${escapeHtml(nextText)}</span>
+                            </div>
+                        </div>
+                        <button class="run-icon" onclick="runJob('${escapeHtml(job.id)}')" aria-label="Run job">▶</button>
+                    `;
+                        container.appendChild(div);
+                    });
+                } catch (e) { }
+            }
+
+            async function runJob(id) {
+                if (!confirm('Execute task?')) return;
+                await fetchAuth(API + '/run/' + id, { method: 'POST' });
+                setTimeout(fetchJobs, 2000);
+            }
+
+            async function killAll() {
+                if (!confirm('⚠️ STOP ALL SCRIPTS?')) return;
+                await fetchAuth(API + '/kill', { method: 'POST' });
+            }
+
+            async function restartGateway() {
+                if (!confirm('♻️ RESTART GATEWAY?')) return;
+                await fetchAuth(API + '/gateway/restart', { method: 'POST' });
+            }
+
+            async function refreshTokenStats() {
+                const btn = document.querySelector('#view-tokens button');
+                const origText = btn.innerText;
+                const timeEl = document.getElementById('token-updated');
+                const initialTime = timeEl.innerText;
+
+                // Set Loading State (Immediate Countdown)
+                btn.innerText = '⏳ Calc... (10s)';
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+
+                try {
+                    // 1. Trigger
+                    await fetchAuth(API + '/tokens/refresh', { method: 'POST' });
+
+                    // 2. Poll for changes
+                    let attempts = 0;
+                    const poll = setInterval(async () => {
+                        attempts++;
+                        const remaining = 10 - attempts;
+                        btn.innerText = `⏳ Calc... (${remaining}s)`;
+
+                        try {
+                            const res = await fetchAuth(API + '/tokens');
+                            const data = await res.json();
+
+                            // Parse time to compare string difference
+                            const newDate = new Date(data.updatedAt);
+                            const newTimeStr = newDate.toLocaleTimeString();
+
+                            // If time changed OR attempts > 10
+                            if (newTimeStr !== initialTime || attempts > 10) {
+                                clearInterval(poll);
+                                fetchTokens(); // Refresh UI
+
+                                btn.innerText = origText;
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+
+                                if (attempts > 10) console.warn('Refresh timed out (no change detected)');
+                            }
+                        } catch (e) { clearInterval(poll); }
+                    }, 1000);
+
+                } catch (e) {
+                    alert('Trigger failed');
+                    btn.innerText = origText;
+                    btn.disabled = false;
+                }
+            }
+
+            // --- TOKENS ---
+            async function fetchTokens() {
+                try {
+                    // Use API, not static file
+                    const res = await fetchAuth(API + '/tokens');
+                    const data = await res.json();
+                    document.getElementById('token-card').style.display = 'block';
+
+                    if (data.updatedAt) {
+                        const date = new Date(data.updatedAt);
+                        document.getElementById('token-updated').innerText = date.toLocaleTimeString();
+                    }
+
+                    if (data.today) {
+                        document.getElementById('token-cost').innerText = '$' + data.today.cost.toFixed(4);
+                        document.getElementById('token-in').innerText = (data.today.input / 1000).toFixed(1) + 'k';
+                        document.getElementById('token-out').innerText = (data.today.output / 1000).toFixed(1) + 'k';
+                    }
+                    if (data.total) {
+                        document.getElementById('grand-total-cost').innerText = '$' + data.total.cost.toFixed(2);
+
+                        // Forecast Logic
+                        const days = Object.keys(data.history || {}).length || 1;
+                        const avg = data.total.cost / days;
+                        const forecast = avg * 30;
+                        document.getElementById('monthly-forecast').innerText = '$' + forecast.toFixed(2);
+                    }
+
+                    // Top Models
+                    if (data.topModels) {
+                        const list = document.getElementById('top-models-list');
+                        list.innerHTML = '';
+                        data.topModels.slice(0, 5).forEach(m => {
+                            const div = document.createElement('div');
+                            div.style.display = 'flex';
+                            div.style.justifyContent = 'space-between';
+                            div.style.padding = '8px 0';
+                            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                            div.style.fontSize = '13px';
+
+                            // Clean Name
+                            let name = m.name.split('/').pop();
+                            if (name.length > 25) name = name.substring(0, 23) + '..';
+
+                            div.innerHTML = `
                             <div style="display:flex;align-items:center">
                                 <span style="width:6px;height:6px;background:var(--text-dim);border-radius:50%;margin-right:10px"></span>
-                                ${name}
+                                ${escapeHtml(name)}
                             </div>
-                            <span style="font-family:monospace; color:var(--text);">$${m.cost.toFixed(3)}</span>
+                            <span style="font-family:monospace; color:var(--text);">${escapeHtml('$' + m.cost.toFixed(3))}</span>
                         `;
-                        list.appendChild(div);
-                    });
-                }
-
-                if (data.history) {
-                    const chart = document.getElementById('trend-chart');
-                    const labels = document.getElementById('trend-labels');
-                    chart.innerHTML = '';
-                    labels.innerHTML = '';
-                    const days = Object.keys(data.history).sort().slice(-7);
-                    if (days.length > 0) {
-                        const maxCost = Math.max(...days.map(d => data.history[d].cost)) || 0.01;
-                        days.forEach(day => {
-                            const stats = data.history[day];
-                            const height = Math.max(5, (stats.cost / maxCost) * 100); 
-                            const bar = document.createElement('div');
-                            bar.style.width = '100%';
-                            bar.style.height = height + '%';
-                            bar.style.backgroundColor = 'var(--accent)';
-                            bar.style.borderRadius = '4px 4px 0 0';
-                            bar.style.opacity = day === new Date().toISOString().split('T')[0] ? '1' : '0.4';
-                            bar.onclick = () => {
-                                Array.from(chart.children).forEach(c => c.style.opacity = '0.4');
-                                bar.style.opacity = '1';
-                                const detail = document.getElementById('daily-detail');
-                                detail.style.display = 'block';
-                                document.getElementById('detail-date').innerText = day;
-                                document.getElementById('detail-cost').innerText = '$' + stats.cost.toFixed(4);
-                                document.getElementById('detail-input').innerText = (stats.input/1000).toFixed(1) + 'k';
-                                document.getElementById('detail-output').innerText = (stats.output/1000).toFixed(1) + 'k';
-                                
-                                // Auto Scroll to Detail (Delayed for render)
-                                setTimeout(() => {
-                                    detail.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }, 50);
-                            };
-                            chart.appendChild(bar);
-                            const label = document.createElement('div');
-                            label.innerText = day.split('-')[2]; 
-                            labels.appendChild(label);
+                            list.appendChild(div);
                         });
                     }
-                }
-            } catch(e) {}
-        }
 
-        // --- INIT ---
-        if (window.location.hostname.endsWith('trycloudflare.com')) {
-            document.getElementById('quick-tunnel-alert').style.display = 'block';
-        }
+                    if (data.history) {
+                        const chart = document.getElementById('trend-chart');
+                        const labels = document.getElementById('trend-labels');
+                        chart.innerHTML = '';
+                        labels.innerHTML = '';
+                        const days = Object.keys(data.history).sort().slice(-7);
+                        if (days.length > 0) {
+                            const maxCost = Math.max(...days.map(d => data.history[d].cost)) || 0.01;
+                            days.forEach(day => {
+                                const stats = data.history[day];
+                                const height = Math.max(5, (stats.cost / maxCost) * 100);
+                                const bar = document.createElement('div');
+                                bar.style.width = '100%';
+                                bar.style.height = height + '%';
+                                bar.style.backgroundColor = 'var(--accent)';
+                                bar.style.borderRadius = '4px 4px 0 0';
+                                bar.style.opacity = day === new Date().toISOString().split('T')[0] ? '1' : '0.4';
+                                bar.onclick = () => {
+                                    Array.from(chart.children).forEach(c => c.style.opacity = '0.4');
+                                    bar.style.opacity = '1';
+                                    const detail = document.getElementById('daily-detail');
+                                    detail.style.display = 'block';
+                                    document.getElementById('detail-date').innerText = day;
+                                    document.getElementById('detail-cost').innerText = '$' + stats.cost.toFixed(4);
+                                    document.getElementById('detail-input').innerText = (stats.input / 1000).toFixed(1) + 'k';
+                                    document.getElementById('detail-output').innerText = (stats.output / 1000).toFixed(1) + 'k';
 
-        fetchHistory();
-        fetchStatus();
-        checkUpdate(); // Check on load
-        
-        setInterval(fetchStatus, 5000); 
-
-        /* Tab Swipe Logic */
-        let touchStartX = 0;
-        let touchEndX = 0;
-        
-        document.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, false);
-        
-        document.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        }, false);
-        
-        function handleSwipe() {
-            if (currentTab !== 'memory') return;
-            const threshold = 50;
-            if (touchEndX < touchStartX - threshold) navMemory(1); // Swipe Left -> Next Day
-            if (touchEndX > touchStartX + threshold) navMemory(-1); // Swipe Right -> Prev Day
-        }
-        
-        function toggleLegend(show) {
-            const modal = document.getElementById('legend-modal');
-            if(show) modal.classList.add('active');
-            else modal.classList.remove('active');
-        }
-
-        function showTokenHelp() {
-            toggleTokenHelp(true);
-        }
-
-        function toggleTokenHelp(show) {
-            const modal = document.getElementById('token-modal');
-            if(show) modal.classList.add('active');
-            else modal.classList.remove('active');
-        }
-
-        function toggleUpdateHelp(show) {
-            const modal = document.getElementById('update-modal');
-            if(show) modal.classList.add('active');
-            else modal.classList.remove('active');
-        }
-
-        function showUpdateHelp() { toggleUpdateHelp(true); }
-
-        function copyText(el, text) {
-            navigator.clipboard.writeText(text);
-            const icon = el.querySelector('.copy-icon');
-            const original = icon.innerText;
-            icon.innerText = '✅';
-            setTimeout(() => icon.innerText = original, 2000);
-        }
-
-        function skipVersion() {
-            const ver = document.getElementById('update-ver').innerText;
-            localStorage.setItem('clawbridge_skip_version', ver);
-            toggleUpdateHelp(false);
-            document.getElementById('update-alert').style.display = 'none';
-        }
-
-        async function checkUpdate() {
-            try {
-                // Get Local Version
-                const statusRes = await fetchAuth(API + '/status');
-                const statusData = await statusRes.json();
-                const currentVer = statusData.versions?.dashboard || '0.0.0';
-
-                // Get Remote Version (via Backend Proxy)
-                const checkRes = await fetchAuth(API + '/check_update');
-                const remoteData = await checkRes.json();
-                const remoteVer = remoteData.version;
-
-                if (remoteVer && remoteVer !== currentVer && remoteVer > currentVer) {
-                    // Check skipped
-                    if (localStorage.getItem('clawbridge_skip_version') === remoteVer) return;
-                    
-                    document.getElementById('update-ver').innerText = 'v' + remoteVer;
-                    document.getElementById('update-alert').style.display = 'block';
-                }
-            } catch(e) {}
-        }
-
-        async function saveToken() {
-            const token = document.getElementById('tunnel-token').value.trim();
-            if(!token) return alert('Please paste a token');
-            
-            if(!confirm('This will restart the dashboard service. Continue?')) return;
-            
-            try {
-                const res = await fetchAuth(API + '/config/token', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ token })
-                });
-                const data = await res.json();
-                alert(data.message || 'Saved');
-                setTimeout(() => location.reload(), 3000);
-            } catch(e) {
-                alert('Save failed: ' + e.message);
+                                    // Auto Scroll to Detail (Delayed for render)
+                                    setTimeout(() => {
+                                        detail.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }, 50);
+                                };
+                                chart.appendChild(bar);
+                                const label = document.createElement('div');
+                                label.innerText = day.split('-')[2];
+                                labels.appendChild(label);
+                            });
+                        }
+                    }
+                } catch (e) { }
             }
-        }
-        
-    </script>
+
+            // --- INIT ---
+            if (window.location.hostname.endsWith('trycloudflare.com')) {
+                document.getElementById('quick-tunnel-alert').style.display = 'block';
+            }
+
+            fetchHistory();
+            fetchStatus();
+            checkUpdate(); // Check on load
+
+            setInterval(fetchStatus, 5000);
+
+            /* Tab Swipe Logic */
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            document.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+
+            document.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, false);
+
+            function handleSwipe() {
+                if (currentTab !== 'memory') return;
+                const threshold = 50;
+                if (touchEndX < touchStartX - threshold) navMemory(1); // Swipe Left -> Next Day
+                if (touchEndX > touchStartX + threshold) navMemory(-1); // Swipe Right -> Prev Day
+            }
+
+            function toggleLegend(show) {
+                const modal = document.getElementById('legend-modal');
+                if (show) modal.classList.add('active');
+                else modal.classList.remove('active');
+            }
+
+            function showTokenHelp() {
+                toggleTokenHelp(true);
+            }
+
+            function toggleTokenHelp(show) {
+                const modal = document.getElementById('token-modal');
+                if (show) modal.classList.add('active');
+                else modal.classList.remove('active');
+            }
+
+            function toggleUpdateHelp(show) {
+                const modal = document.getElementById('update-modal');
+                if (show) modal.classList.add('active');
+                else modal.classList.remove('active');
+            }
+
+            function showUpdateHelp() { toggleUpdateHelp(true); }
+
+            function copyText(el, text) {
+                navigator.clipboard.writeText(text);
+                const icon = el.querySelector('.copy-icon');
+                const original = icon.innerText;
+                icon.innerText = '✅';
+                setTimeout(() => icon.innerText = original, 2000);
+            }
+
+            function skipVersion() {
+                const ver = document.getElementById('update-ver').innerText;
+                localStorage.setItem('clawbridge_skip_version', ver);
+                toggleUpdateHelp(false);
+                document.getElementById('update-alert').style.display = 'none';
+            }
+
+            async function checkUpdate() {
+                try {
+                    // Get Local Version
+                    const statusRes = await fetchAuth(API + '/status');
+                    const statusData = await statusRes.json();
+                    const currentVer = statusData.versions?.dashboard || '0.0.0';
+
+                    // Get Remote Version (via Backend Proxy)
+                    const checkRes = await fetchAuth(API + '/check_update');
+                    const remoteData = await checkRes.json();
+                    const remoteVer = remoteData.version;
+
+                    if (remoteVer && remoteVer !== currentVer && semverCompare(remoteVer, currentVer) > 0) {
+                        // Check skipped
+                        if (localStorage.getItem('clawbridge_skip_version') === remoteVer) return;
+
+                        document.getElementById('update-ver').innerText = 'v' + remoteVer;
+                        document.getElementById('update-alert').style.display = 'block';
+                    }
+                } catch (e) { }
+            }
+
+            // Semantic version comparison: returns >0 if a > b, <0 if a < b, 0 if equal
+            function semverCompare(a, b) {
+                const pa = String(a).replace(/^v/, '').split('.').map(Number);
+                const pb = String(b).replace(/^v/, '').split('.').map(Number);
+                for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+                    const na = pa[i] || 0;
+                    const nb = pb[i] || 0;
+                    if (na !== nb) return na - nb;
+                }
+                return 0;
+            }
+
+        </script>
 </body>
+
 </html>
