@@ -37,14 +37,36 @@ async function downloadBinary() {
     const url = getDownloadUrl();
     console.log(`[Tunnel] Downloading cloudflared for ${os.platform()}/${os.arch()}...`);
 
+    const https = require('https');
+    const http = require('http');
+
     return new Promise((resolve, reject) => {
-        const wget = spawn('wget', ['-q', '-O', BIN_PATH, url]);
-        wget.on('close', (code) => {
-            if (code === 0) {
-                fs.chmodSync(BIN_PATH, '755');
-                resolve();
-            } else reject(new Error('Download failed'));
-        });
+        const download = (downloadUrl, redirects = 0) => {
+            if (redirects > 5) return reject(new Error('Too many redirects'));
+            const client = downloadUrl.startsWith('https') ? https : http;
+            client.get(downloadUrl, (res) => {
+                // Follow redirects (GitHub releases use 302)
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    return download(res.headers.location, redirects + 1);
+                }
+                if (res.statusCode !== 200) {
+                    return reject(new Error(`Download failed: HTTP ${res.statusCode}`));
+                }
+                const file = fs.createWriteStream(BIN_PATH);
+                res.pipe(file);
+                file.on('finish', () => {
+                    file.close();
+                    fs.chmodSync(BIN_PATH, '755');
+                    console.log('[Tunnel] Download complete.');
+                    resolve();
+                });
+                file.on('error', (err) => {
+                    fs.unlinkSync(BIN_PATH);
+                    reject(err);
+                });
+            }).on('error', reject);
+        };
+        download(url);
     });
 }
 
@@ -54,12 +76,12 @@ function stopExistingTunnel() {
         if (fs.existsSync(PID_FILE)) {
             const pid = parseInt(fs.readFileSync(PID_FILE, 'utf8').trim(), 10);
             if (pid && !isNaN(pid)) {
-                try { process.kill(pid, 'SIGTERM'); } catch (e) { } // Ignore if already dead
+                try { process.kill(pid, 'SIGTERM'); } catch (e) { /* expected: process may already be dead */ }
                 console.log(`[Tunnel] Stopped previous cloudflared (PID: ${pid})`);
             }
             fs.unlinkSync(PID_FILE);
         }
-    } catch (e) { }
+    } catch (e) { console.warn('[Tunnel] Failed to stop existing tunnel:', e.message); }
 }
 
 function startTunnel(port, token) {
@@ -74,7 +96,7 @@ function startTunnel(port, token) {
         const child = spawn(BIN_PATH, args);
 
         // Save PID so we can kill only our own process later
-        try { fs.writeFileSync(PID_FILE, String(child.pid)); } catch (e) { }
+        try { fs.writeFileSync(PID_FILE, String(child.pid)); } catch (e) { console.warn('[Tunnel] Failed to write PID file:', e.message); }
 
         let urlFound = false;
 
@@ -88,7 +110,7 @@ function startTunnel(port, token) {
                 if (!urlFound) {
                     urlFound = true;
                     console.log(`\n🌊 [Quick Tunnel] URL Generated: ${url}`);
-                    try { fs.writeFileSync(path.join(__dirname, '.quick_tunnel_url'), url); } catch (e) { }
+                    try { fs.writeFileSync(path.join(__dirname, '.quick_tunnel_url'), url); } catch (e) { console.warn('[Tunnel] Failed to save quick tunnel URL:', e.message); }
                     resolve(url);
                 }
             }
@@ -100,7 +122,7 @@ function startTunnel(port, token) {
         });
 
         child.on('exit', () => {
-            try { fs.unlinkSync(PID_FILE); } catch (e) { }
+            try { fs.unlinkSync(PID_FILE); } catch (e) { /* expected: PID file may not exist */ }
         });
 
         // If using Token, we might not get a URL in logs, resolve anyway after delay

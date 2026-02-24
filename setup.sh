@@ -113,6 +113,25 @@ else
     fi
 fi
 
+# 3b. Auto-detect OPENCLAW_PATH
+DETECTED_OPENCLAW=""
+if command -v openclaw &> /dev/null; then
+    DETECTED_OPENCLAW=$(which openclaw)
+else
+    # Look in the same bin directory as Node.js
+    NODE_BIN_DIR=$(dirname "$(which node)" 2>/dev/null)
+    if [ -x "$NODE_BIN_DIR/openclaw" ]; then
+        DETECTED_OPENCLAW="$NODE_BIN_DIR/openclaw"
+    fi
+fi
+
+if [ ! -z "$DETECTED_OPENCLAW" ]; then
+    echo "🔍 Detected openclaw at: $DETECTED_OPENCLAW"
+    # Update or append OPENCLAW_PATH
+    sed -i '/OPENCLAW_PATH=/d' "$ENV_FILE"
+    echo "OPENCLAW_PATH=$DETECTED_OPENCLAW" >> "$ENV_FILE"
+fi
+
 # 4. Setup Systemd (Root required for system-wide, but let's try user first)
 SERVICE_FILE="$HOME/.config/systemd/user/${SERVICE_NAME}.service"
 USE_USER_SYSTEMD=true

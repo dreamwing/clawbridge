@@ -7,6 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https'); // Explicit require for proxy
 const os = require('os');
+const crypto = require('crypto');
+const cookieParser = require('cookie-parser');
 const tunnel = require('./tunnel');
 
 const app = express();
@@ -15,7 +17,21 @@ const wss = new WebSocketServer({ server });
 
 // Config & Paths
 const PORT = process.env.PORT || 3000;
-const SECRET_KEY = process.env.ACCESS_KEY || 'default-insecure';
+const SECRET_KEY = process.env.ACCESS_KEY;
+if (!SECRET_KEY) {
+    console.error('❌ ACCESS_KEY not set in .env! Please set a secure key. Exiting.');
+    process.exit(1);
+}
+
+// Session token generation helper
+function generateSessionToken() {
+    return crypto.createHmac('sha256', SECRET_KEY)
+        .update(crypto.randomBytes(32).toString('hex'))
+        .digest('hex');
+}
+
+// In-memory session store (valid tokens)
+const activeSessions = new Set();
 const TUNNEL_TOKEN = process.env.TUNNEL_TOKEN;
 
 const HOME_DIR = os.homedir();
@@ -42,7 +58,6 @@ function findWorkspace() {
 
     // 4. Common path probing (For standalone/sandbox installs)
     const candidates = [
-        '/root/clawd',
         path.join(HOME_DIR, 'clawd'), // Legacy clawdbot/clawd path
         path.join(HOME_DIR, '.openclaw'), // Standard OpenClaw storage
         process.cwd()
@@ -80,27 +95,153 @@ try {
     if (fs.existsSync(ID_FILE)) {
         lastProcessedId = fs.readFileSync(ID_FILE, 'utf8').trim();
     }
-} catch (e) { }
+} catch (e) { console.debug('[Init] No previous event ID file:', e.message); }
 
 app.use(express.json());
+app.use(cookieParser());
 
-// --- Magic Link Auth Middleware ---
+// --- Brute-force Protection for /api/auth ---
+const authAttempts = {};
+function checkAuthRateLimit(ip) {
+    const now = Date.now();
+    if (!authAttempts[ip]) authAttempts[ip] = { count: 0, resetAt: now + 60000 };
+    if (now > authAttempts[ip].resetAt) authAttempts[ip] = { count: 0, resetAt: now + 60000 };
+    authAttempts[ip].count++;
+    return authAttempts[ip].count <= 10; // Max 10 attempts per 60s
+}
+
+// --- Auth: Login Endpoint ---
+app.post('/api/auth', (req, res) => {
+    if (!checkAuthRateLimit(req.ip)) {
+        return res.status(429).json({ error: 'Too many attempts. Please wait.' });
+    }
+    const { key } = req.body;
+    if (key === SECRET_KEY) {
+        authAttempts[req.ip] = null; // Reset on success
+        const token = generateSessionToken();
+        activeSessions.add(token);
+        // Prune if too many sessions
+        if (activeSessions.size > 100) {
+            const arr = Array.from(activeSessions);
+            activeSessions.clear();
+            arr.slice(-50).forEach(t => activeSessions.add(t));
+        }
+        res.cookie('claw_session', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+        return res.json({ status: 'ok' });
+    }
+    res.status(401).json({ error: 'Invalid key' });
+});
+
+// --- Auth: Logout Endpoint ---
+app.post('/api/logout', (req, res) => {
+    const token = req.cookies?.claw_session;
+    if (token) activeSessions.delete(token);
+    res.clearCookie('claw_session');
+    res.json({ status: 'ok' });
+});
+
+// --- Auth Middleware ---
 app.use((req, res, next) => {
-    if (req.query.key === SECRET_KEY) return next();
+    // 1. Cookie-based session (preferred)
+    const sessionToken = req.cookies?.claw_session;
+    if (sessionToken && activeSessions.has(sessionToken)) return next();
+    // 2. Header-based auth (for API/programmatic access)
     if (req.headers['x-claw-key'] === SECRET_KEY) return next();
+    // 3. Query key (legacy, for backward-compatible magic links — sets cookie then redirects)
+    if (req.query.key === SECRET_KEY) {
+        const token = generateSessionToken();
+        activeSessions.add(token);
+        res.cookie('claw_session', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+        // Redirect to same path without key in URL
+        const cleanUrl = req.path;
+        return res.redirect(302, cleanUrl);
+    }
+    // 4. Static assets passthrough
     if (req.path.match(/\.(png|jpg|jpeg|svg|gif|ico|css)$/)) return next();
     if (req.path === '/manifest.json') return next();
+    // 5. API returns 401
     if (req.path.startsWith('/api')) return res.status(401).json({ error: 'Unauthorized' });
 
-    return res.send(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{background:#0f172a;color:#fff;font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}</style></head><body><script>const urlParams=new URLSearchParams(window.location.search);if(urlParams.has('key')){alert('❌ Access Denied: Invalid Key');localStorage.removeItem('claw_key');window.location.href=window.location.pathname}else if(localStorage.getItem('claw_key')){const key=localStorage.getItem('claw_key');window.location.href=window.location.pathname+'?key='+key}else{const input=prompt('🔑 ClawBridge Access Key:');if(input){localStorage.setItem('claw_key',input);window.location.href=window.location.pathname+'?key='+input}}</script></body></html>`);
+    // 6. Serve login page
+    return res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClawBridge - Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-box { background: #1e293b; border-radius: 16px; padding: 40px; width: 360px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+        .login-box h1 { font-size: 24px; margin-bottom: 8px; text-align: center; }
+        .login-box p { color: #94a3b8; font-size: 14px; text-align: center; margin-bottom: 24px; }
+        .login-box input { width: 100%; padding: 12px 16px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-size: 16px; outline: none; transition: border-color 0.2s; }
+        .login-box input:focus { border-color: #3b82f6; }
+        .login-box button { width: 100%; padding: 12px; margin-top: 16px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.2s; }
+        .login-box button:hover { background: #2563eb; }
+        .login-box button:disabled { background: #475569; cursor: not-allowed; }
+        .error { color: #f87171; font-size: 13px; margin-top: 12px; text-align: center; display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>🌊 ClawBridge</h1>
+        <p>Enter your access key to continue</p>
+        <form id="loginForm">
+            <input type="password" id="keyInput" placeholder="Access Key" autocomplete="current-password" required autofocus />
+            <button type="submit" id="loginBtn">Login</button>
+            <div class="error" id="errorMsg">❌ Invalid access key</div>
+        </form>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const err = document.getElementById('errorMsg');
+            const key = document.getElementById('keyInput').value;
+            btn.disabled = true; btn.textContent = 'Verifying...';
+            err.style.display = 'none';
+            try {
+                const res = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key })
+                });
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    err.style.display = 'block';
+                    btn.disabled = false; btn.textContent = 'Login';
+                }
+            } catch (e) {
+                err.textContent = '❌ Connection failed';
+                err.style.display = 'block';
+                btn.disabled = false; btn.textContent = 'Login';
+            }
+        });
+    </script>
+</body>
+</html>`);
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 function getOpenClawCommand() {
     if (process.env.OPENCLAW_PATH) return process.env.OPENCLAW_PATH;
-    try { execSync('which openclaw'); return 'openclaw'; } catch (e) { }
-    const localPath = '/root/.nvm/versions/node/v22.22.0/bin/openclaw';
+    try { execSync('which openclaw', { stdio: 'pipe' }); return 'openclaw'; } catch (e) { /* expected: openclaw may not be in PATH */ }
+    // Dynamic: look for openclaw in same bin dir as current Node.js
+    const nodeBinDir = path.dirname(process.execPath);
+    const localPath = path.join(nodeBinDir, 'openclaw');
     if (fs.existsSync(localPath)) return localPath;
     return 'openclaw';
 }
@@ -110,7 +251,7 @@ function getActiveContext() {
         const sessionsPath = path.join(STATE_DIR, 'agents/main/sessions/sessions.json');
         const altPaths = [
             sessionsPath,
-            '/root/.openclaw/agents/main/sessions/sessions.json',
+            path.join(HOME_DIR, '.openclaw/agents/main/sessions/sessions.json'),
             path.join(WORKSPACE_DIR, '.openclaw/sessions/sessions.json'),
             path.join(HOME_DIR, '.clawdbot/agents/main/sessions/sessions.json')
         ];
@@ -235,9 +376,9 @@ function getActiveContext() {
                         return { id: event.id, events: [`🔧 Result: ${resultText}`] };
                     }
                 }
-            } catch (e) { }
+            } catch (e) { /* expected: not all log lines are valid JSON */ }
         }
-    } catch (e) { }
+    } catch (e) { console.warn('[Context] Failed to read active context:', e.message); }
     return null;
 }
 
@@ -298,7 +439,7 @@ function checkFileChanges() {
                 if (file.startsWith('.') || file.endsWith('.tmp')) return;
                 scanFile(path.join(d, file));
             });
-        } catch (e) { }
+        } catch (e) { console.debug('[Watch] Error reading directory:', d, e.message); }
     });
 }
 
@@ -325,7 +466,7 @@ function scanFile(filePath) {
                 logActivity(`📝 Updated: ${rel}`);
             }
         }
-    } catch (e) { }
+    } catch (e) { console.debug('[Watch] Error scanning file:', filePath, e.message); }
 }
 
 let cachedVersions = null;
@@ -343,18 +484,21 @@ function getVersions() {
     try {
         const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
         dashboard = pkg.version;
-    } catch (e) { }
+    } catch (e) { console.warn('[Versions] Failed to read dashboard package.json:', e.message); }
 
     try {
         const cmd = `${getOpenClawCommand()} --version`;
         core = execSync(cmd, { timeout: 5000 }).toString().trim();
     } catch (e) {
-        // Fallback checks
+        // Fallback: look for openclaw package.json relative to current Node.js
         try {
-            const pkg = require('/root/.nvm/versions/node/v22.22.0/lib/node_modules/openclaw/package.json');
+            const nodeBinDir = path.dirname(process.execPath);
+            const globalModulesPath = path.join(nodeBinDir, '../lib/node_modules/openclaw/package.json');
+            const pkg = JSON.parse(fs.readFileSync(globalModulesPath, 'utf8'));
             core = `v${pkg.version}`;
         } catch (e2) {
-            core = 'v2.6.4+ (Unverified)';
+            console.warn('[Versions] OpenClaw version detection failed:', e2.message);
+            core = 'Unknown';
         }
     }
     cachedVersions = { dashboard, core };
@@ -507,7 +651,7 @@ app.get('/api/logs', (req, res) => {
         const logs = [];
         for (let i = lines.length - 1; i >= 0; i--) {
             if (!lines[i]) continue;
-            try { logs.push(JSON.parse(lines[i])); } catch (e) { }
+            try { logs.push(JSON.parse(lines[i])); } catch (e) { /* expected: malformed log line */ }
             if (logs.length >= limit) break;
         }
         res.json(logs);
@@ -538,18 +682,63 @@ setInterval(() => { checkSystemStatus(() => { }); }, 3000);
 runAnalyzer();
 setInterval(runAnalyzer, 60 * 60 * 1000);
 
+// --- Rate Limiter for destructive endpoints ---
+const lastCallTimestamps = {};
+function rateLimit(key, windowMs = 10000) {
+    const now = Date.now();
+    if (lastCallTimestamps[key] && now - lastCallTimestamps[key] < windowMs) {
+        return false;
+    }
+    lastCallTimestamps[key] = now;
+    return true;
+}
+
 app.post('/api/kill', (req, res) => {
-    exec("pkill -SIGTERM -f 'node scripts/'", (err) => {
-        setTimeout(() => {
-            exec("pgrep -f 'node scripts/'", (err, stdout) => {
-                if (!err && stdout) exec("pkill -SIGKILL -f 'node scripts/'");
+    if (req.body?.confirm !== true) {
+        return res.status(400).json({ error: 'Confirmation required. Send { "confirm": true } in request body.' });
+    }
+    if (!rateLimit('kill', 5000)) {
+        return res.status(429).json({ error: 'Please wait before retrying.' });
+    }
+
+    // Scope: only kill node processes running scripts under the OpenClaw workspace
+    // Escape path for safe use in shell pattern
+    const openclawDir = path.resolve(WORKSPACE_DIR);
+    const escapedDir = openclawDir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    exec(`pgrep -f 'node.*${escapedDir}'`, (err, stdout) => {
+        const pidList = stdout ? stdout.trim().split('\n').filter(Boolean) : [];
+        if (pidList.length === 0) {
+            console.log(`[Kill] No matching processes found (scope: ${openclawDir}) by ${req.ip}`);
+            return res.json({ status: 'none', message: 'No matching script processes found.' });
+        }
+
+        // Get full command args for logging before killing
+        exec(`ps -p ${pidList.join(',')} -o pid,args --no-headers`, (psErr, psOut) => {
+            const processDetails = psOut ? psOut.trim() : pidList.join(', ');
+            console.log(`[Kill] Terminating processes by ${req.ip} at ${new Date().toISOString()}:\n${processDetails}`);
+
+            pidList.forEach(pid => {
+                try { process.kill(parseInt(pid), 'SIGTERM'); } catch (e) { /* may already be dead */ }
             });
-        }, 3000);
-        res.json({ status: 'stopping', message: 'Sent SIGTERM.' });
+
+            // Force kill survivors after 3s
+            setTimeout(() => {
+                pidList.forEach(pid => {
+                    try { process.kill(parseInt(pid), 0); process.kill(parseInt(pid), 'SIGKILL'); } catch (e) { /* already dead */ }
+                });
+            }, 3000);
+
+            res.json({ status: 'stopping', pids: pidList, details: processDetails });
+        });
     });
 });
 
 app.post('/api/gateway/restart', (req, res) => {
+    if (!rateLimit('gateway_restart', 10000)) {
+        return res.status(429).json({ error: 'Please wait at least 10 seconds before retrying.' });
+    }
+    console.log(`[Gateway] Restart requested by ${req.ip} at ${new Date().toISOString()}`);
+
     exec("pkill -SIGTERM -f 'openclaw gateway' || true", (killErr, killStdout, killStderr) => {
         if (killErr && killErr.code !== 1) {
             // code 1 means no process found, which is OK
@@ -699,7 +888,14 @@ app.get('/api/config', (req, res) => {
 wss.on('connection', (ws, req) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const key = url.searchParams.get('key') || req.headers['x-claw-key'];
-    if (key !== SECRET_KEY) {
+    // Check header key or cookie-based session
+    const cookies = {};
+    (req.headers.cookie || '').split(';').forEach(c => {
+        const eqIdx = c.indexOf('='); // Split on FIRST '=' only (handles base64 values with '=')
+        if (eqIdx > 0) cookies[c.slice(0, eqIdx).trim()] = c.slice(eqIdx + 1).trim();
+    });
+    const hasValidSession = cookies.claw_session && activeSessions.has(cookies.claw_session);
+    if (key !== SECRET_KEY && !hasValidSession) {
         ws.close(4001, 'Unauthorized');
         return;
     }
@@ -715,7 +911,7 @@ setInterval(() => {
 
 async function main() {
     // Cleanup old quick tunnel file
-    try { fs.unlinkSync(path.join(__dirname, '.quick_tunnel_url')); } catch (e) { }
+    try { fs.unlinkSync(path.join(__dirname, '.quick_tunnel_url')); } catch (e) { /* expected: file may not exist */ }
 
     server.listen(PORT, '::', async () => {
         console.log(`[Dashboard] Local: http://[::]:${PORT}`);
@@ -737,7 +933,7 @@ async function main() {
                 const entry = { ts, task: "🚀 ClawBridge Dashboard Online" };
                 fs.appendFileSync(logFile, JSON.stringify(entry) + '\n');
             }
-        } catch (e) { }
+        } catch (e) { console.warn('[Startup] Failed to write cold-start log:', e.message); }
         // -------------------------------
 
         if (process.env.ENABLE_EMBEDDED_TUNNEL === 'true') {

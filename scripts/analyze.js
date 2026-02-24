@@ -21,7 +21,7 @@ let COST_MAP = { 'default': { input: 0.10, output: 0.40 } };
 if (fs.existsSync(PRICING_FILE)) {
     try {
         COST_MAP = { ...COST_MAP, ...JSON.parse(fs.readFileSync(PRICING_FILE, 'utf8')) };
-    } catch (e) { }
+    } catch (e) { console.warn('[Analyzer] Failed to load pricing file:', e.message); }
 }
 
 function calcCost(model, input, output, cacheRead = 0) {
@@ -48,7 +48,7 @@ function discoverSessionFiles() {
                 const sessDir = path.join(agentsDir, agent, 'sessions');
                 if (fs.existsSync(sessDir)) searchDirs.push(sessDir);
             }
-        } catch (e) { }
+        } catch (e) { console.debug('[Analyzer] Cannot read agents directory:', e.message); }
     }
 
     // 2. Legacy flat path: ~/.openclaw/sessions/
@@ -71,7 +71,7 @@ function discoverSessionFiles() {
             for (const f of files) {
                 allFiles.push(path.join(dir, f));
             }
-        } catch (e) { }
+        } catch (e) { console.debug('[Analyzer] Cannot read session directory:', dir, e.message); }
     }
 
     return allFiles;
@@ -166,7 +166,7 @@ function processFile(filePath, startOffset = 0) {
                     cacheWrite,
                     cost
                 });
-            } catch (e) { }
+            } catch (e) { /* expected: not all JSONL lines are valid JSON */ }
         });
 
         rl.on('close', () => {
@@ -203,7 +203,7 @@ async function analyze() {
         if (fs.existsSync(CACHE_FILE)) {
             cache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
         }
-    } catch (e) { }
+    } catch (e) { console.debug('[Analyzer] No cache file found or invalid cache:', e.message); }
 
     const newCache = {};
 
@@ -237,7 +237,7 @@ async function analyze() {
                     messages
                 };
             }
-        } catch (e) { }
+        } catch (e) { console.warn('[Analyzer] Error processing file:', filePath, e.message); }
     }
 
     // --- Aggregation (from all cached messages) ---
