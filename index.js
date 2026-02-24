@@ -152,21 +152,8 @@ app.use((req, res, next) => {
     if (sessionToken && activeSessions.has(sessionToken)) return next();
     // 2. Header-based auth (for API/programmatic access)
     if (req.headers['x-claw-key'] === SECRET_KEY) return next();
-    // 3. Query key (legacy, for backward-compatible magic links — sets cookie then redirects)
-    if (req.query.key === SECRET_KEY) {
-        const token = generateSessionToken();
-        activeSessions.add(token);
-        res.cookie('claw_session', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-        // Redirect to same path without key in URL
-        const cleanUrl = req.path;
-        return res.redirect(302, cleanUrl);
-    }
-    // 4. Static assets passthrough
+    
+    // 3. Static assets passthrough
     if (req.path.match(/\.(png|jpg|jpeg|svg|gif|ico|css)$/)) return next();
     if (req.path === '/manifest.json') return next();
     // 5. API returns 401
@@ -178,60 +165,270 @@ app.use((req, res, next) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ClawBridge - Login</title>
+    <title>ClawBridge | Login</title>
     <style>
+        :root {
+            --bg: #030712;
+            --panel: rgba(17, 24, 39, 0.75);
+            --accent: #3b82f6;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-box { background: #1e293b; border-radius: 16px; padding: 40px; width: 360px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
-        .login-box h1 { font-size: 24px; margin-bottom: 8px; text-align: center; }
-        .login-box p { color: #94a3b8; font-size: 14px; text-align: center; margin-bottom: 24px; }
-        .login-box input { width: 100%; padding: 12px 16px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-size: 16px; outline: none; transition: border-color 0.2s; }
-        .login-box input:focus { border-color: #3b82f6; }
-        .login-box button { width: 100%; padding: 12px; margin-top: 16px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.2s; }
-        .login-box button:hover { background: #2563eb; }
-        .login-box button:disabled { background: #475569; cursor: not-allowed; }
-        .error { color: #f87171; font-size: 13px; margin-top: 12px; text-align: center; display: none; }
+        body { 
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Breathing Background Effect */
+        .background-blobs {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: #030712;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: move 25s infinite alternate ease-in-out;
+        }
+        .blob-1 {
+            width: 600px; height: 600px;
+            background: rgba(59, 130, 246, 0.3);
+            top: -100px; left: -100px;
+        }
+        .blob-2 {
+            width: 700px; height: 700px;
+            background: rgba(147, 51, 234, 0.25);
+            bottom: -150px; right: -100px;
+            animation-duration: 35s;
+            animation-delay: -5s;
+        }
+        .blob-3 {
+            width: 500px; height: 500px;
+            background: rgba(16, 185, 129, 0.2);
+            top: 30%; left: 20%;
+            animation-duration: 30s;
+            animation-delay: -10s;
+        }
+        @keyframes move {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, 100px) scale(1.1); }
+            66% { transform: translate(-30px, 50px) scale(0.9); }
+            100% { transform: translate(20px, -40px) scale(1.05); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            z-index: 1;
+        }
+        .login-box {
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 32px;
+            padding: 56px 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.5));
+        }
+        h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
+        p { color: var(--text-dim); font-size: 16px; margin-bottom: 40px; }
+        
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+        }
+        input:focus {
+            border-color: var(--accent);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 12px;
+        }
+        button:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4);
+        }
+        button:active { transform: scale(0.98); }
+        button:disabled {
+            background: #334155;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Toast / Notice Styling */
+        .notice-overlay {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(234, 179, 8, 0.95);
+            color: #422006;
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 100;
+            max-width: 90%;
+            text-align: center;
+            animation: fadeInDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-top: 24px;
+            display: none;
+        }
+        .footer {
+            margin-top: 32px;
+            font-size: 13px;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <h1>🌊 ClawBridge</h1>
-        <p>Enter your access key to continue</p>
-        <form id="loginForm">
-            <input type="password" id="keyInput" placeholder="Access Key" autocomplete="current-password" required autofocus />
-            <button type="submit" id="loginBtn">Login</button>
-            <div class="error" id="errorMsg">❌ Invalid access key</div>
-        </form>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div id="magicLinkNotice" class="notice-overlay">
+        ⚠️ For security reasons, this version of ClawBridge no longer supports direct Magic Link access. Please enter your Access Key manually.
+    </div>
+
+    <div class="container">
+        <div class="login-box">
+            <div class="logo">
+                <img src="/app-icon.png" alt="Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2I4MmY2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNS0xMC01eiIvPjxwYXRoIGQ9Ik0yIDE3bDEwIDUgMTAtNXpNMiAxMmwxMCA1IDEwLTV6Ii8+PC9zdmc+'" />
+            </div>
+            <h1>ClawBridge</h1>
+            <p>Secure Dashboard Login</p>
+            <form id="loginForm">
+                <input type="password" id="keyInput" placeholder="Access Key" autocomplete="current-password" required autofocus />
+                <button type="submit" id="loginBtn">Sign In</button>
+                <div class="error" id="errorMsg"></div>
+            </form>
+            <div class="footer">
+                &copy; 2026 ClawBridge.app
+            </div>
+        </div>
     </div>
     <script>
+        // Check for Legacy Magic Link attempt
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('key')) {
+            document.getElementById('magicLinkNotice').style.display = 'block';
+            // Clean the URL without reloading
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
             const err = document.getElementById('errorMsg');
             const key = document.getElementById('keyInput').value;
-            btn.disabled = true; btn.textContent = 'Verifying...';
+            
+            btn.disabled = true;
+            btn.textContent = 'Verifying Identity...';
             err.style.display = 'none';
+            
             try {
                 const res = await fetch('/api/auth', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key })
                 });
+                
                 if (res.ok) {
                     window.location.reload();
                 } else {
+                    const data = await res.json();
+                    err.textContent = '❌ ' + (data.error || 'Invalid Access Key');
                     err.style.display = 'block';
-                    btn.disabled = false; btn.textContent = 'Login';
+                    btn.disabled = false;
+                    btn.textContent = 'Sign In';
+                    document.getElementById('keyInput').value = '';
                 }
             } catch (e) {
-                err.textContent = '❌ Connection failed';
+                err.textContent = '❌ Connection lost. Check your network.';
                 err.style.display = 'block';
-                btn.disabled = false; btn.textContent = 'Login';
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
             }
         });
     </script>
 </body>
 </html>`);
+
+
 });
 
 app.use(express.static(path.join(__dirname, 'public')));

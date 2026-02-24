@@ -316,10 +316,22 @@ fi
 IP=$(hostname -I | awk '{print $1}')
 PORT=${PORT:-3000}
 echo -e "\n${GREEN}🎉 Installation Complete!${NC}"
-echo -e "📱 Local Access: ${BLUE}http://$IP:$PORT/?key=$RAND_KEY${NC}"
+
+# Check if this was an update (based on existing ENV or backups)
+IS_UPDATE=false
+if [ -f "$ENV_FILE.bak" ] || [ ! -z "$EXISTING_PORT" ]; then
+    IS_UPDATE=true
+fi
+
+if [ "$IS_UPDATE" = true ]; then
+    echo -e "${YELLOW}🔒 Security Notice: Since v1.1.0, direct Magic Links with keys are no longer supported for enhanced security.${NC}"
+    echo -e "${YELLOW}👉 Please visit the link below and enter your Access Key manually on the login page.${NC}"
+fi
+
+echo -e "📱 Local Access: ${BLUE}http://$IP:$PORT${NC}"
 
 if [ "$USE_VPN" = true ]; then
-    echo -e "🔒 ${VPN_TYPE} Access: ${BLUE}http://$VPN_IP:$PORT/?key=$RAND_KEY${NC}"
+    echo -e "🔒 ${VPN_TYPE} Access: ${BLUE}http://$VPN_IP:$PORT${NC}"
     echo -e "   (Accessible via your ${VPN_TYPE} network)"
 fi
 
@@ -334,7 +346,7 @@ if [ "$QUICK_TUNNEL" = true ] || [ -z "$CF_TOKEN" ]; then
             if [ -f "$APP_DIR/.quick_tunnel_url" ]; then
                 QURL=$(cat "$APP_DIR/.quick_tunnel_url")
                 echo -e "\n${GREEN}🚀 ClawBridge Dashboard Live:${NC}"
-                echo -e "👉 ${BLUE}${QURL}/?key=$RAND_KEY${NC}"
+                echo -e "👉 ${BLUE}${QURL}${NC}"
                 echo -e "⚠️  Note: This link expires if the dashboard restarts."
                 break
             fi
@@ -353,4 +365,4 @@ echo -e "\n📊 Initializing data analytics & syncing prices..."
 "$NODE_PATH" "$APP_DIR/scripts/sync_openrouter_prices.js" >/dev/null 2>&1 || true
 "$NODE_PATH" "$APP_DIR/scripts/analyze.js" >/dev/null 2>&1 || true
 
-echo -e "🔑 Secret Key: $RAND_KEY"
+echo -e "🔑 Access Key: ${YELLOW}$RAND_KEY${NC}"
