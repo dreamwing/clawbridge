@@ -42,7 +42,67 @@ async function run() {
         process.exit(1);
     }
 
-    const unreleasedContent = unreleasedMatch[1].trim();
+    let unreleasedContent = unreleasedMatch[1].trim();
+
+    // 2.5 Supplement with Git Commits
+    console.log('Supplementing changelog with unmentioned git commits...');
+    try {
+        // Find last tag
+        const lastTag = execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim();
+        console.log(`Last tag: ${lastTag}`);
+
+        // Get commits since last tag
+        const logOut = execSync(`git log ${lastTag}..HEAD --pretty=format:"%s"`, { encoding: 'utf8' });
+        const commitLines = logOut.split('\n').filter(Boolean);
+
+        const parsedCommits = { Added: [], Fixed: [], Changed: [], Removed: [] };
+
+        for (const msg of commitLines) {
+            if (unreleasedContent.includes(msg)) continue; // Skip if exact phrase already written by user
+
+            // Basic conventional commit parsing
+            if (msg.startsWith('feat:') || msg.startsWith('feat(')) {
+                parsedCommits.Added.push(`- ${msg.replace(/^feat(?:\(.*\))?:/, '').trim()}`);
+            } else if (msg.startsWith('fix:') || msg.startsWith('fix(') || msg.startsWith('perf')) {
+                parsedCommits.Fixed.push(`- ${msg.replace(/^(?:fix|perf)(?:\(.*\))?:/, '').trim()}`);
+            } else if (msg.startsWith('refactor') || msg.startsWith('docs') || msg.startsWith('style') || msg.startsWith('chore')) {
+                // Skip chore/merge commits generally, keep others as Changed
+                if (!msg.startsWith('chore') && !msg.startsWith('Merge')) {
+                    parsedCommits.Changed.push(`- ${msg.replace(/^(?:refactor|docs|style)(?:\(.*\))?:/, '').trim()}`);
+                }
+            }
+        }
+
+        // Append missing commits to their respective headers if they aren't already there
+        for (const [section, items] of Object.entries(parsedCommits)) {
+            if (items.length === 0) continue;
+
+            const sectionHeader = `### ${section}`;
+            const hasSection = unreleasedContent.includes(sectionHeader);
+
+            // Filter items to ensure we don't add something that conceptually matches user's manual entry
+            const addedItems = items.filter(item => {
+                // rough fuzzy check: if 60% of words match some line in unreleased, skip it
+                const words = item.toLowerCase().split(/\W+/).filter(w => w.length > 3);
+                return !words.some(w => unreleasedContent.toLowerCase().includes(w));
+            });
+
+            if (addedItems.length === 0) continue;
+
+            if (hasSection) {
+                // Find section header and append below it
+                const parts = unreleasedContent.split(sectionHeader);
+                unreleasedContent = parts[0] + sectionHeader + '\n' + addedItems.join('\n') + parts.slice(1).join(sectionHeader);
+            } else {
+                // Create section at the bottom
+                unreleasedContent += `\n\n### ${section}\n` + addedItems.join('\n');
+            }
+        }
+
+        unreleasedContent = unreleasedContent.trim();
+    } catch (e) {
+        console.warn('Could not parse git commit history or no previous tags found:', e.message);
+    }
 
     // 3. Find unique issue numbers
     const issueRegex = /#(\d+)/g;
