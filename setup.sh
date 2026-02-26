@@ -402,7 +402,7 @@ fi
 fi
 
 # 6. Summary
-if command -v hostname &> /dev/null && hostname -I &> /dev/null; then
+if [ "$OS_TYPE" != "Darwin" ] && command -v hostname &> /dev/null && hostname -I &> /dev/null; then
     IP=$(hostname -I | awk '{print $1}')
 else
     # Fallback for macOS / BSD
