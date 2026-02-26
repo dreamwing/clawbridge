@@ -11,9 +11,9 @@ echo "-----------------------"
 # OS Detection
 OS_TYPE=$(uname -s)
 if [ "$OS_TYPE" = "Darwin" ]; then
-    SED_CMD="sed -i ''"
+    sed_inplace() { sed -i '' "$@"; }
 else
-    SED_CMD="sed -i"
+    sed_inplace() { sed -i "$@"; }
 fi
 
 # Detect if running from inside the installation directory

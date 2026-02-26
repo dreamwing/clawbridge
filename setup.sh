@@ -12,9 +12,9 @@ echo -e "${BLUE}=== ClawBridge Dashboard Installer ===${NC}"
 # OS Detection
 OS_TYPE=$(uname -s)
 if [ "$OS_TYPE" = "Darwin" ]; then
-    SED_CMD="sed -i ''"
+    sed_inplace() { sed -i '' "$@"; }
 else
-    SED_CMD="sed -i"
+    sed_inplace() { sed -i "$@"; }
 fi
 
 # Parse Args
@@ -111,7 +111,7 @@ else
     echo "✅ Updating .env configuration..."
     # Update or Append PORT
     if grep -q "^PORT=" "$ENV_FILE"; then
-        $SED_CMD "s/^PORT=.*/PORT=$PORT/" "$ENV_FILE"
+        sed_inplace "s/^PORT=.*/PORT=$PORT/" "$ENV_FILE"
     else
         echo "PORT=$PORT" >> "$ENV_FILE"
     fi
@@ -140,7 +140,7 @@ fi
 if [ ! -z "$DETECTED_OPENCLAW" ]; then
     echo "🔍 Detected openclaw at: $DETECTED_OPENCLAW"
     # Update or append OPENCLAW_PATH
-    $SED_CMD '/OPENCLAW_PATH=/d' "$ENV_FILE"
+    sed_inplace '/OPENCLAW_PATH=/d' "$ENV_FILE"
     echo "OPENCLAW_PATH=$DETECTED_OPENCLAW" >> "$ENV_FILE"
 fi
 
@@ -298,8 +298,8 @@ if [[ "$ENABLE_TUNNEL" =~ ^[Yy]$ ]] || [ "$USE_VPN" = true ]; then
         echo -e "💡 To force Cloudflare anyway, run: ./install.sh --force-cf"
         ENABLE_TUNNEL="n"
         # Clear any existing tunnel config
-        $SED_CMD '/TUNNEL_TOKEN=/d' "$ENV_FILE"
-        $SED_CMD '/ENABLE_EMBEDDED_TUNNEL=/d' "$ENV_FILE"
+        sed_inplace '/TUNNEL_TOKEN=/d' "$ENV_FILE"
+        sed_inplace '/ENABLE_EMBEDDED_TUNNEL=/d' "$ENV_FILE"
     else
         # Normal Cloudflare Logic
         if [ "$FORCE_CF" = true ]; then
@@ -347,8 +347,8 @@ if [[ "$ENABLE_TUNNEL" =~ ^[Yy]$ ]] || [ "$USE_VPN" = true ]; then
 
     # Write Config
     # Clean old
-    $SED_CMD '/TUNNEL_TOKEN=/d' "$ENV_FILE"
-    $SED_CMD '/ENABLE_EMBEDDED_TUNNEL=/d' "$ENV_FILE"
+    sed_inplace '/TUNNEL_TOKEN=/d' "$ENV_FILE"
+    sed_inplace '/ENABLE_EMBEDDED_TUNNEL=/d' "$ENV_FILE"
     
     if [ ! -z "$CF_TOKEN" ]; then
         echo "TUNNEL_TOKEN=$CF_TOKEN" >> "$ENV_FILE"
