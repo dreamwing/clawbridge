@@ -274,17 +274,29 @@ USE_VPN=false
 VPN_IP=""
 VPN_TYPE=""
 
-if ip addr show tailscale0 >/dev/null 2>&1; then
-    VPN_IP=$(ip -4 addr show tailscale0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-    if [ ! -z "$VPN_IP" ]; then
-        USE_VPN=true
-        VPN_TYPE="Tailscale"
+if [ "$OS_TYPE" != "Darwin" ]; then
+    # VPN detection (Linux only — macOS uses different interface names)
+    if ip addr show tailscale0 >/dev/null 2>&1; then
+        VPN_IP=$(ip -4 addr show tailscale0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+        if [ ! -z "$VPN_IP" ]; then
+            USE_VPN=true
+            VPN_TYPE="Tailscale"
+        fi
+    elif ip addr show wg0 >/dev/null 2>&1; then
+        VPN_IP=$(ip -4 addr show wg0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+        if [ ! -z "$VPN_IP" ]; then
+            USE_VPN=true
+            VPN_TYPE="WireGuard"
+        fi
     fi
-elif ip addr show wg0 >/dev/null 2>&1; then
-    VPN_IP=$(ip -4 addr show wg0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-    if [ ! -z "$VPN_IP" ]; then
-        USE_VPN=true
-        VPN_TYPE="WireGuard"
+else
+    # macOS VPN detection via ifconfig
+    if ifconfig utun0 >/dev/null 2>&1; then
+        VPN_IP=$(ifconfig utun0 | grep "inet " | awk '{print $2}')
+        if [ ! -z "$VPN_IP" ]; then
+            USE_VPN=true
+            VPN_TYPE="Tailscale"
+        fi
     fi
 fi
 
@@ -377,7 +389,11 @@ if [[ "$ENABLE_TUNNEL" =~ ^[Yy]$ ]] || [ "$USE_VPN" = true ]; then
     fi
         
     # Restart service to pick up new env
-    if [ "$USE_USER_SYSTEMD" = true ]; then
+    if [ "$OS_TYPE" = "Darwin" ]; then
+        pkill -f "node index.js" || true
+        launchctl unload "$HOME/Library/LaunchAgents/com.dreamwing.${SERVICE_NAME}.plist" >/dev/null 2>&1 || true
+        launchctl load -w "$HOME/Library/LaunchAgents/com.dreamwing.${SERVICE_NAME}.plist"
+    elif [ "$USE_USER_SYSTEMD" = true ]; then
         # Ensure we don't have a zombie process holding the port
         pkill -f "node index.js" || true
         systemctl --user restart "$SERVICE_NAME"
@@ -457,7 +473,11 @@ if [ "$QUICK_TUNNEL" = true ] || [ -z "$CF_TOKEN" ]; then
         done
         
         if [ ! -f "$APP_DIR/.quick_tunnel_url" ]; then
-            echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: journalctl --user -u ${SERVICE_NAME} -f${NC}"
+            if [ "$OS_TYPE" = "Darwin" ]; then
+                echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: tail -f /tmp/com.dreamwing.${SERVICE_NAME}.log${NC}"
+            else
+                echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: journalctl --user -u ${SERVICE_NAME} -f${NC}"
+            fi
         fi
     fi
 fi
