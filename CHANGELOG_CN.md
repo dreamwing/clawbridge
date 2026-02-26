@@ -10,6 +10,7 @@
 - 鲁棒的 IP 检测：用弹性的多回退逻辑（`ip route`、`hostname`、`ifconfig`）替换了脆弱的 `hostname -I`，以防止在某些 Linux 发行版（如 Alpine）和 WSL 上出现空 IP 问题。（感谢 @斯图超哥 的反馈）
 - 快速隧道刷新：通过在服务重启前清理过时的快速隧道 URL，提高了可靠性，确保正确获取并显示最新的公共 URL。
 - Systemd 日志提示：根据安装类型正确区分 `--user` 和系统级 `journalctl` 命令。
+- 合并 PR #16 来自 dreamwing/feature/macos-support
 
 ## [1.1.0] - 2026-02-25
 

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Robust IP detection: Replaced fragile `hostname -I` with a resilient multi-fallback logic (`ip route`, `hostname`, `ifconfig`) to prevent empty IP issues on some Linux distributions (e.g., Alpine) and WSL. (Thanks @斯图超哥 for the feedback)
 - Quick Tunnel Refresh: Improved reliability by clearing stale Quick Tunnel URLs before service restarts, ensuring the latest public URL is correctly fetched and displayed.
 - Systemd Log Hint: Correctly differentiate between `--user` and system-level `journalctl` commands based on the installation type.
+- Merge pull request #16 from dreamwing/feature/macos-support
 
 ## [1.1.0] - 2026-02-25
 
