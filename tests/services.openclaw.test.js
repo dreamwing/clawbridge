@@ -37,6 +37,7 @@ describe('findWorkspace()', () => {
         // Create a fake workspace with a memory dir to trigger probe
         const fakeWs = '/tmp/fake_probe_workspace';
         fs.mkdirSync(path.join(fakeWs, 'memory'), { recursive: true });
+        fs.writeFileSync(path.join(fakeWs, 'MEMORY.md'), '# mock');
         // We can't easily control the probe paths without env, just verify it returns a string or null
         const { findWorkspace } = require('../src/services/openclaw');
         const result = findWorkspace();
