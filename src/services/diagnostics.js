@@ -57,11 +57,14 @@ class DiagnosticsEngine {
 
         // --- Run Rules ---
 
+        const safeTotalCost = (stats.cost && stats.cost.total) ? stats.cost.total : 100;
+
         // D01: Expensive Model
         // Check if > 50% of cost comes from an expensive model
         let foundExpensive = false;
-        for (const [modelId, cost] of Object.entries(stats.cost.byModel || {})) {
-            if (MODEL_REPLACEMENTS[modelId] && (cost / stats.cost.total) > 0.5) {
+        const byModelStats = (stats.cost && stats.cost.byModel) ? stats.cost.byModel : {};
+        for (const [modelId, cost] of Object.entries(byModelStats)) {
+            if (MODEL_REPLACEMENTS[modelId] && (cost / safeTotalCost) > 0.5) {
                 const info = MODEL_REPLACEMENTS[modelId];
                 // Estimate monthly savings (Extrapolate daily to monthly)
                 const estimatedMonthlyCost = cost * 30; // Assuming stats are daily, very rough approximation
@@ -105,7 +108,7 @@ class DiagnosticsEngine {
         const thinking = defaults.thinkingDefault;
         if (!thinking || thinking === 'high' || thinking === 'xhigh' || thinking === 'on') {
             // Estimate thinking takes ~20% of output cost
-            const thinkingSavings = (stats.cost.total || 100) * 0.15; // Rough estimate
+            const thinkingSavings = safeTotalCost * 0.15; // Rough estimate
             totalMonthlySavings += thinkingSavings;
             results.push({
                 actionId: 'A05',
