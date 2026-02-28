@@ -4,70 +4,25 @@ const os = require('os');
 const { spawn } = require('child_process');
 
 const BIN_NAME = 'cloudflared';
-const BIN_PATH = path.join(__dirname, BIN_NAME);
+let BIN_PATH = path.join(__dirname, BIN_NAME);
 const PID_FILE = path.join(__dirname, '.cloudflared.pid');
 
-function getDownloadUrl() {
-    const arch = os.arch(); // 'x64', 'arm64', etc.
-    const platform = os.platform(); // 'linux', 'darwin', etc.
-
-    const archMap = {
-        'x64': 'amd64',
-        'arm64': 'arm64',
-        'arm': 'arm',
-    };
-
-    const cfArch = archMap[arch];
-    if (!cfArch) {
-        throw new Error(`Unsupported architecture: ${arch}. Supported: x64, arm64, arm`);
-    }
-
-    if (platform === 'linux') {
-        return `https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${cfArch}`;
-    } else if (platform === 'darwin') {
-        return `https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-${cfArch}.tgz`;
-    }
-
-    throw new Error(`Unsupported platform: ${platform}. Supported: linux, darwin`);
-}
-
 async function downloadBinary() {
+    // Check local binary first (legacy or manual placement)
     if (fs.existsSync(BIN_PATH) && fs.statSync(BIN_PATH).size > 1000000) return;
 
-    const url = getDownloadUrl();
-    console.log(`[Tunnel] Downloading cloudflared for ${os.platform()}/${os.arch()}...`);
+    // Check system PATH
+    const { execSync } = require('child_process');
+    try {
+        const systemPath = execSync('which cloudflared', { encoding: 'utf8' }).trim();
+        if (systemPath && fs.existsSync(systemPath)) {
+            BIN_PATH = systemPath;
+            return;
+        }
+    } catch (e) { /* expected if not found in PATH */ }
 
-    const https = require('https');
-    const http = require('http');
-
-    return new Promise((resolve, reject) => {
-        const download = (downloadUrl, redirects = 0) => {
-            if (redirects > 5) return reject(new Error('Too many redirects'));
-            const client = downloadUrl.startsWith('https') ? https : http;
-            client.get(downloadUrl, (res) => {
-                // Follow redirects (GitHub releases use 302)
-                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                    return download(res.headers.location, redirects + 1);
-                }
-                if (res.statusCode !== 200) {
-                    return reject(new Error(`Download failed: HTTP ${res.statusCode}`));
-                }
-                const file = fs.createWriteStream(BIN_PATH);
-                res.pipe(file);
-                file.on('finish', () => {
-                    file.close();
-                    fs.chmodSync(BIN_PATH, '755');
-                    console.log('[Tunnel] Download complete.');
-                    resolve();
-                });
-                file.on('error', (err) => {
-                    fs.unlinkSync(BIN_PATH);
-                    reject(err);
-                });
-            }).on('error', reject);
-        };
-        download(url);
-    });
+    // If both fail, throw error so index.js catches it and doesn't start tunnel
+    throw new Error('cloudflared not found. Install via: brew install cloudflared (macOS) or apt install cloudflared (Linux)');
 }
 
 function stopExistingTunnel() {
