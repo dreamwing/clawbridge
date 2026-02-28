@@ -23,7 +23,7 @@ router.post('/api/auth', (req, res) => {
         addSession(token);
         res.cookie('claw_session', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: req.secure,
             sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
