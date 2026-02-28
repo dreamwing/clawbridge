@@ -216,10 +216,10 @@ if [ "$HAS_TOKEN" = true ]; then
     # Let's modify setup.sh to support --update mode or similar.
     # OR: Extract token and pass it back?
     TOKEN=$(grep "TUNNEL_TOKEN=" "$TARGET_DIR/.env" | cut -d'=' -f2)
-    ./setup.sh --token="$TOKEN"
+    ./setup.sh --token="$TOKEN" --enable-service
 else
     # Force quick mode for zero-friction
-    ./setup.sh --quick
+    ./setup.sh --quick --enable-service
 fi
 
 # Final Notification

@@ -12,7 +12,7 @@
   <runtime>
     <type>node</type>
     <entrypoint>index.js</entrypoint>
-    <persistence>Registers a user-level systemd service (clawbridge.service) that auto-starts on login and restarts on failure.</persistence>
+    <persistence>Optional. Run setup.sh --enable-service to register a user-level systemd service for auto-start. Not enabled by default.</persistence>
   </runtime>
 
   <!-- System requirements -->
@@ -49,13 +49,13 @@
     <path type="write" location="skills/clawbridge/cloudflared" description="cloudflared binary, only if downloaded during tunnel setup." />
   </filesystem>
 
-  <!-- Installation — uses the script bundled in this repository -->
+  <!-- Installation -->
   <install>
-    curl -sL https://raw.githubusercontent.com/dreamwing/clawbridge/master/install.sh | bash
+    git clone https://github.com/dreamwing/clawbridge.git skills/clawbridge && cd skills/clawbridge && npm install --production && node index.js
   </install>
 
   <instructions>
-    ClawBridge installs itself as a persistent background service.
+    ClawBridge runs as a foreground Node.js process by default.
 
     After installation, the dashboard is accessible at the local IP shown in the terminal output.
     An ACCESS_KEY is generated and displayed — keep it safe, it is required to log in.
@@ -63,10 +63,16 @@
     To enable remote access (optional), supply a Cloudflare Tunnel token when prompted,
     or leave it blank to use a temporary Quick Tunnel URL.
 
-    To update to the latest version:
+    To enable auto-start as a background service (optional):
+      ./setup.sh --enable-service
+
+    To install with one command (includes service registration):
       curl -sL https://raw.githubusercontent.com/dreamwing/clawbridge/master/install.sh | bash
 
-    To stop the service:
+    To update to the latest version via git:
+      git pull && npm install
+
+    To stop the service (if enabled):
       systemctl --user stop clawbridge
 
     Full documentation: https://github.com/dreamwing/clawbridge/blob/master/README.md

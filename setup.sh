@@ -23,6 +23,8 @@ NO_TUNNEL=false
 QUICK_TUNNEL=false
 FORCE_CF=false
 
+ENABLE_SERVICE=false
+
 for arg in "$@"
 do
     case $arg in
@@ -40,6 +42,10 @@ do
         ;;
         --force-cf)
         FORCE_CF=true
+        shift
+        ;;
+        --enable-service)
+        ENABLE_SERVICE=true
         shift
         ;;
     esac
@@ -106,6 +112,7 @@ if [ ! -f "$ENV_FILE" ]; then
     RAND_KEY=$(openssl rand -hex 16)
     echo "ACCESS_KEY=$RAND_KEY" > "$ENV_FILE"
     echo "PORT=$PORT" >> "$ENV_FILE"
+    chmod 600 "$ENV_FILE"
     echo -e "${YELLOW}🔑 Generated Access Key: $RAND_KEY${NC}"
 else
     echo "✅ Updating .env configuration..."
@@ -123,6 +130,7 @@ else
     else
         RAND_KEY=$ACCESS_KEY
     fi
+    chmod 600 "$ENV_FILE"
 fi
 
 # 3b. Auto-detect OPENCLAW_PATH
@@ -147,13 +155,14 @@ fi
 # 4. Setup Service
 NODE_PATH=$(which node)
 
-if [ "$OS_TYPE" = "Darwin" ]; then
-    # macOS launchd setup
-    SERVICE_DIR="$HOME/Library/LaunchAgents"
-    mkdir -p "$SERVICE_DIR"
-    SERVICE_FILE="$SERVICE_DIR/com.dreamwing.${SERVICE_NAME}.plist"
-    
-    cat > "$SERVICE_FILE" <<EOF
+if [ "$ENABLE_SERVICE" = true ]; then
+    if [ "$OS_TYPE" = "Darwin" ]; then
+        # macOS launchd setup
+        SERVICE_DIR="$HOME/Library/LaunchAgents"
+        mkdir -p "$SERVICE_DIR"
+        SERVICE_FILE="$SERVICE_DIR/com.dreamwing.${SERVICE_NAME}.plist"
+        
+        cat > "$SERVICE_FILE" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -183,32 +192,32 @@ if [ "$OS_TYPE" = "Darwin" ]; then
 </dict>
 </plist>
 EOF
-    
-    echo "📝 Service file created at: $SERVICE_FILE"
-    echo "🚀 Loading macOS Launch Agent (com.dreamwing.${SERVICE_NAME})..."
-    launchctl load -w "$SERVICE_FILE" >/dev/null 2>&1 || true
-    # If already loaded and we just want to restart:
-    launchctl unload "$SERVICE_FILE" >/dev/null 2>&1 || true
-    launchctl load -w "$SERVICE_FILE"
-    echo -e "${GREEN}✅ Service started!${NC}"
+        
+        echo "📝 Service file created at: $SERVICE_FILE"
+        echo "🚀 Loading macOS Launch Agent (com.dreamwing.${SERVICE_NAME})..."
+        launchctl load -w "$SERVICE_FILE" >/dev/null 2>&1 || true
+        # If already loaded and we just want to restart:
+        launchctl unload "$SERVICE_FILE" >/dev/null 2>&1 || true
+        launchctl load -w "$SERVICE_FILE"
+        echo -e "${GREEN}✅ Service started!${NC}"
 
-else
-    # Linux systemd setup
-    SERVICE_FILE="$HOME/.config/systemd/user/${SERVICE_NAME}.service"
-    USE_USER_SYSTEMD=true
+    else
+        # Linux systemd setup
+        SERVICE_FILE="$HOME/.config/systemd/user/${SERVICE_NAME}.service"
+        USE_USER_SYSTEMD=true
 
-    if [ ! -d "$HOME/.config/systemd/user" ]; then
-        mkdir -p "$HOME/.config/systemd/user"
-    fi
+        if [ ! -d "$HOME/.config/systemd/user" ]; then
+            mkdir -p "$HOME/.config/systemd/user"
+        fi
 
-    # Check if user dbus is active (common issue in bare VPS)
-    if ! systemctl --user list-units >/dev/null 2>&1; then
-        echo -e "${YELLOW}⚠️  User-level systemd not available. Generating standard systemd file...${NC}"
-        USE_USER_SYSTEMD=false
-        SERVICE_FILE="/tmp/${SERVICE_NAME}.service"
-    fi
+        # Check if user dbus is active (common issue in bare VPS)
+        if ! systemctl --user list-units >/dev/null 2>&1; then
+            echo -e "${YELLOW}⚠️  User-level systemd not available. Generating standard systemd file...${NC}"
+            USE_USER_SYSTEMD=false
+            SERVICE_FILE="/tmp/${SERVICE_NAME}.service"
+        fi
 
-    cat > "$SERVICE_FILE" <<EOF
+        cat > "$SERVICE_FILE" <<EOF
 [Unit]
 Description=ClawBridge Dashboard (${SERVICE_NAME})
 After=network.target
@@ -226,21 +235,24 @@ EnvironmentFile=$APP_DIR/.env
 WantedBy=default.target
 EOF
 
-    echo "📝 Service file created at: $SERVICE_FILE"
+        echo "📝 Service file created at: $SERVICE_FILE"
 
-    if [ "$USE_USER_SYSTEMD" = true ]; then
-        echo "🚀 Enabling User Service ($SERVICE_NAME)..."
-        systemctl --user daemon-reload
-        systemctl --user enable "$SERVICE_NAME"
-        systemctl --user restart "$SERVICE_NAME"
-        echo -e "${GREEN}✅ Service started!${NC}"
-    else
-        echo -e "${YELLOW}👉 Please run the following command with sudo to install the service:${NC}"
-        echo "sudo mv $SERVICE_FILE /etc/systemd/system/${SERVICE_NAME}.service"
-        echo "sudo systemctl daemon-reload"
-        echo "sudo systemctl enable ${SERVICE_NAME}"
-        echo "sudo systemctl start ${SERVICE_NAME}"
+        if [ "$USE_USER_SYSTEMD" = true ]; then
+            echo "🚀 Enabling User Service ($SERVICE_NAME)..."
+            systemctl --user daemon-reload
+            systemctl --user enable "$SERVICE_NAME"
+            systemctl --user restart "$SERVICE_NAME"
+            echo -e "${GREEN}✅ Service started!${NC}"
+        else
+            echo -e "${YELLOW}👉 Please run the following command with sudo to install the service:${NC}"
+            echo "sudo mv $SERVICE_FILE /etc/systemd/system/${SERVICE_NAME}.service"
+            echo "sudo systemctl daemon-reload"
+            echo "sudo systemctl enable ${SERVICE_NAME}"
+            echo "sudo systemctl start ${SERVICE_NAME}"
+        fi
     fi
+else
+    echo -e "${YELLOW}ℹ️  Skipping service registration. To enable auto-start, run with: ./setup.sh --enable-service${NC}"
 fi
 
 # 5. Remote Access (Cloudflare Tunnel)
@@ -319,32 +331,17 @@ if [[ "$ENABLE_TUNNEL" =~ ^[Yy]$ ]] || [ "$USE_VPN" = true ]; then
             ENABLE_TUNNEL="y"
         fi
 
-        if ! command -v cloudflared &> /dev/null; then
-            echo "⬇️ Downloading cloudflared..."
-            # Detect arch
-            ARCH=$(uname -m)
+        if ! command -v cloudflared &> /dev/null && [ ! -x "./cloudflared" ]; then
+            echo -e "${YELLOW}⚠️  cloudflared not found.${NC}"
+            echo "   Please install it manually to enable remote access:"
             if [ "$OS_TYPE" = "Darwin" ]; then
-                if [[ "$ARCH" == "x86_64" ]] || [[ "$ARCH" == "amd64" ]]; then
-                    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz -O cloudflared.tgz
-                    tar -xzf cloudflared.tgz && rm cloudflared.tgz
-                elif [[ "$ARCH" == "arm64" ]] || [[ "$ARCH" == "aarch64" ]]; then
-                    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz -O cloudflared.tgz
-                    tar -xzf cloudflared.tgz && rm cloudflared.tgz
-                else
-                    echo "❌ Architecture $ARCH not supported for macOS auto-download."
-                    exit 1
-                fi
+                echo "     brew install cloudflared"
             else
-                if [[ "$ARCH" == "x86_64" ]]; then
-                    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O cloudflared
-                elif [[ "$ARCH" == "aarch64" ]]; then
-                    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 -O cloudflared
-                else
-                    echo "❌ Architecture $ARCH not supported for Linux auto-download."
-                    exit 1
-                fi
+                echo "     sudo apt install cloudflared  (Debian/Ubuntu)"
+                echo "     Or: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/"
             fi
-            chmod +x cloudflared
+            echo "   Then re-run this setup."
+            ENABLE_TUNNEL="n"
         fi
 
         # If no token and NOT quick mode, ask for it
@@ -465,30 +462,34 @@ fi
 if [ "$QUICK_TUNNEL" = true ] || [ -z "$CF_TOKEN" ]; then
     # ONLY if VPN is NOT used OR Force CF is enabled
     if [ "$USE_VPN" = false ] || [ "$FORCE_CF" = true ]; then
-        echo "⏳ Waiting for Quick Tunnel URL (max 20s)..."
-        
-        # Loop wait for 20s
-        for i in {1..20}; do
-            if [ -f "$APP_DIR/.quick_tunnel_url" ]; then
-                QURL=$(cat "$APP_DIR/.quick_tunnel_url")
-                echo -e "\n${GREEN}🚀 ClawBridge Dashboard Live:${NC}"
-                echo -e "👉 ${BLUE}${QURL}${NC}"
-                echo -e "⚠️  Note: This link expires if the dashboard restarts."
-                print_qr "$QURL"
-                break
+        if [ "$ENABLE_SERVICE" = true ]; then
+            echo "⏳ Waiting for Quick Tunnel URL (max 20s)..."
+            
+            # Loop wait for 20s
+            for i in {1..20}; do
+                if [ -f "$APP_DIR/.quick_tunnel_url" ]; then
+                    QURL=$(cat "$APP_DIR/.quick_tunnel_url")
+                    echo -e "\n${GREEN}🚀 ClawBridge Dashboard Live:${NC}"
+                    echo -e "👉 ${BLUE}${QURL}${NC}"
+                    echo -e "⚠️  Note: This link expires if the dashboard restarts."
+                    print_qr "$QURL"
+                    break
+                fi
+                sleep 1
+                echo -n "."
+            done
+            
+            if [ ! -f "$APP_DIR/.quick_tunnel_url" ]; then
+                if [ "$OS_TYPE" = "Darwin" ]; then
+                    echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: tail -f /tmp/com.dreamwing.${SERVICE_NAME}.log${NC}"
+                elif [ "$USE_USER_SYSTEMD" = true ]; then
+                    echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: journalctl --user -u ${SERVICE_NAME} -f${NC}"
+                else
+                    echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: sudo journalctl -u ${SERVICE_NAME} -f${NC}"
+                fi
             fi
-            sleep 1
-            echo -n "."
-        done
-        
-        if [ ! -f "$APP_DIR/.quick_tunnel_url" ]; then
-            if [ "$OS_TYPE" = "Darwin" ]; then
-                echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: tail -f /tmp/com.dreamwing.${SERVICE_NAME}.log${NC}"
-            elif [ "$USE_USER_SYSTEMD" = true ]; then
-                echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: journalctl --user -u ${SERVICE_NAME} -f${NC}"
-            else
-                echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: sudo journalctl -u ${SERVICE_NAME} -f${NC}"
-            fi
+        else
+            echo -e "\n${YELLOW}ℹ️  Quick Tunnel is configured. Run 'npm start' or 'node index.js' to see your public URL.${NC}"
         fi
     fi
 fi
