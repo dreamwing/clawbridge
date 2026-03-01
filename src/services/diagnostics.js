@@ -1,23 +1,7 @@
 const configManager = require('./openclaw_config');
+const pricingService = require('./pricing');
 const fs = require('fs').promises;
 const path = require('path');
-
-// Dynamic mapping of expensive models to cheaper alternatives (D01)
-// savingsRatio = 1 - (alternativePrice / originalPrice)
-const MODEL_REPLACEMENTS = {
-    'claude-3-5-opus-20240229': {
-        alternative: 'claude-3-5-sonnet-20241022',
-        savingsRatio: 0.8
-    },
-    'gpt-4o': {
-        alternative: 'gpt-4o-mini',
-        savingsRatio: 0.95
-    },
-    'gemini-1.5-pro': {
-        alternative: 'gemini-1.5-flash',
-        savingsRatio: 0.9
-    }
-};
 
 // Cache for diagnostic results (60s TTL)
 let _diagCache = null;
@@ -149,6 +133,7 @@ class DiagnosticsEngine {
         const outputCostPerToken = this._computeTokenCostRatio(stats.models, 'output');
 
         // --- D01: Expensive Model ---
+        const MODEL_REPLACEMENTS = await pricingService.getReplacements();
         const byModelStats = stats.cost.byModel;
         for (const [modelId, cost] of Object.entries(byModelStats)) {
             if (totalCost > 0 && MODEL_REPLACEMENTS[modelId] && (cost / totalCost) > thresholds.D01_modelCostRatio) {
@@ -260,6 +245,80 @@ class DiagnosticsEngine {
                 currentInterval: hbEvery,
                 _meta: { type: 'heartbeat-interval' }
             });
+        }
+
+        // --- D03: Session Reset Pattern ---
+        // If average tokens per session is very low (<5K) but many sessions, user may be
+        // creating new conversations instead of continuing — wasting context loading tokens.
+        const historyDays = Object.values(rawStats.history || {});
+        if (historyDays.length > 0) {
+            const totalSessions = historyDays.reduce((sum, day) => sum + (day.sessions || day.count || 1), 0);
+            const avgTokensPerSession = (totalInput + totalOutput) / Math.max(1, totalSessions);
+            const avgSessionsPerDay = totalSessions / stats.activeDays;
+
+            if (avgTokensPerSession < 5000 && avgSessionsPerDay > 5) {
+                // Wasted context = sessions × system prompt load (~1000 tokens) × input cost
+                const wastedContextTokens = totalSessions * 1000;
+                const contextWasteSavings = wastedContextTokens * inputCostPerToken * monthlyMultiplier * 0.5; // 50% reduction if users continue sessions
+
+                if (contextWasteSavings > 0.1) {
+                    totalMonthlySavings += contextWasteSavings;
+                    results.push({
+                        actionId: 'A03',
+                        title: 'Reduce Session Resets',
+                        plainTitle: 'Continue existing conversations instead of starting new ones',
+                        helpText: 'Every new conversation loads the full system prompt and context from scratch. Continuing an existing conversation reuses what\'s already loaded, saving input tokens.',
+                        description: `~${avgSessionsPerDay.toFixed(0)} sessions/day with only ${(avgTokensPerSession / 1000).toFixed(1)}K tokens each. Many short sessions waste context loading costs.`,
+                        sideEffect: '⚠ Longer conversations may eventually need compaction.',
+                        plainSideEffect: 'Longer conversations might slow down slightly as they grow, but cost much less overall.',
+                        savings: contextWasteSavings,
+                        savingsStr: `-$${contextWasteSavings.toFixed(2)}/mo`,
+                        codeTag: 'session.resumeDefault: true',
+                        calcDetail: `${totalSessions} sessions × 1K prompt tokens × $${(inputCostPerToken * 1000000).toFixed(2)}/M × 50% reduction × ${monthlyMultiplier.toFixed(1)}x`,
+                        configDiff: { key: 'session.resumeDefault', from: 'false', to: 'true' },
+                        level: 'medium'
+                    });
+                }
+            }
+        }
+
+        // --- D04: Idle Skill Detection ---
+        // Each installed Skill adds tokens to the system prompt. Unused Skills waste input tokens.
+        try {
+            const homeDir = process.env.HOME || process.env.USERPROFILE;
+            const skillsDir = path.join(homeDir, '.openclaw', 'workspace');
+            const entries = await fs.readdir(skillsDir, { withFileTypes: true });
+            const skillFolders = entries.filter(e => e.isDirectory() && !e.name.startsWith('.'));
+
+            const idleDays = thresholds.D04_idleDaysThreshold || 7;
+            if (skillFolders.length > 3) {
+                // Each Skill adds ~500-1000 tokens to system prompt
+                const excessSkills = skillFolders.length - 3;
+                const wastedTokensPerSession = excessSkills * 750;
+                const totalSessions = historyDays.reduce((sum, day) => sum + (day.sessions || day.count || 1), 0);
+                const skillWasteSavings = wastedTokensPerSession * totalSessions * inputCostPerToken * monthlyMultiplier * 0.5;
+
+                if (skillWasteSavings > 0.05) {
+                    totalMonthlySavings += skillWasteSavings;
+                    results.push({
+                        actionId: 'A04',
+                        title: `Review Installed Skills (${skillFolders.length} found)`,
+                        plainTitle: 'Remove unused AI assistant add-ons',
+                        helpText: `Skills (add-ons) extend your AI agent's abilities, but each adds tokens to every conversation. If you haven't used a Skill in ${idleDays}+ days, removing it saves input costs.`,
+                        description: `${skillFolders.length} Skills installed, ${excessSkills} beyond the recommended 3. Each adds ~750 tokens to every system prompt.`,
+                        sideEffect: '⚠ Removed Skills will no longer be available until re-installed.',
+                        plainSideEffect: 'The AI will lose specific abilities (like web search or file editing) for any Skills you remove.',
+                        savings: skillWasteSavings,
+                        savingsStr: `-$${skillWasteSavings.toFixed(2)}/mo`,
+                        codeTag: `${excessSkills} excess Skills`,
+                        calcDetail: `${excessSkills} excess × 750 tok/session × ${totalSessions} sessions × $${(inputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
+                        configDiff: { key: 'skills', from: `${skillFolders.length} installed`, to: '≤3 recommended' },
+                        level: 'low'
+                    });
+                }
+            }
+        } catch (_e) {
+            // Skills dir not found — skip D04
         }
 
         // --- D05: Thinking Token Overhead ---
@@ -409,6 +468,7 @@ class DiagnosticsEngine {
     invalidateCache() {
         _diagCache = null;
         _diagCacheTs = 0;
+        this._thresholds = null;
     }
 }
 

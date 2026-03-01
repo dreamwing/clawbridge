@@ -868,6 +868,8 @@ async function renderHistoryList() {
             let title = hist.title || ('Applied: ' + hist.actionId);
             if (hist.actionId === 'A01') title = 'Switched to a more efficient Model';
             if (hist.actionId === 'A02') title = 'Adjusted Heartbeat Interval';
+            if (hist.actionId === 'A03') title = 'Reduced Session Resets';
+            if (hist.actionId === 'A04') title = 'Reviewed Installed Skills';
             if (hist.actionId === 'A05') title = 'Reduced AI Thinking Allowance';
             if (hist.actionId === 'A06') title = 'Enabled Prompt Caching';
             if (hist.actionId === 'A07') title = 'Enabled Compaction Safeguard';
@@ -882,13 +884,23 @@ async function renderHistoryList() {
                 undoHtml = `<button class="btn-undo" onclick="handleUndo('${escapeHtml(hist.backupPath)}')">Undo</button>`;
             }
 
+            // 7-day effect tracking
+            let effectHtml = '';
+            const daysSince = (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24);
+            if (daysSince >= 7 && hist.preOptCostSnapshot && hist.actionId !== 'UNDO' && diagnosticsData) {
+                const actualCost = diagnosticsData.currentMonthlyCost || 0;
+                const actualSaving = hist.preOptCostSnapshot - actualCost;
+                const effectClass = actualSaving >= hist.savings * 0.8 ? 'effect-good' : 'effect-partial';
+                effectHtml = `<span class="effect-tag ${effectClass}">7d: $${actualSaving.toFixed(2)}</span>`;
+            }
+
             const div = document.createElement('div');
             div.className = 'timeline-item';
             const dotColor = hist.actionId === 'UNDO' ? 'rgba(245, 158, 11, 0.8)' : (i === 0 ? 'var(--accent-green)' : 'var(--text-dim)');
             div.innerHTML = `
                             <div class="timeline-dot" style="border-color: ${dotColor};"></div>
                             <div class="timeline-time">${timeStr}</div>
-                            <div class="timeline-content">${escapeHtml(title)}${savingsTag} ${undoHtml}</div>
+                            <div class="timeline-content">${escapeHtml(title)}${savingsTag} ${effectHtml} ${undoHtml}</div>
                         `;
             list.appendChild(div);
         });

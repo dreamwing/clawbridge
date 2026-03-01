@@ -1230,6 +1230,34 @@
             color: var(--text-dim);
         }
 
+        .opt-help {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-dim);
+            font-size: 9px;
+            font-weight: 700;
+            cursor: help;
+            margin-left: 4px;
+            vertical-align: middle;
+            transition: background 0.2s;
+        }
+
+        .opt-help:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text);
+        }
+
+        .cache-rate-item {
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            padding-left: 12px;
+            margin-left: 8px;
+        }
+
         .opt-action-line {
             display: flex;
             justify-content: space-between;
@@ -1410,4 +1438,22 @@
 
         .btn-undo:hover {
             background: rgba(245, 158, 11, 0.25);
+        }
+
+        .effect-tag {
+            display: inline-block;
+            font-size: 9px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-left: 6px;
+        }
+
+        .effect-good {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent-green);
+        }
+
+        .effect-partial {
+            background: rgba(245, 158, 11, 0.15);
+            color: rgba(245, 158, 11, 0.9);
         }

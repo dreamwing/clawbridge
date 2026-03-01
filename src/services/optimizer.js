@@ -32,7 +32,7 @@ class OptimizerService {
         }
     }
 
-    async logOptimization({ actionId, title, savings, configChanged, backupPath }) {
+    async logOptimization({ actionId, title, savings, configChanged, backupPath, preOptCostSnapshot }) {
         await this.ensureLogDir();
         const entry = {
             timestamp: new Date().toISOString(),
@@ -40,7 +40,8 @@ class OptimizerService {
             title,
             savings: typeof savings === 'number' ? parseFloat(savings.toFixed(2)) : 0,
             configChanged,
-            backupPath: backupPath || null
+            backupPath: backupPath || null,
+            preOptCostSnapshot: typeof preOptCostSnapshot === 'number' ? parseFloat(preOptCostSnapshot.toFixed(2)) : null
         };
         await fs.appendFile(this.logPath, JSON.stringify(entry) + '\n', 'utf8');
     }
