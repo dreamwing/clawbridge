@@ -282,40 +282,73 @@ class DiagnosticsEngine {
             }
         }
 
-        // --- D04: Idle Skill Detection ---
-        // Each installed Skill adds tokens to the system prompt. Unused Skills waste input tokens.
+        // --- D04: Idle Skill Detection (Granular) ---
+        // Scan each Skill folder's mtime to classify as Idle (>7d) or Quiet (>3d).
         try {
             const homeDir = process.env.HOME || process.env.USERPROFILE;
             const skillsDir = path.join(homeDir, '.openclaw', 'workspace');
             const entries = await fs.readdir(skillsDir, { withFileTypes: true });
             const skillFolders = entries.filter(e => e.isDirectory() && !e.name.startsWith('.'));
 
-            const idleDays = thresholds.D04_idleDaysThreshold || 7;
-            if (skillFolders.length > 3) {
-                // Each Skill adds ~500-1000 tokens to system prompt
-                const excessSkills = skillFolders.length - 3;
-                const wastedTokensPerSession = excessSkills * 750;
-                const totalSessions = historyDays.reduce((sum, day) => sum + (day.sessions || day.count || 1), 0);
-                const skillWasteSavings = wastedTokensPerSession * totalSessions * inputCostPerToken * monthlyMultiplier * 0.5;
+            const idleDaysThreshold = thresholds.D04_idleDaysThreshold || 7;
+            const quietDaysThreshold = 3;
+            const now = Date.now();
 
-                if (skillWasteSavings > 0.05) {
-                    totalMonthlySavings += skillWasteSavings;
-                    results.push({
-                        actionId: 'A04',
-                        title: `Review Installed Skills (${skillFolders.length} found)`,
-                        plainTitle: 'Remove unused AI assistant add-ons',
-                        helpText: `Skills (add-ons) extend your AI agent's abilities, but each adds tokens to every conversation. If you haven't used a Skill in ${idleDays}+ days, removing it saves input costs.`,
-                        description: `${skillFolders.length} Skills installed, ${excessSkills} beyond the recommended 3. Each adds ~750 tokens to every system prompt.`,
-                        sideEffect: '⚠ Removed Skills will no longer be available until re-installed.',
-                        plainSideEffect: 'The AI will lose specific abilities (like web search or file editing) for any Skills you remove.',
-                        savings: skillWasteSavings,
-                        savingsStr: `-$${skillWasteSavings.toFixed(2)}/mo`,
-                        codeTag: `${excessSkills} excess Skills`,
-                        calcDetail: `${excessSkills} excess × 750 tok/session × ${totalSessions} sessions × $${(inputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
-                        configDiff: { key: 'skills', from: `${skillFolders.length} installed`, to: '≤3 recommended' },
-                        level: 'low'
-                    });
+            const idleSkills = [];  // >7d — strongly recommend removal
+            const quietSkills = []; // >3d but ≤7d — listed for user to decide
+
+            for (const folder of skillFolders) {
+                try {
+                    const folderPath = path.join(skillsDir, folder.name);
+                    const stat = await fs.stat(folderPath);
+                    const daysSince = (now - stat.mtimeMs) / (1000 * 60 * 60 * 24);
+
+                    if (daysSince > idleDaysThreshold) {
+                        idleSkills.push({ name: folder.name, daysSince: Math.floor(daysSince) });
+                    } else if (daysSince > quietDaysThreshold) {
+                        quietSkills.push({ name: folder.name, daysSince: Math.floor(daysSince) });
+                    }
+                } catch (_statErr) {
+                    // Skip unreadable folders
                 }
+            }
+
+            if (idleSkills.length > 0 || quietSkills.length > 0) {
+                const totalIdleCount = idleSkills.length + quietSkills.length;
+                // Each Skill adds ~750 tokens to system prompt per session
+                const totalSessions = historyDays.reduce((sum, day) => sum + (day.sessions || day.count || 1), 0);
+                const idleTokenWaste = idleSkills.length * 750;
+                const skillWasteSavings = idleTokenWaste * totalSessions * inputCostPerToken * monthlyMultiplier;
+
+                // Build description with specific skill names
+                const idleNames = idleSkills.map(s => `${s.name} (${s.daysSince}d)`).join(', ');
+                const quietNames = quietSkills.map(s => `${s.name} (${s.daysSince}d)`).join(', ');
+                let descParts = [];
+                if (idleSkills.length > 0) descParts.push(`Idle >7d: ${idleNames}`);
+                if (quietSkills.length > 0) descParts.push(`Quiet >3d: ${quietNames}`);
+
+                totalMonthlySavings += skillWasteSavings;
+                results.push({
+                    actionId: 'A04',
+                    title: `Review ${totalIdleCount} Unused Skills`,
+                    plainTitle: 'Remove AI add-ons you haven\'t used recently',
+                    helpText: 'Skills (add-ons) extend your AI agent\'s abilities, but each one adds ~750 tokens to every conversation. Removing unused ones reduces your input token costs.',
+                    description: descParts.join('. ') + '.',
+                    sideEffect: '⚠ Removed Skills will no longer be available until re-installed.',
+                    plainSideEffect: 'The AI will lose specific abilities for any Skills you remove. You can always re-install them later.',
+                    savings: skillWasteSavings,
+                    savingsStr: skillWasteSavings > 0 ? `-$${skillWasteSavings.toFixed(2)}/mo` : '🛡️ Review',
+                    codeTag: `${idleSkills.length} idle, ${quietSkills.length} quiet`,
+                    calcDetail: `${idleSkills.length} idle × 750 tok/session × ${totalSessions} sessions × $${(inputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'skills', from: `${skillFolders.length} installed`, to: `remove ${idleSkills.length} idle` },
+                    level: idleSkills.length > 0 ? 'medium' : 'low',
+                    _meta: {
+                        type: 'skill-audit',
+                        idleSkills,
+                        quietSkills,
+                        totalInstalled: skillFolders.length
+                    }
+                });
             }
         } catch (_e) {
             // Skills dir not found — skip D04

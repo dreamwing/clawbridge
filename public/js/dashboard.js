@@ -744,6 +744,26 @@ function renderOptimizerList() {
     const list = document.getElementById('opt-list');
     list.innerHTML = '';
 
+    function renderSkillAuditList(meta) {
+        let html = '<div class="skill-audit-list">';
+        if (meta.idleSkills && meta.idleSkills.length > 0) {
+            html += '<div class="skill-group"><span class="skill-group-label idle">Suggest Removal (' + meta.idleSkills.length + ')</span>';
+            meta.idleSkills.forEach(s => {
+                html += '<span class="skill-badge idle">' + escapeHtml(s.name) + ' <small>' + s.daysSince + 'd</small></span>';
+            });
+            html += '</div>';
+        }
+        if (meta.quietSkills && meta.quietSkills.length > 0) {
+            html += '<div class="skill-group"><span class="skill-group-label quiet">Review Usage (' + meta.quietSkills.length + ')</span>';
+            meta.quietSkills.forEach(s => {
+                html += '<span class="skill-badge quiet">' + escapeHtml(s.name) + ' <small>' + s.daysSince + 'd</small></span>';
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
+    }
+
     // Display cache hit rate in the optimizer header
     const cacheEl = document.getElementById('cache-hit-rate');
     if (cacheEl && diagnosticsData.cacheHitRate !== undefined) {
@@ -809,6 +829,7 @@ function renderOptimizerList() {
                     <div class="opt-item ${savingsClass}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
                         <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)} ${tooltipHtml}</span><span class="opt-savings-tag" id="savings-tag-${act.actionId}">${savingsStr}</span></div>
                         <div class="opt-desc">${escapeHtml(act.description || '')}</div>
+                        ${act._meta && act._meta.type === 'skill-audit' ? renderSkillAuditList(act._meta) : ''}
                         ${sideEffectHtml}
                         ${optionsHtml}
                         ${detailsHtml}
