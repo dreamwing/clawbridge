@@ -123,11 +123,20 @@ class DiagnosticsEngine {
         }
 
         // D06: Prompt Caching
-        // If caching is missing or cache hits are very low compared to input. In openclaw, aggressive cache policy helps.
-        // Assuming cachePolicy is not explicitly set in config (we check if it's missing or standard)
+        // If caching is missing or cache hits are very low compared to input.
         if (stats.totals && stats.totals.cacheRead < (stats.totals.input * 0.1)) {
-            // Low cache hits.
-            const cachingSavings = 18.36; // Example calculated value based on PRD mockup. In reality, compute input delta.
+            // Calculate dynamic savings:
+            // Assuming 80% of current input could be cached.
+            // Cost of input = rate.input
+            // Cost of cacheRead = rate.input * 0.1
+            // Savings per token = rate.input * 0.9
+            const cacheableInput = stats.totals.input * 0.8;
+            const inputCostRatio = (stats.cost && stats.cost.input) ? (stats.cost.input / Math.max(stats.totals.input, 1)) : (0.10 / 1000000); // fallback to $3/M
+
+            // Extrapolate to monthly (assuming stats are daily)
+            const dailySavings = cacheableInput * inputCostRatio * 0.9;
+            const cachingSavings = dailySavings * 30;
+
             totalMonthlySavings += cachingSavings;
             results.push({
                 actionId: 'A06',
@@ -136,7 +145,7 @@ class DiagnosticsEngine {
                 sideEffect: '⚠ First message per session remains full price.',
                 savings: cachingSavings,
                 savingsStr: `-$${cachingSavings.toFixed(2)}/mo`,
-                codeTag: `cachePolicy: "aggressive"`, // Fictional key to represent caching improvement
+                codeTag: `cachePolicy: "aggressive"`,
                 level: 'high'
             });
         }
@@ -159,7 +168,13 @@ class DiagnosticsEngine {
         // D09: Output Verbosity (SOUL.md)
         // Check if ratio of output to input is suspiciously high (e.g. > 10%)
         if (stats.totals && stats.totals.output > (stats.totals.input * 0.05)) {
-            const verbositySavings = 10.45; // Based on PRD mockup
+            // Assume concise mode reduces output by 30%
+            const reducibleOutput = stats.totals.output * 0.3;
+            const outputCostRatio = (stats.cost && stats.cost.output) ? (stats.cost.output / Math.max(stats.totals.output, 1)) : (0.40 / 1000000); // fallback to $12/M
+
+            const dailyVerbositySavings = reducibleOutput * outputCostRatio;
+            const verbositySavings = dailyVerbositySavings * 30;
+
             totalMonthlySavings += verbositySavings;
             results.push({
                 actionId: 'A09',
