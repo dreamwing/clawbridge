@@ -284,11 +284,30 @@ class DiagnosticsEngine {
 
         // --- D04: Idle Skill Detection (Granular) ---
         // Scan each Skill folder's mtime to classify as Idle (>7d) or Quiet (>3d).
+        // Skills are installed at ~/.openclaw/skills/ and optionally ~/.openclaw/workspace/skills/
         try {
             const homeDir = process.env.HOME || process.env.USERPROFILE;
-            const skillsDir = path.join(homeDir, '.openclaw', 'workspace');
-            const entries = await fs.readdir(skillsDir, { withFileTypes: true });
-            const skillFolders = entries.filter(e => e.isDirectory() && !e.name.startsWith('.'));
+            const skillsDirs = [
+                path.join(homeDir, '.openclaw', 'skills'),
+                path.join(homeDir, '.openclaw', 'workspace', 'skills')
+            ];
+
+            // Collect all skill folders from both directories (deduplicated by name)
+            const seenNames = new Set();
+            const skillFolders = [];
+            for (const dir of skillsDirs) {
+                try {
+                    const entries = await fs.readdir(dir, { withFileTypes: true });
+                    for (const e of entries) {
+                        if ((e.isDirectory() || e.isSymbolicLink()) && !e.name.startsWith('.') && !seenNames.has(e.name)) {
+                            seenNames.add(e.name);
+                            skillFolders.push({ name: e.name, dir });
+                        }
+                    }
+                } catch (_dirErr) {
+                    // Directory doesn't exist — skip
+                }
+            }
 
             const idleDaysThreshold = thresholds.D04_idleDaysThreshold || 7;
             const quietDaysThreshold = 3;
@@ -299,7 +318,7 @@ class DiagnosticsEngine {
 
             for (const folder of skillFolders) {
                 try {
-                    const folderPath = path.join(skillsDir, folder.name);
+                    const folderPath = path.join(folder.dir, folder.name);
                     const stat = await fs.stat(folderPath);
                     const daysSince = (now - stat.mtimeMs) / (1000 * 60 * 60 * 24);
 
