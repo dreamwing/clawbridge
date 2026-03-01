@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-03-01
+
 ## [1.1.1] - 2026-02-26
 
 ### Added
@@ -20,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **VPN & Networking**: Fixed VPN interface detection and service restart logic for macOS.
 - **Quick Tunnel Reliability**: Improved reliability when fetching and displaying Cloudflare Quick Tunnel URLs after updates.
 - **Systemd Log Hint**: Corrected `journalctl` command hints to accurately reflect user-level vs system-level services.
+
+### Changed
+- add PR #16 mention to 1.1.1 changelog
 
 ## [1.1.0] - 2026-02-25
 

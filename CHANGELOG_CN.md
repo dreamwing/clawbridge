@@ -4,19 +4,24 @@
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-03-01
+
 ## [1.1.1] - 2026-02-26
 
-### 新增
-- **全面支持 macOS**: ClawBridge 现在正式兼容 macOS 系统 (支持 Intel 与 Apple Silicon)。
-- **服务管理 (Launchd)**: 在 macOS 上支持通过 `launchd` (.plist agents) 进行后台运行和自动重启。
-- **跨平台 CI**: GitHub Actions 自动化测试和 lint 现在同时在 Linux 和 macOS 上运行，确保稳定性。
+ ### 新增
+ - **完整 macOS 支持**：ClawBridge 现已正式与 macOS（Intel/Apple Silicon）兼容。 
+- **服务管理（Launchd）**：通过“.plist”代理支持 macOS“launchd”，以实现后台执行和自动重启。 
+- **跨平台 CI**：自动化测试和 lint 现在可验证 Linux 和 macOS 上的稳定性。 
 
 ### 修复
-- **网络兼容性**: 通过实现多重回退逻辑 (`ip route` -> `hostname` -> `ifconfig`) 解决了 `hostname -I` 仅限 Linux 的问题，确保在 Alpine Linux、WSL 和 macOS 上 100% 拿到有效 IP。(特别感谢 [@StewartLi666](https://x.com/StewartLi666) 的反馈)
-- **Sed 兼容性**: 修复了由于 GNU/Linux 和 BSD/macOS 之间 `sed -i` 语法差异导致的脚本错误。
-- **VPN 与网络**: 修复了 macOS 上的 VPN 接口检测和库服务重启逻辑。
-- **快速隧道可靠性**: 改进了更新后获取和显示 Cloudflare 快速隧道 (Quick Tunnel) URL 的可靠性。
-- **Systemd 日志提示**: 修正了 `journalctl` 命令提示，以便准确反映用户级服务与系统级服务的差异。
+ - **网络兼容性**：通过实施多重回退逻辑（“ip 路由”->“主机名”->“ifconfig”）解决了“主机名 -I”的问题，确保 Alpine Linux、WSL 和 macOS 上的可靠性。 （特别感谢[@StewartLi666](https://x.com/StewartLi666)的反馈）
+ - **Sed 兼容性**：修复了 GNU/Linux 和 BSD/macOS 之间由 `sed -i` 差异引起的脚本错误。 
+- **VPN 和网络**：修复了 macOS 的 VPN 接口检测和服务重启逻辑。 
+- **快速隧道可靠性**：更新后获取和显示 Cloudflare 快速隧道 URL 时提高了可靠性。 
+- **Systemd 日志提示**：更正了 `journalctl` 命令提示以准确反映用户级与系统级服务。 
+
+### 已更改
+ - 在 1.1.1 变更日志中添加 PR #16
 
 ## [1.1.0] - 2026-02-25
 
