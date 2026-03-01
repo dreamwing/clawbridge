@@ -40,7 +40,7 @@ class OptimizerService {
         }
     }
 
-    async applyAction(actionId) {
+    async applyAction(actionId, dynamicSavings) {
         let result = false;
         let details = {};
 
@@ -50,7 +50,7 @@ class OptimizerService {
                 result = await configManager.setConfig('agents.defaults.model', 'claude-3-5-sonnet-20241022');
                 details = {
                     title: 'Downgraded Premium Model',
-                    savings: 15.00, // This should ideally be passed from UI or diagnostics
+                    savings: dynamicSavings || 0,
                     configChanged: 'model: claude-3-5-sonnet'
                 };
                 break;
@@ -59,7 +59,7 @@ class OptimizerService {
                 result = await configManager.setConfig('agents.defaults.heartbeat.every', '0m');
                 details = {
                     title: 'Disable Background Polling',
-                    savings: 6.21,
+                    savings: dynamicSavings || 0,
                     configChanged: 'heartbeat.every: 0m'
                 };
                 break;
@@ -68,18 +68,16 @@ class OptimizerService {
                 result = await configManager.setConfig('agents.defaults.thinkingDefault', 'minimal');
                 details = {
                     title: 'Reduce Thinking Overhead',
-                    savings: 8.50,
+                    savings: dynamicSavings || 0,
                     configChanged: 'thinkingDefault: minimal'
                 };
                 break;
             case 'A06':
-                // Enable Prompt Caching - there is no direct global flag in OpenClaw for this, 
-                // but setting default cache behavior if it existed, or just a dummy config for demonstration.
-                // Assuming it might be contextPruning or similar. Let's set contextPruning mode.
+                // Enable Prompt Caching
                 result = await configManager.setConfig('agents.defaults.contextPruning.mode', 'cache-ttl');
                 details = {
                     title: 'Enable Prompt Caching',
-                    savings: 18.36,
+                    savings: dynamicSavings || 0,
                     configChanged: 'contextPruning.mode: cache-ttl'
                 };
                 break;
@@ -105,7 +103,7 @@ class OptimizerService {
                 }
                 details = {
                     title: 'Reduce Output Verbosity',
-                    savings: 10.45,
+                    savings: dynamicSavings || 0,
                     configChanged: 'SOUL.md += "Be concise"'
                 };
                 break;

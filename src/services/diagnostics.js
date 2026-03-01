@@ -53,7 +53,18 @@ class DiagnosticsEngine {
         const defaults = agentsConfig.defaults || {};
 
         // 2. Get usage stats
-        const stats = await this.getStats();
+        let rawStats = await this.getStats();
+
+        // Normalize the raw data from `latest.json` to the diagnostic structure expected below
+        const stats = {
+            totals: rawStats.totals || rawStats.total || { input: 0, output: 0, cacheRead: 0 },
+            cost: rawStats.cost || {
+                total: rawStats.total ? rawStats.total.cost : 0,
+                byModel: (rawStats.total && rawStats.total.models) ?
+                    Object.fromEntries(Object.entries(rawStats.total.models).map(([k, v]) => [k, v.cost])) : {}
+            },
+            activeDays: Math.max(1, Object.keys(rawStats.history || {}).length)
+        };
 
         // --- Run Rules ---
 
@@ -66,8 +77,9 @@ class DiagnosticsEngine {
         for (const [modelId, cost] of Object.entries(byModelStats)) {
             if (MODEL_REPLACEMENTS[modelId] && (cost / safeTotalCost) > 0.5) {
                 const info = MODEL_REPLACEMENTS[modelId];
-                // Estimate monthly savings (Extrapolate daily to monthly)
-                const estimatedMonthlyCost = cost * 30; // Assuming stats are daily, very rough approximation
+                // Estimate monthly savings based on active days
+                const monthlyMultiplier = 30 / stats.activeDays;
+                const estimatedMonthlyCost = cost * monthlyMultiplier;
                 const estimatedSavings = estimatedMonthlyCost * info.savingsRatio;
                 totalMonthlySavings += estimatedSavings;
 
@@ -89,8 +101,13 @@ class DiagnosticsEngine {
         // D02: Heartbeat Enabled
         const hbEvery = defaults.heartbeat?.every;
         if (hbEvery && hbEvery !== '0m' && hbEvery !== '0') {
-            // Heartbeat costs money over time. Estimate ~100k tokens input per day.
-            const hbCostEstimate = 6.21;
+            // Heartbeat costs money over time.
+            const inputCostRatio = (stats.cost && stats.cost.input) ? (stats.cost.input / Math.max(stats.totals.input, 1)) : (0.10 / 1000000); // fallback to $3/M
+            // Background polling approx tokens per month (e.g. 500 tokens per minute, 24/7 = 21M tokens/month)
+            // Using a conservative 2M tokens/month for just passive checking
+            const hbEstimatedMonthlyTokens = 2000000;
+            const hbCostEstimate = hbEstimatedMonthlyTokens * inputCostRatio;
+
             totalMonthlySavings += hbCostEstimate;
             results.push({
                 actionId: 'A02',
@@ -108,7 +125,9 @@ class DiagnosticsEngine {
         const thinking = defaults.thinkingDefault;
         if (!thinking || thinking === 'high' || thinking === 'xhigh' || thinking === 'on') {
             // Estimate thinking takes ~20% of output cost
-            const thinkingSavings = safeTotalCost * 0.15; // Rough estimate
+            const savingsAllTime = safeTotalCost * 0.15; // Rough estimate
+            const monthlyMultiplier = 30 / stats.activeDays;
+            const thinkingSavings = savingsAllTime * monthlyMultiplier;
             totalMonthlySavings += thinkingSavings;
             results.push({
                 actionId: 'A05',
@@ -133,9 +152,10 @@ class DiagnosticsEngine {
             const cacheableInput = stats.totals.input * 0.8;
             const inputCostRatio = (stats.cost && stats.cost.input) ? (stats.cost.input / Math.max(stats.totals.input, 1)) : (0.10 / 1000000); // fallback to $3/M
 
-            // Extrapolate to monthly (assuming stats are daily)
-            const dailySavings = cacheableInput * inputCostRatio * 0.9;
-            const cachingSavings = dailySavings * 30;
+            // Extrapolate to monthly based on active days tracked
+            const monthlyMultiplier = 30 / stats.activeDays;
+            const savingsAllTime = cacheableInput * inputCostRatio * 0.9;
+            const cachingSavings = savingsAllTime * monthlyMultiplier;
 
             totalMonthlySavings += cachingSavings;
             results.push({
@@ -172,8 +192,9 @@ class DiagnosticsEngine {
             const reducibleOutput = stats.totals.output * 0.3;
             const outputCostRatio = (stats.cost && stats.cost.output) ? (stats.cost.output / Math.max(stats.totals.output, 1)) : (0.40 / 1000000); // fallback to $12/M
 
-            const dailyVerbositySavings = reducibleOutput * outputCostRatio;
-            const verbositySavings = dailyVerbositySavings * 30;
+            const savingsAllTime = reducibleOutput * outputCostRatio;
+            const monthlyMultiplier = 30 / stats.activeDays;
+            const verbositySavings = savingsAllTime * monthlyMultiplier;
 
             totalMonthlySavings += verbositySavings;
             results.push({
@@ -193,6 +214,7 @@ class DiagnosticsEngine {
 
         return {
             totalMonthlySavings,
+            currentMonthlyCost: safeTotalCost,
             actions: results
         };
     }

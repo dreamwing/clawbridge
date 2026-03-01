@@ -727,7 +727,13 @@ function renderOptimizerList() {
 
     document.getElementById('main-savings-amount').innerText = '$' + diagnosticsData.monthlySavings.toFixed(2);
 
-    // Assuming current monthly cost is available from tokens. For now mock based on Savings
+    const currentCost = diagnosticsData.currentMonthlyCost || 0;
+    const optimizedCost = Math.max(0, currentCost - diagnosticsData.monthlySavings);
+
+    const currentEl = document.querySelector('.cost-compare-val.current');
+    const optimizedEl = document.querySelector('.cost-compare-val.optimized');
+    if (currentEl) currentEl.innerText = '$' + currentCost.toFixed(2);
+    if (optimizedEl) optimizedEl.innerText = '$' + optimizedCost.toFixed(2);
 
     const list = document.getElementById('opt-list');
     list.innerHTML = '';
@@ -854,7 +860,12 @@ async function handleOpt(btn, actionId) {
         btn.classList.remove('confirming');
 
         try {
-            const res = await fetchAuth(API + '/optimize/' + actionId, { method: 'POST' });
+            const savings = parseFloat(item.getAttribute('data-savings')) || 0;
+            const res = await fetchAuth(API + '/optimize/' + actionId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ savings })
+            });
             if (res.ok) {
                 item.classList.add('done');
                 actionsApplied++;
