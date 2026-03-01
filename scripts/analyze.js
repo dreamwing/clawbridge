@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { resolveHomeDir } = require('../src/utils/paths');
 
 // --- Config ---
 const DATA_DIR = path.join(__dirname, '../data/token_stats');
@@ -106,14 +107,6 @@ function calcCost(model, input, output, cacheRead = 0, cacheWrite = 0) {
 }
 
 // --- Path Discovery ---
-// [P2 Fix] Resolve home dir using OPENCLAW_HOME → HOME → os.homedir()
-// aligned with OpenClaw's src/infra/home-dir.ts
-function resolveHomeDir() {
-    return process.env.OPENCLAW_HOME
-        || process.env.HOME
-        || process.env.USERPROFILE
-        || os.homedir();
-}
 
 // Scan multiple possible locations for session JSONL files
 function discoverSessionFiles() {

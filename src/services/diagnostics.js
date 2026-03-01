@@ -1,5 +1,6 @@
 const configManager = require('./openclaw_config');
 const pricingService = require('./pricing');
+const config = require('../config');
 const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
@@ -14,35 +15,6 @@ class DiagnosticsEngine {
         this.statsPath = path.join(__dirname, '../../data/token_stats/latest.json');
         this.thresholdsPath = path.join(__dirname, '../../data/diagnostics.config.json');
         this._thresholds = null;
-    }
-
-    /**
-     * Resolve the effective OpenClaw home directory matching openclaw/src/infra/home-dir.ts.
-     * Precedence: OPENCLAW_HOME > HOME > USERPROFILE > os.homedir()
-     */
-    _resolveHomeDir() {
-        const env = process.env;
-        const explicitHome = env.OPENCLAW_HOME?.trim();
-        if (explicitHome) {
-            if (explicitHome.startsWith('~')) {
-                const baseHome = env.HOME?.trim() || env.USERPROFILE?.trim() || os.homedir();
-                return path.resolve(explicitHome.replace(/^~(?=$|[\\/])/, baseHome));
-            }
-            return path.resolve(explicitHome);
-        }
-        const home = env.HOME?.trim() || env.USERPROFILE?.trim() || os.homedir();
-        return path.resolve(home);
-    }
-
-    /**
-     * Resolve the OpenClaw config/state directory (~/.openclaw).
-     * Precedence: OPENCLAW_STATE_DIR > resolveHomeDir()/.openclaw
-     */
-    _resolveConfigDir() {
-        const env = process.env;
-        const override = env.OPENCLAW_STATE_DIR?.trim() || env.CLAWDBOT_STATE_DIR?.trim();
-        if (override) return path.resolve(override);
-        return path.join(this._resolveHomeDir(), '.openclaw');
     }
 
     /**
@@ -196,7 +168,7 @@ class DiagnosticsEngine {
         let hbEvery = defaults.heartbeat?.every;
         let heartbeatTasksText = '';
         try {
-            const homeDir = this._resolveHomeDir();
+            const homeDir = config.resolveHomeDir();
             const hbPath = path.join(homeDir, '.openclaw', 'workspace', 'HEARTBEAT.md');
             const fileContent = await fs.readFile(hbPath, 'utf8');
             heartbeatTasksText = fileContent.split('\n')
@@ -319,7 +291,7 @@ class DiagnosticsEngine {
         // Managed dir: CONFIG_DIR/skills = (OPENCLAW_STATE_DIR || ~/.openclaw)/skills
         // A valid skill folder must contain SKILL.md.
         try {
-            const configDir = this._resolveConfigDir();
+            const configDir = config.resolveConfigDir();
             const managedSkillsDir = path.join(configDir, 'skills');
             const entries = await fs.readdir(managedSkillsDir, { withFileTypes: true });
 
