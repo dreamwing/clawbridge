@@ -707,7 +707,7 @@ async function fetchDiagnostics() {
         if (diagnosticsData.noData) {
             trigger.style.display = 'flex';
             trigger.classList.add('all-done');
-            triggerText.innerHTML = '<strong>No usage data yet.</strong> Start using OpenClaw to see optimization suggestions.';
+            triggerText.innerHTML = '<strong>No usage data yet.</strong> Start chatting with your AI agent, then come back to see Token cost analysis and savings.';
             triggerBtn.textContent = 'History';
             isFullyOptimized = true;
         } else if (totalActions > 0) {
@@ -749,18 +749,14 @@ function renderOptimizerList() {
         const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}/mo` : '🛡️ Protection';
         const savingsClass = act.savings > 10 ? 'high-savings' : (act.savings > 0 ? 'medium-savings' : 'safety');
 
+        // L2: Side effect in plain language
         let sideEffectHtml = '';
-        if (act.sideEffect) {
-            sideEffectHtml = `<div class="opt-sideeffect">${escapeHtml(act.sideEffect)}</div>`;
+        if (act.plainSideEffect || act.sideEffect) {
+            sideEffectHtml = `<div class="opt-sideeffect">${escapeHtml(act.plainSideEffect || act.sideEffect)}</div>`;
         }
 
-        let title = act.title;
-        if (act.actionId === 'A01') title = 'Change Default Model';
-        if (act.actionId === 'A02') title = 'Adjust Heartbeat Interval';
-        if (act.actionId === 'A05') title = 'Reduce Thinking Allowance';
-        if (act.actionId === 'A06') title = 'Enable Prompt Caching';
-        if (act.actionId === 'A07') title = 'Enable Compaction Safeguard';
-        if (act.actionId === 'A09') title = 'Reduce Output Verbosity';
+        // L1: Use plainTitle (beginner-friendly), fallback to title
+        const displayTitle = act.plainTitle || act.title;
 
         const metaAttr = act._meta ? ' data-meta=\'' + JSON.stringify(act._meta).replace(/'/g, '&#39;') + '\'' : '';
 
@@ -768,7 +764,7 @@ function renderOptimizerList() {
         let optionsHtml = '';
         if (act.actionId === 'A02' && act.options && act.options.length > 0) {
             const optItems = act.options.map((opt, i) => {
-                const checked = (i === act.options.length - 1) ? ' checked' : ''; // Default: last (disable)
+                const checked = (i === act.options.length - 1) ? ' checked' : '';
                 const isDisable = opt.value === '0m';
                 const labelClass = isDisable ? 'opt-radio-disable' : '';
                 return `<label class="opt-radio ${labelClass}">
@@ -777,19 +773,36 @@ function renderOptimizerList() {
                     <span class="opt-radio-savings">${opt.savingsStr}</span>
                 </label>`;
             }).join('');
-
             optionsHtml = `<div class="opt-interval-selector" style="margin:8px 0;display:flex;flex-direction:column;gap:4px;">${optItems}</div>`;
+        }
+
+        // L3: Collapsible technical details
+        let detailsHtml = '';
+        const detailParts = [];
+        if (act.configDiff) {
+            const d = act.configDiff;
+            detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(d.from)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(d.to)}</span></div>`);
+        }
+        if (act.calcDetail) {
+            detailParts.push(`<div class="opt-calc">\ud83d\udcd0 ${escapeHtml(act.calcDetail)}</div>`);
+        }
+        if (act.codeTag) {
+            detailParts.push(`<div class="opt-codetag"><code>${escapeHtml(act.codeTag)}</code></div>`);
+        }
+        if (detailParts.length > 0) {
+            detailsHtml = `<details class="opt-details"><summary>Technical Details</summary><div class="opt-details-body">${detailParts.join('')}</div></details>`;
         }
 
         const itemHtml = `
                     <div class="opt-item ${savingsClass}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
-                        <div class="opt-header"><span class="opt-title">${escapeHtml(title)}</span><span class="opt-savings-tag" id="savings-tag-${act.actionId}">${savingsStr}</span></div>
+                        <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)}</span><span class="opt-savings-tag" id="savings-tag-${act.actionId}">${savingsStr}</span></div>
                         <div class="opt-desc">${escapeHtml(act.description || '')}</div>
                         ${sideEffectHtml}
                         ${optionsHtml}
+                        ${detailsHtml}
                         <div class="opt-action-line">
-                            <span class="code-tag">${escapeHtml(act.actionId)}: Apply Patch</span>
-                            <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying…</span><span class="done-label">✓ Applied</span></button>
+                            <span class="code-tag">${escapeHtml(act.actionId)}</span>
+                            <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>
                         </div>
                     </div>`;
 
@@ -797,7 +810,7 @@ function renderOptimizerList() {
         temp.innerHTML = itemHtml;
         const itemEl = temp.firstElementChild;
 
-        // Wire up radio change to update savings tag dynamically
+        // Wire up radio change for A02
         if (act.actionId === 'A02' && act.options) {
             itemEl.querySelectorAll('input[name="hb-interval"]').forEach(radio => {
                 radio.addEventListener('change', () => {
@@ -805,13 +818,11 @@ function renderOptimizerList() {
                     itemEl.setAttribute('data-savings', selectedSavings);
                     const tag = itemEl.querySelector('#savings-tag-A02');
                     if (tag) tag.textContent = `-$${selectedSavings.toFixed(2)}/mo`;
-                    // Update meta with selected interval
                     const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
                     currentMeta.interval = radio.value;
                     itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
                 });
             });
-            // Initialize meta with default selection
             const defaultRadio = itemEl.querySelector('input[name="hb-interval"]:checked');
             if (defaultRadio) {
                 const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
@@ -844,26 +855,55 @@ async function renderHistoryList() {
 
             let title = hist.title || ('Applied: ' + hist.actionId);
             if (hist.actionId === 'A01') title = 'Switched to a more efficient Model';
-            if (hist.actionId === 'A02') title = 'Disabled Background Polling';
+            if (hist.actionId === 'A02') title = 'Adjusted Heartbeat Interval';
             if (hist.actionId === 'A05') title = 'Reduced AI Thinking Allowance';
             if (hist.actionId === 'A06') title = 'Enabled Prompt Caching';
             if (hist.actionId === 'A07') title = 'Enabled Compaction Safeguard';
             if (hist.actionId === 'A09') title = 'Reduced Output Verbosity';
+            if (hist.actionId === 'UNDO') title = '↩️ Rolled back to previous config';
 
-            // Show savings amount per PRD 3.4.2
             const savingsTag = hist.savings > 0 ? ` — saved $${Number(hist.savings).toFixed(2)}/mo` : '';
+
+            // Add undo button to the most recent non-UNDO entry that has a backup
+            let undoHtml = '';
+            if (i === 0 && hist.backupPath && hist.actionId !== 'UNDO') {
+                undoHtml = `<button class="btn-undo" onclick="handleUndo('${escapeHtml(hist.backupPath)}')">Undo</button>`;
+            }
 
             const div = document.createElement('div');
             div.className = 'timeline-item';
-            const dotColor = i === 0 ? 'var(--accent-green)' : 'var(--text-dim)';
+            const dotColor = hist.actionId === 'UNDO' ? 'rgba(245, 158, 11, 0.8)' : (i === 0 ? 'var(--accent-green)' : 'var(--text-dim)');
             div.innerHTML = `
                             <div class="timeline-dot" style="border-color: ${dotColor};"></div>
                             <div class="timeline-time">${timeStr}</div>
-                            <div class="timeline-content">${escapeHtml(title)}${savingsTag}</div>
+                            <div class="timeline-content">${escapeHtml(title)}${savingsTag} ${undoHtml}</div>
                         `;
             list.appendChild(div);
         });
     } catch (_e) { }
+}
+
+async function handleUndo(backupPath) {
+    if (!confirm('Undo this optimization? Your config will be restored from the backup.')) return;
+    try {
+        const res = await fetchAuth(API + '/optimizations/undo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ backupPath })
+        });
+        if (res.ok) {
+            const result = await res.json();
+            showToast(`✓ Restored ${result.restoredKeys.length} settings from ${result.backupFile}`);
+            await renderHistoryList();
+            // Refresh diagnostics
+            diagnosticsEngine_cache = null;
+            await fetchDiagnostics();
+        } else {
+            showToast('Undo failed: ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
+        }
+    } catch (e) {
+        showToast('Undo failed: ' + e.message);
+    }
 }
 
 function flipToOptimizer() {

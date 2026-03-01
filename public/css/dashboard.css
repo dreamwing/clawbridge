@@ -565,7 +565,7 @@
         }
 
 
-/* ========== FLIP CONTAINER ========== */
+        /* ========== FLIP CONTAINER ========== */
         .flip-container {
             width: 100%;
             maxWidth: 480px;
@@ -1112,40 +1112,123 @@
             gap: 8px;
             padding: 6px 10px;
             border-radius: 6px;
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.03);
             cursor: pointer;
             transition: background 0.2s;
             font-size: 12px;
         }
+
         .opt-radio:hover {
-            background: rgba(255,255,255,0.07);
+            background: rgba(255, 255, 255, 0.07);
         }
+
         .opt-radio input[type="radio"] {
             accent-color: var(--accent-green, #22c55e);
             margin: 0;
         }
+
         .opt-radio-label {
             flex: 1;
             color: var(--text);
         }
+
         .opt-radio-savings {
             font-family: monospace;
             font-size: 11px;
             color: var(--accent-green, #22c55e);
             font-weight: 600;
         }
+
         .opt-radio-disable .opt-radio-label {
             color: rgba(245, 158, 11, 0.9);
         }
+
         .btn-mini.applying {
             opacity: 0.6;
             pointer-events: none;
         }
+
         .btn-mini.applying .default-label,
         .btn-mini.applying .confirm-label,
-        .btn-mini.applying .done-label { display: none; }
-        .btn-mini.applying .applying-label { display: inline; }
-        .btn-mini .applying-label { display: none; }
+        .btn-mini.applying .done-label {
+            display: none;
+        }
+
+        .btn-mini.applying .applying-label {
+            display: inline;
+        }
+
+        .btn-mini .applying-label {
+            display: none;
+        }
+
+        .opt-details {
+            margin: 6px 0;
+            font-size: 11px;
+        }
+
+        .opt-details summary {
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 4px 0;
+            user-select: none;
+        }
+
+        .opt-details summary:hover {
+            color: var(--text);
+        }
+
+        .opt-details-body {
+            padding: 6px 0 4px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .opt-diff {
+            font-family: monospace;
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 8px;
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-green, #22c55e);
+        }
+
+        .diff-key {
+            color: var(--text-dim);
+        }
+
+        .diff-from {
+            color: rgba(245, 158, 11, 0.9);
+            text-decoration: line-through;
+        }
+
+        .diff-arrow {
+            color: var(--text-dim);
+            margin: 0 4px;
+        }
+
+        .diff-to {
+            color: var(--accent-green, #22c55e);
+            font-weight: 600;
+        }
+
+        .opt-calc {
+            font-size: 10px;
+            color: var(--text-dim);
+            line-height: 1.4;
+        }
+
+        .opt-codetag code {
+            font-size: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: var(--text-dim);
+        }
 
         .opt-action-line {
             display: flex;
@@ -1312,4 +1395,19 @@
             margin-left: 4px;
         }
 
-        
+        .btn-undo {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            font-size: 10px;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.1);
+            color: rgba(245, 158, 11, 0.9);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-undo:hover {
+            background: rgba(245, 158, 11, 0.25);
+        }

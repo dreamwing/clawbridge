@@ -32,14 +32,15 @@ class OptimizerService {
         }
     }
 
-    async logOptimization({ actionId, title, savings, configChanged }) {
+    async logOptimization({ actionId, title, savings, configChanged, backupPath }) {
         await this.ensureLogDir();
         const entry = {
             timestamp: new Date().toISOString(),
             actionId,
             title,
             savings: typeof savings === 'number' ? parseFloat(savings.toFixed(2)) : 0,
-            configChanged
+            configChanged,
+            backupPath: backupPath || null
         };
         await fs.appendFile(this.logPath, JSON.stringify(entry) + '\n', 'utf8');
     }
@@ -55,6 +56,45 @@ class OptimizerService {
         } catch (_err) {
             return [];
         }
+    }
+
+    /**
+     * Restore configuration from a backup file.
+     * Reads the backup JSON and re-applies each config key.
+     */
+    async restoreBackup(backupPath) {
+        if (!backupPath) throw new Error('No backup path provided');
+        const backupData = JSON.parse(await fs.readFile(backupPath, 'utf8'));
+        const defaults = backupData.defaults || {};
+
+        // Restore key config values from backup
+        const restoreKeys = [
+            ['agents.defaults.model', defaults.model],
+            ['agents.defaults.heartbeat.every', defaults.heartbeat?.every],
+            ['agents.defaults.thinkingDefault', defaults.thinkingDefault],
+            ['agents.defaults.compaction.mode', defaults.compaction?.mode],
+            ['agents.defaults.compaction.reserveTokens', defaults.compaction?.reserveTokens],
+            ['agents.defaults.contextPruning.mode', defaults.contextPruning?.mode]
+        ];
+
+        const restored = [];
+        for (const [key, value] of restoreKeys) {
+            if (value !== undefined) {
+                await configManager.setConfig(key, String(value));
+                restored.push(key);
+            }
+        }
+
+        // Log the undo action
+        await this.logOptimization({
+            actionId: 'UNDO',
+            title: 'Restored from backup',
+            savings: 0,
+            configChanged: `Restored ${restored.length} keys from ${path.basename(backupPath)}`
+        });
+
+        diagnosticsEngine.invalidateCache();
+        return { success: true, restoredKeys: restored, backupFile: path.basename(backupPath) };
     }
 
     async applyAction(actionId, dynamicSavings, meta) {
@@ -141,7 +181,8 @@ class OptimizerService {
                 actionId,
                 title: details.title,
                 savings: details.savings,
-                configChanged: details.configChanged
+                configChanged: details.configChanged,
+                backupPath
             });
 
             // Invalidate diagnostics cache so next check reflects the change

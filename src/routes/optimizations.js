@@ -12,4 +12,18 @@ router.get('/api/optimizations/history', async (req, res) => {
     }
 });
 
+router.post('/api/optimizations/undo', async (req, res) => {
+    try {
+        const { backupPath } = req.body;
+        if (!backupPath) {
+            return res.status(400).json({ error: 'backupPath is required' });
+        }
+        const result = await optimizerService.restoreBackup(backupPath);
+        res.json(result);
+    } catch (err) {
+        console.error('Undo error:', err);
+        res.status(500).json({ error: 'Failed to undo', details: err.message });
+    }
+});
+
 module.exports = router;

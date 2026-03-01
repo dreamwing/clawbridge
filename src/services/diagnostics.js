@@ -130,11 +130,15 @@ class DiagnosticsEngine {
                 results.push({
                     actionId: 'A01',
                     title: `Downgrade ${modelId.split('-').slice(0, 2).join(' ')}`,
+                    plainTitle: 'Switch to a cheaper AI model',
                     description: `Primary usage is on premium model. Switching to ${info.alternative} saves ~${(info.savingsRatio * 100).toFixed(0)}%.`,
                     sideEffect: '⚠ Mild decrease in performance on highly complex reasoning tasks.',
+                    plainSideEffect: 'Complex math or logic problems might get slightly less accurate answers.',
                     savings: estimatedSavings,
                     savingsStr: `-$${estimatedSavings.toFixed(2)}/mo`,
                     codeTag: `model: "${info.alternative}"`,
+                    calcDetail: `${modelId}: $${cost.toFixed(2)} (${((cost / totalCost) * 100).toFixed(0)}% of total) × ${info.savingsRatio} ratio × ${monthlyMultiplier.toFixed(1)}x monthly`,
+                    configDiff: { key: 'agents.defaults.model', from: modelId, to: info.alternative },
                     level: 'high',
                     _meta: { alternative: info.alternative }
                 });
@@ -210,11 +214,15 @@ class DiagnosticsEngine {
             results.push({
                 actionId: 'A02',
                 title: 'Adjust Heartbeat Interval',
+                plainTitle: 'Reduce background checking frequency',
                 description: `Running every ${hbEvery} with ${taskCount} task${taskCount > 1 ? 's' : ''}, consuming ~${(currentMonthlyTokens / 1000000).toFixed(1)}M tokens/mo ($${currentMonthlyCostHB.toFixed(2)}/mo).`,
                 sideEffect: '⚠ Longer intervals delay cross-agent message delivery.',
+                plainSideEffect: 'Your AI agent will check for updates less often. You may need to manually refresh for new messages.',
                 savings: maxSavings,
                 savingsStr: `-$${maxSavings.toFixed(2)}/mo`,
                 codeTag: 'heartbeat.every',
+                calcDetail: `${taskCount} task(s) × ${tokensPerRun} tok/run × ${currentRunsPerMonth.toFixed(0)} runs/mo × $${(hbCostPerToken * 1000000).toFixed(2)}/M`,
+                configDiff: { key: 'heartbeat.every', from: hbEvery, to: 'your choice' },
                 level: 'medium',
                 options,
                 currentInterval: hbEvery,
@@ -238,11 +246,15 @@ class DiagnosticsEngine {
                 results.push({
                     actionId: 'A05',
                     title: 'Reduce Thinking Overhead',
+                    plainTitle: 'Make the AI think less before answering',
                     description: `~${(totalOutput * thinkingProportion / 1000).toFixed(0)}K output tokens spent on reasoning. Minimal mode cuts this by ${(reductionRatio * 100).toFixed(0)}%.`,
                     sideEffect: '⚠ May reduce mathematical or logical accuracy on hard prompts.',
+                    plainSideEffect: 'The AI might make more mistakes on tricky math or logic questions.',
                     savings: thinkingSavings,
                     savingsStr: `-$${thinkingSavings.toFixed(2)}/mo`,
                     codeTag: 'thinkingDefault: "minimal"',
+                    calcDetail: `${(totalOutput / 1000).toFixed(0)}K output × ${(thinkingProportion * 100)}% thinking × ${(reductionRatio * 100)}% cut × $${(outputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'thinkingDefault', from: thinking || 'high', to: 'minimal' },
                     level: 'medium'
                 });
             }
@@ -266,11 +278,15 @@ class DiagnosticsEngine {
                 results.push({
                     actionId: 'A06',
                     title: 'Enable Prompt Caching',
+                    plainTitle: 'Turn on memory for repeated prompts',
                     description: `Cache hit rate is ${(cacheHitRate * 100).toFixed(1)}%. ${(cacheableInput / 1000).toFixed(0)}K input tokens could be cached at 90% discount.`,
                     sideEffect: '⚠ First message per session remains full price.',
+                    plainSideEffect: 'The first question in each conversation costs the same. Savings kick in from the second question onwards.',
                     savings: cachingSavings,
                     savingsStr: `-$${cachingSavings.toFixed(2)}/mo`,
                     codeTag: 'cachePolicy: "aggressive"',
+                    calcDetail: `${(cacheableInput / 1000).toFixed(0)}K cacheable × $${(inputCostPerToken * 1000000).toFixed(2)}/M × 90% discount × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'contextPruning.mode', from: 'none', to: 'cache-ttl' },
                     level: 'high'
                 });
             }
@@ -278,14 +294,18 @@ class DiagnosticsEngine {
 
         // --- D07: Safeguard Compaction ---
         if (defaults.compaction?.mode !== 'safeguard') {
+            const currentCompMode = defaults.compaction?.mode || 'off';
             results.push({
                 actionId: 'A07',
                 title: 'Enable Compaction Safeguard',
+                plainTitle: 'Auto-trim long conversations to save money',
                 description: 'Auto-compacts at 50K tokens to prevent extreme single-session billing.',
                 sideEffect: '⚠ May truncate history during massive code translation sessions.',
+                plainSideEffect: 'Very long conversations may lose some early messages to keep costs down.',
                 savings: 0,
                 savingsStr: '🛡️ Protection',
                 codeTag: 'mode: "safeguard"',
+                configDiff: { key: 'compaction.mode', from: currentCompMode, to: 'safeguard' },
                 level: 'safety'
             });
         }
@@ -305,11 +325,15 @@ class DiagnosticsEngine {
                 results.push({
                     actionId: 'A09',
                     title: 'Reduce Output Verbosity',
+                    plainTitle: 'Ask the AI to give shorter answers',
                     description: `Output/Input ratio is ${(outputRatio * 100).toFixed(1)}% (${(totalOutput / 1000).toFixed(0)}K tokens). Concise mode cuts ~30%.`,
                     sideEffect: '⚠ Responses become visibly shorter.',
+                    plainSideEffect: 'The AI will give you more concise answers — less explanation, more action.',
                     savings: verbositySavings,
                     savingsStr: `-$${verbositySavings.toFixed(2)}/mo`,
                     codeTag: 'SOUL.md += "Be concise"',
+                    calcDetail: `${(totalOutput / 1000).toFixed(0)}K output × 30% cut × $${(outputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'SOUL.md', from: '(current)', to: 'append: "Be concise."' },
                     level: 'high'
                 });
             }
