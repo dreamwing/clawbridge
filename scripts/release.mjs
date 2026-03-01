@@ -37,12 +37,11 @@ async function run() {
     let changelog = fs.readFileSync(changelogPath, 'utf8');
 
     const unreleasedMatch = changelog.match(/## \[Unreleased\]\n\n([\s\S]*?)(?=\n## \[|\n$|$)/);
-    if (!unreleasedMatch || !unreleasedMatch[1].trim()) {
-        console.error('No unreleased changes found in CHANGELOG.md');
-        process.exit(1);
-    }
+    let unreleasedContent = (unreleasedMatch && unreleasedMatch[1].trim()) ? unreleasedMatch[1].trim() : '';
 
-    let unreleasedContent = unreleasedMatch[1].trim();
+    if (!unreleasedContent) {
+        console.warn('No manual unreleased changes found in CHANGELOG.md, will auto-generate from commits/PRs...');
+    }
 
     // 2.5 Supplement with Git Commits
     console.log('Supplementing changelog with unmentioned git commits...');
@@ -111,8 +110,18 @@ async function run() {
 
     console.log(`Found issues in changelog: ${issueNumbers.join(', ')}`);
 
-    // 4. Fetch issue bodies and look for credits
+    // 4. Fetch issue bodies and look for credits (including issue openers)
     const creditsFound = []; // { user: 'username', issue: 12 }
+    const creditsSeen = new Set(); // dedup key: 'user:issue'
+
+    function addCredit(user, issueNum) {
+        const key = `${user.toLowerCase()}:${issueNum}`;
+        if (creditsSeen.has(key)) return;
+        if (user.toLowerCase() === repoOwner.toLowerCase()) return;
+        if (user.includes('[bot]')) return;
+        creditsSeen.add(key);
+        creditsFound.push({ user, issue: issueNum });
+    }
 
     for (const issueNum of issueNumbers) {
         try {
@@ -122,19 +131,60 @@ async function run() {
                 issue_number: issueNum
             });
 
-            const body = issue.body || '';
-            // Support formats: Suggested by: @username, Credits: @username, Thanks to @username, 感谢 @username
-            const creditRegex = /(?:Suggested by|Credits|Thanks to|感谢)[:\s]*@([A-Za-z0-9_-]+)/i;
-            const match = body.match(creditRegex);
+            // Credit the issue opener
+            if (issue.user && issue.user.login) {
+                addCredit(issue.user.login, issueNum);
+                console.log(`Found issue opener @${issue.user.login} for #${issueNum}`);
+            }
 
-            if (match) {
-                const username = match[1];
-                creditsFound.push({ user: username, issue: issueNum });
-                console.log(`Found credit for @${username} in issue #${issueNum}`);
+            // Also look for explicit credit mentions in issue body
+            const body = issue.body || '';
+            const creditRegex = /(?:Suggested by|Credits|Thanks to|感谢)[:\s]*@([A-Za-z0-9_-]+)/gi;
+            let match;
+            while ((match = creditRegex.exec(body)) !== null) {
+                addCredit(match[1], issueNum);
+                console.log(`Found explicit credit for @${match[1]} in issue #${issueNum}`);
             }
         } catch (e) {
             console.warn(`Could not fetch issue #${issueNum}:`, e.message);
         }
+    }
+
+    // 4.5 Fetch merged PR authors for credits
+    console.log('Scanning merged PRs for contributor credits...');
+    try {
+        const lastTagForPR = execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim();
+        const mergeLog = execSync(
+            `git log ${lastTagForPR}..HEAD --merges --pretty=format:"%s"`,
+            { encoding: 'utf8' }
+        );
+        const prNumbers = new Set();
+
+        // Extract PR numbers from merge commits
+        for (const line of mergeLog.split('\n').filter(Boolean)) {
+            const m = line.match(/Merge pull request #(\d+)/);
+            if (m) prNumbers.add(parseInt(m[1], 10));
+        }
+        // Also check #NN references from changelog (they might be PRs)
+        for (const num of issueNumbers) prNumbers.add(num);
+
+        for (const prNum of prNumbers) {
+            try {
+                const { data: pr } = await octokit.rest.pulls.get({
+                    owner: repoOwner,
+                    repo: repoName,
+                    pull_number: prNum
+                });
+                if (pr.user && pr.user.login) {
+                    addCredit(pr.user.login, prNum);
+                    console.log(`Found PR author @${pr.user.login} from PR #${prNum}`);
+                }
+            } catch {
+                // Not a PR or fetch failed, skip silently
+            }
+        }
+    } catch (e) {
+        console.warn('Could not scan merged PRs:', e.message);
     }
 
     // 5. Append credits to the changelog lines if they don't already exist
