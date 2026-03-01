@@ -24,10 +24,80 @@ if (fs.existsSync(PRICING_FILE)) {
     } catch (e) { console.warn('[Analyzer] Failed to load pricing file:', e.message); }
 }
 
+// [P1 Fix] Model alias map: provider-native model names → pricing.json keys.
+// JSONL logs use provider-native names (e.g. 'gemini-3-pro-high') while
+// pricing.json uses OpenRouter-style keys (e.g. 'google/gemini-3-pro-preview').
+// This map bridges the gap for the fallback cost calculation.
+const MODEL_ALIAS_MAP = {
+    // Google Antigravity / Gemini CLI
+    'gemini-3-pro-high': 'google/gemini-3-pro-preview',
+    'gemini-3-pro-low': 'google/gemini-3-pro-preview',
+    'gemini-3-pro-preview': 'google/gemini-3-pro-preview',
+    'gemini-3-flash-preview': 'google/gemini-3-flash-preview',
+    'gemini-3-pro-image-preview': 'google/gemini-3-pro-image-preview',
+    'gemini-3.1-pro-preview': 'google/gemini-3.1-pro-preview',
+    'gemini-2.5-pro': 'google/gemini-2.5-pro',
+    'gemini-2.5-pro-preview': 'google/gemini-2.5-pro-preview',
+    'gemini-2.5-flash': 'google/gemini-2.5-flash',
+    'gemini-2.5-flash-lite': 'google/gemini-2.5-flash-lite',
+    // Anthropic direct
+    'claude-sonnet-4.6': 'anthropic/claude-sonnet-4.6',
+    'claude-sonnet-4.5': 'anthropic/claude-sonnet-4.5',
+    'claude-opus-4.6': 'anthropic/claude-opus-4.6',
+    'claude-opus-4.5': 'anthropic/claude-opus-4.5',
+    'claude-opus-4.1': 'anthropic/claude-opus-4.1',
+    'claude-haiku-4.5': 'anthropic/claude-haiku-4.5',
+    // OpenAI direct
+    'gpt-5': 'openai/gpt-5',
+    'gpt-5-mini': 'openai/gpt-5-mini',
+    'gpt-5-chat': 'openai/gpt-5-chat',
+    'gpt-5-codex': 'openai/gpt-5-codex',
+    'gpt-5.1': 'openai/gpt-5.1',
+    'gpt-5.1-codex': 'openai/gpt-5.1-codex',
+    'gpt-5.2': 'openai/gpt-5.2',
+    'gpt-5.2-codex': 'openai/gpt-5.2-codex',
+    'o3-pro': 'openai/o3-pro',
+    // DeepSeek
+    'deepseek-v3.2': 'deepseek/deepseek-v3.2',
+    'deepseek-v3.1': 'deepseek/deepseek-chat-v3.1',
+    'deepseek-r1-0528': 'deepseek/deepseek-r1-0528',
+    // ZAI / GLM
+    'glm-4.7': 'z-ai/glm-4.7',
+    'glm-4.7-flash': 'z-ai/glm-4.7-flash',
+    'glm-5': 'z-ai/glm-5',
+    'glm-4.5': 'z-ai/glm-4.5',
+    'glm-4.6': 'z-ai/glm-4.6',
+    // Moonshot / Kimi
+    'kimi-k2.5': 'moonshotai/kimi-k2.5',
+    'kimi-k2': 'moonshotai/kimi-k2',
+};
+
+function resolveModelPricingKey(model) {
+    if (!model) return 'default';
+    // 1. Direct alias lookup
+    if (MODEL_ALIAS_MAP[model]) {
+        const aliased = MODEL_ALIAS_MAP[model];
+        if (COST_MAP[aliased]) return aliased;
+    }
+    // 2. Exact match in COST_MAP
+    if (COST_MAP[model]) return model;
+    // 3. Partial match (original logic): pricing key is substring of model name
+    const partialKey = Object.keys(COST_MAP).find(
+        k => k !== 'default' && k !== 'updatedAt' && model.includes(k)
+    );
+    if (partialKey) return partialKey;
+    // 4. Reverse partial: model name is substring of pricing key
+    const reverseKey = Object.keys(COST_MAP).find(
+        k => k !== 'default' && k !== 'updatedAt' && k.includes(model)
+    );
+    if (reverseKey) return reverseKey;
+    return 'default';
+}
+
 function calcCost(model, input, output, cacheRead = 0, cacheWrite = 0) {
-    const key = Object.keys(COST_MAP).find(k => model && model.includes(k)) || 'default';
+    const key = resolveModelPricingKey(model);
     const rate = COST_MAP[key];
-    const cacheReadRate = rate.cacheRead || (rate.input * 0.10); // Standard Anthropic proportion
+    const cacheReadRate = rate.cacheRead || (rate.input * 0.10);
     const cacheWriteRate = rate.cacheWrite || (rate.input * 1.25);
     return (input / 1000000 * rate.input) +
         (output / 1000000 * rate.output) +
@@ -36,9 +106,18 @@ function calcCost(model, input, output, cacheRead = 0, cacheWrite = 0) {
 }
 
 // --- Path Discovery ---
+// [P2 Fix] Resolve home dir using OPENCLAW_HOME → HOME → os.homedir()
+// aligned with OpenClaw's src/infra/home-dir.ts
+function resolveHomeDir() {
+    return process.env.OPENCLAW_HOME
+        || process.env.HOME
+        || process.env.USERPROFILE
+        || os.homedir();
+}
+
 // Scan multiple possible locations for session JSONL files
 function discoverSessionFiles() {
-    const HOME_DIR = os.homedir();
+    const HOME_DIR = resolveHomeDir();
     const searchDirs = [];
 
     // 1. New multi-agent path: ~/.openclaw/agents/*/sessions/
@@ -245,6 +324,8 @@ async function analyze() {
     // --- Aggregation (from all cached messages) ---
     const history = {};
     const grandTotal = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, models: {} };
+    // [P4 Fix] Track which sessions (JSONL files) contributed to each day
+    const sessionsByDay = {}; // { 'YYYY-MM-DD': Set<cacheKey> }
 
     for (const cacheKey of Object.keys(newCache)) {
         const entry = newCache[cacheKey];
@@ -256,13 +337,17 @@ async function analyze() {
 
             // Aggregate by date
             if (!history[dateStr]) {
-                history[dateStr] = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 };
+                history[dateStr] = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, sessions: 0 };
             }
             history[dateStr].input += msg.input;
             history[dateStr].output += msg.output;
             history[dateStr].cacheRead += msg.cacheRead;
             history[dateStr].cacheWrite += msg.cacheWrite;
             history[dateStr].cost += msg.cost;
+
+            // Track session contribution per day
+            if (!sessionsByDay[dateStr]) sessionsByDay[dateStr] = new Set();
+            sessionsByDay[dateStr].add(cacheKey);
 
             // Aggregate grand total
             grandTotal.input += msg.input;
@@ -284,6 +369,11 @@ async function analyze() {
                 grandTotal.models[m].cost += msg.cost;
             }
         }
+    }
+
+    // [P4 Fix] Write session counts per day
+    for (const [day, sessionSet] of Object.entries(sessionsByDay)) {
+        if (history[day]) history[day].sessions = sessionSet.size;
     }
 
     // Today's usage

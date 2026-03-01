@@ -15,7 +15,12 @@ if (!SECRET_KEY) {
 const TUNNEL_TOKEN = process.env.TUNNEL_TOKEN;
 
 // --- Paths ---
-const HOME_DIR = os.homedir();
+// [P3 Fix] Resolve home dir using OPENCLAW_HOME → HOME → os.homedir()
+// aligned with OpenClaw's src/infra/home-dir.ts
+const HOME_DIR = process.env.OPENCLAW_HOME
+    || process.env.HOME
+    || process.env.USERPROFILE
+    || os.homedir();
 const STATE_DIR = process.env.OPENCLAW_STATE_DIR || path.join(HOME_DIR, '.openclaw');
 const APP_DIR = path.resolve(__dirname, '..');
 
