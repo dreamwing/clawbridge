@@ -21,18 +21,18 @@ router.get('/api/cron', (req, res) => {
             const json = JSON.parse(fileData);
             if (json.jobs) return res.json(json.jobs);
         }
-    } catch (e) {
+    } catch (_e) {
         // Silent fail, fallthrough to CLI
     }
 
     // 2. SLOW PATH: CLI Fallback
     const cmd = `${getOpenClawCommand()} cron list --json`;
-    exec(cmd, { maxBuffer: 1024 * 1024 * 5 }, (err, stdout, stderr) => {
+    exec(cmd, { maxBuffer: 1024 * 1024 * 5 }, (err, stdout, _stderr) => {
         try {
             const data = JSON.parse(stdout);
             if (data.jobs) return res.json(data.jobs);
             return res.json([]);
-        } catch (e) {
+        } catch (_e) {
             res.json([]);
         }
     });

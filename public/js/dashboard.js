@@ -105,7 +105,7 @@ async function fetchMemory(date) {
             .replace(/^# (.*$)/gim, '<h3 style="margin-top:0;color:var(--accent)">$1</h3>')
             .replace(/^## (.*$)/gim, '<h4 style="margin:10px 0 5px;color:var(--text)">$1</h4>')
             .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
-            .replace(/^\- (.*$)/gim, '• $1')
+            .replace(/^- (.*$)/gim, '• $1')
             .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" style="color:var(--accent)">$1</a>');
 
         document.getElementById('memory-content').innerHTML = html;

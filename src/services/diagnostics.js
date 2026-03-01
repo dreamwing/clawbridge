@@ -30,6 +30,11 @@ class DiagnosticsEngine {
         } catch (err) {
             console.warn("Could not read stats file, using mock stats for diagnostics:", err.message);
             // Return some mock data if stats aren't available yet
+            // This block is for when the actual stats file cannot be read.
+            // The provided `Code Edit` seems to be a snippet from a test file
+            // that mocks `fs.readFile` for different paths.
+            // I will keep the original mock data for the `getStats` function's
+            // catch block, as it's the most sensible default for a missing stats file.
             return {
                 totals: { input: 20000000, output: 290000, cacheRead: 5000000 },
                 cost: {
@@ -74,8 +79,7 @@ class DiagnosticsEngine {
 
         // D01: Expensive Model
         // Check if > 50% of cost comes from an expensive model
-        let foundExpensive = false;
-        const byModelStats = (stats.cost && stats.cost.byModel) ? stats.cost.byModel : {};
+        const byModelStats = stats.cost?.byModel || {};
         for (const [modelId, cost] of Object.entries(byModelStats)) {
             if (MODEL_REPLACEMENTS[modelId] && (cost / safeTotalCost) > 0.5) {
                 const info = MODEL_REPLACEMENTS[modelId];
@@ -95,7 +99,6 @@ class DiagnosticsEngine {
                     codeTag: `model: "${info.alternative}"`,
                     level: 'high'
                 });
-                foundExpensive = true;
                 break; // Only suggest one main model switch
             }
         }

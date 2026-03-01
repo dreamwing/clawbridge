@@ -41,6 +41,9 @@ jest.mock('fs', () => {
                         cost: { total: 10, byModel: { 'claude-3-5-opus-20240229': 6 } }
                     }));
                 }
+                if (pathStr.includes('HEARTBEAT.md')) {
+                    return Promise.resolve('Check my emails.');
+                }
                 if (originalFs.promises.readFile) {
                     return originalFs.promises.readFile(pathStr);
                 }
