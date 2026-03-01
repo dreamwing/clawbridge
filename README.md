@@ -87,6 +87,8 @@ Want a fixed URL like `dash.yoursite.com`?
 Special thanks to our community for helping improve ClawBridge:
 - [@yaochao](https://github.com/yaochao) for reporting critical security and portability issues and suggesting architectural refactoring (#1, #2, #3, #4, #5, #6, #7).
 - [@斯图超哥](https://x.com/StewartLi666) for feedback on Linux compatibility, IP detection stability, and Quick Tunnel refresh logic (#12).
+- [@zjy4fun](https://github.com/zjy4fun) for valuable contributions in workspace detection fix (PR #22).
+- [@chrisuhg](https://github.com/chrisuhg) for valuable contributions in resolving installation and auth loop issues (Issue #19).
 
 ---
 *MIT License. Built for the OpenClaw Community.*

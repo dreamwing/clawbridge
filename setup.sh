@@ -321,14 +321,29 @@ if [[ "$ENABLE_TUNNEL" =~ ^[Yy]$ ]] || [ "$USE_VPN" = true ]; then
 
         if ! command -v cloudflared &> /dev/null; then
             echo "⬇️ Downloading cloudflared..."
+            
+            # Helper function to download securely
+            download_file() {
+                local TARGET_URL=$1
+                local TARGET_FILE=$2
+                if command -v curl &> /dev/null; then
+                    curl -sL "$TARGET_URL" -o "$TARGET_FILE"
+                elif command -v wget &> /dev/null; then
+                    wget -q "$TARGET_URL" -O "$TARGET_FILE"
+                else
+                    echo "❌ Neither curl nor wget found. Please install one sequence."
+                    exit 1
+                fi
+            }
+
             # Detect arch
             ARCH=$(uname -m)
             if [ "$OS_TYPE" = "Darwin" ]; then
                 if [[ "$ARCH" == "x86_64" ]] || [[ "$ARCH" == "amd64" ]]; then
-                    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz -O cloudflared.tgz
+                    download_file "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz" "cloudflared.tgz"
                     tar -xzf cloudflared.tgz && rm cloudflared.tgz
                 elif [[ "$ARCH" == "arm64" ]] || [[ "$ARCH" == "aarch64" ]]; then
-                    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz -O cloudflared.tgz
+                    download_file "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz" "cloudflared.tgz"
                     tar -xzf cloudflared.tgz && rm cloudflared.tgz
                 else
                     echo "❌ Architecture $ARCH not supported for macOS auto-download."
@@ -336,9 +351,9 @@ if [[ "$ENABLE_TUNNEL" =~ ^[Yy]$ ]] || [ "$USE_VPN" = true ]; then
                 fi
             else
                 if [[ "$ARCH" == "x86_64" ]]; then
-                    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O cloudflared
+                    download_file "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" "cloudflared"
                 elif [[ "$ARCH" == "aarch64" ]]; then
-                    wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 -O cloudflared
+                    download_file "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64" "cloudflared"
                 else
                     echo "❌ Architecture $ARCH not supported for Linux auto-download."
                     exit 1
