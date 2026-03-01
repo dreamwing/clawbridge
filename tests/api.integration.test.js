@@ -30,13 +30,19 @@ jest.mock('../src/services/diagnostics', () => {
                 },
                 {
                     actionId: 'A02',
-                    title: 'Disable Background Polling',
-                    description: 'Heartbeats consume ~17M tokens/mo.',
-                    sideEffect: '⚠ Manual refresh needed.',
+                    title: 'Adjust Heartbeat Interval',
+                    description: 'Running every 15m with 1 task.',
+                    sideEffect: '⚠ Longer intervals delay cross-agent message delivery.',
                     savings: 20,
                     savingsStr: '-$20.00/mo',
-                    codeTag: 'heartbeat.every: "0m"',
-                    level: 'medium'
+                    codeTag: 'heartbeat.every',
+                    level: 'medium',
+                    options: [
+                        { label: 'Every 30 min', value: '30m', savings: 10 },
+                        { label: 'Every 1 hour', value: '1h', savings: 15 },
+                        { label: 'Disable completely', value: '0m', savings: 20 }
+                    ],
+                    _meta: { type: 'heartbeat-interval' }
                 }
             ]
         }),
@@ -105,7 +111,7 @@ describe('Cost Control API Integration Tests', () => {
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
         expect(response.body.details).toBeDefined();
-        expect(response.body.details.title).toBe('Disable Background Polling');
+        expect(response.body.details.title).toMatch(/Heartbeat|Polling/);
         expect(response.body.backupPath).toBeDefined();
     });
 

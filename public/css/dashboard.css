@@ -1106,6 +1106,47 @@
             padding-left: 6px;
         }
 
+        .opt-radio {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 12px;
+        }
+        .opt-radio:hover {
+            background: rgba(255,255,255,0.07);
+        }
+        .opt-radio input[type="radio"] {
+            accent-color: var(--accent-green, #22c55e);
+            margin: 0;
+        }
+        .opt-radio-label {
+            flex: 1;
+            color: var(--text);
+        }
+        .opt-radio-savings {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--accent-green, #22c55e);
+            font-weight: 600;
+        }
+        .opt-radio-disable .opt-radio-label {
+            color: rgba(245, 158, 11, 0.9);
+        }
+        .btn-mini.applying {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .btn-mini.applying .default-label,
+        .btn-mini.applying .confirm-label,
+        .btn-mini.applying .done-label { display: none; }
+        .btn-mini.applying .applying-label { display: inline; }
+        .btn-mini .applying-label { display: none; }
+
         .opt-action-line {
             display: flex;
             justify-content: space-between;

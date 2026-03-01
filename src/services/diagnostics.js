@@ -120,13 +120,12 @@ class DiagnosticsEngine {
 
         // --- D01: Expensive Model ---
         const byModelStats = stats.cost.byModel;
-        let detectedExpensiveModel = null;
         for (const [modelId, cost] of Object.entries(byModelStats)) {
             if (totalCost > 0 && MODEL_REPLACEMENTS[modelId] && (cost / totalCost) > 0.5) {
                 const info = MODEL_REPLACEMENTS[modelId];
                 const estimatedSavings = cost * monthlyMultiplier * info.savingsRatio;
                 totalMonthlySavings += estimatedSavings;
-                detectedExpensiveModel = { modelId, alternative: info.alternative };
+
 
                 results.push({
                     actionId: 'A01',
@@ -166,25 +165,57 @@ class DiagnosticsEngine {
             if (hbEvery.endsWith('m')) intervalMinutes = parseInt(hbEvery) || 5;
             else if (hbEvery.endsWith('h')) intervalMinutes = (parseInt(hbEvery) || 1) * 60;
 
-            const runsPerMonth = (30 * 24 * 60) / Math.max(1, intervalMinutes);
             const taskTokens = Math.ceil(heartbeatTasksText.length / 4);
             const tokensPerRun = 2000 + taskTokens; // base system prompt + task
-            const hbMonthlyTokens = runsPerMonth * tokensPerRun;
-
-            // Use precise input cost ratio, fallback to Gemini Flash rate ($0.10/1M)
             const hbCostPerToken = inputCostPerToken > 0 ? inputCostPerToken : (0.10 / 1000000);
-            const hbCostEstimate = hbMonthlyTokens * hbCostPerToken;
 
-            totalMonthlySavings += hbCostEstimate;
+            // Current cost at current interval
+            const currentRunsPerMonth = (30 * 24 * 60) / Math.max(1, intervalMinutes);
+            const currentMonthlyTokens = currentRunsPerMonth * tokensPerRun;
+            const currentMonthlyCostHB = currentMonthlyTokens * hbCostPerToken;
+
+            // Generate multi-interval options with per-option savings
+            const intervalOptions = [
+                { label: 'Every 30 min', value: '30m', minutes: 30 },
+                { label: 'Every 1 hour', value: '1h', minutes: 60 },
+                { label: 'Every 2 hours', value: '2h', minutes: 120 },
+                { label: 'Every 4 hours', value: '4h', minutes: 240 },
+                { label: 'Disable completely', value: '0m', minutes: Infinity }
+            ];
+
+            const options = intervalOptions
+                .filter(opt => opt.minutes > intervalMinutes) // Only show slower intervals
+                .map(opt => {
+                    const optRunsPerMonth = opt.minutes === Infinity ? 0
+                        : (30 * 24 * 60) / opt.minutes;
+                    const optMonthlyCost = optRunsPerMonth * tokensPerRun * hbCostPerToken;
+                    const optSavings = currentMonthlyCostHB - optMonthlyCost;
+                    return {
+                        label: opt.label,
+                        value: opt.value,
+                        savings: optSavings,
+                        savingsStr: `-$${optSavings.toFixed(2)}/mo`,
+                        monthlyTokens: optRunsPerMonth * tokensPerRun,
+                    };
+                });
+
+            // Default savings = full disable (max savings)
+            const maxSavings = currentMonthlyCostHB;
+            totalMonthlySavings += maxSavings;
+
+            const taskCount = heartbeatTasksText.split('\n').length;
             results.push({
                 actionId: 'A02',
-                title: 'Disable Background Polling',
-                description: `Heartbeats consume ~${(hbMonthlyTokens / 1000000).toFixed(1)}M tokens/mo (every ${hbEvery}, ${heartbeatTasksText.split('\n').length} tasks).`,
-                sideEffect: '⚠ Passive cross-agent messages require manual refresh.',
-                savings: hbCostEstimate,
-                savingsStr: `-$${hbCostEstimate.toFixed(2)}/mo`,
-                codeTag: 'heartbeat.every: "0m"',
-                level: 'medium'
+                title: 'Adjust Heartbeat Interval',
+                description: `Running every ${hbEvery} with ${taskCount} task${taskCount > 1 ? 's' : ''}, consuming ~${(currentMonthlyTokens / 1000000).toFixed(1)}M tokens/mo ($${currentMonthlyCostHB.toFixed(2)}/mo).`,
+                sideEffect: '⚠ Longer intervals delay cross-agent message delivery.',
+                savings: maxSavings,
+                savingsStr: `-$${maxSavings.toFixed(2)}/mo`,
+                codeTag: 'heartbeat.every',
+                level: 'medium',
+                options,
+                currentInterval: hbEvery,
+                _meta: { type: 'heartbeat-interval' }
             });
         }
 

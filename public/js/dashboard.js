@@ -751,36 +751,76 @@ function renderOptimizerList() {
 
         let sideEffectHtml = '';
         if (act.sideEffect) {
-            sideEffectHtml = `<div class="opt-sideeffect">⚠ ${escapeHtml(act.sideEffect)}</div>`;
+            sideEffectHtml = `<div class="opt-sideeffect">${escapeHtml(act.sideEffect)}</div>`;
         }
 
-        // Simple formatting for the UI
         let title = act.title;
         if (act.actionId === 'A01') title = 'Change Default Model';
-        if (act.actionId === 'A02') title = 'Disable Background Polling';
+        if (act.actionId === 'A02') title = 'Adjust Heartbeat Interval';
         if (act.actionId === 'A05') title = 'Reduce Thinking Allowance';
         if (act.actionId === 'A06') title = 'Enable Prompt Caching';
         if (act.actionId === 'A07') title = 'Enable Compaction Safeguard';
         if (act.actionId === 'A09') title = 'Reduce Output Verbosity';
 
-        // Store meta for dynamic A01 model target
         const metaAttr = act._meta ? ' data-meta=\'' + JSON.stringify(act._meta).replace(/'/g, '&#39;') + '\'' : '';
+
+        // A02 with multi-interval options
+        let optionsHtml = '';
+        if (act.actionId === 'A02' && act.options && act.options.length > 0) {
+            const optItems = act.options.map((opt, i) => {
+                const checked = (i === act.options.length - 1) ? ' checked' : ''; // Default: last (disable)
+                const isDisable = opt.value === '0m';
+                const labelClass = isDisable ? 'opt-radio-disable' : '';
+                return `<label class="opt-radio ${labelClass}">
+                    <input type="radio" name="hb-interval" value="${opt.value}" data-savings="${opt.savings}"${checked}>
+                    <span class="opt-radio-label">${escapeHtml(opt.label)}</span>
+                    <span class="opt-radio-savings">${opt.savingsStr}</span>
+                </label>`;
+            }).join('');
+
+            optionsHtml = `<div class="opt-interval-selector" style="margin:8px 0;display:flex;flex-direction:column;gap:4px;">${optItems}</div>`;
+        }
 
         const itemHtml = `
                     <div class="opt-item ${savingsClass}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
-                        <div class="opt-header"><span class="opt-title">${escapeHtml(title)}</span><span class="opt-savings-tag">${savingsStr}</span></div>
+                        <div class="opt-header"><span class="opt-title">${escapeHtml(title)}</span><span class="opt-savings-tag" id="savings-tag-${act.actionId}">${savingsStr}</span></div>
                         <div class="opt-desc">${escapeHtml(act.description || '')}</div>
                         ${sideEffectHtml}
+                        ${optionsHtml}
                         <div class="opt-action-line">
                             <span class="code-tag">${escapeHtml(act.actionId)}: Apply Patch</span>
                             <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying…</span><span class="done-label">✓ Applied</span></button>
                         </div>
                     </div>`;
 
-        // We need a helper to append raw HTML without innerHTML +=
         const temp = document.createElement('div');
         temp.innerHTML = itemHtml;
-        list.appendChild(temp.firstElementChild);
+        const itemEl = temp.firstElementChild;
+
+        // Wire up radio change to update savings tag dynamically
+        if (act.actionId === 'A02' && act.options) {
+            itemEl.querySelectorAll('input[name="hb-interval"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const selectedSavings = parseFloat(radio.getAttribute('data-savings')) || 0;
+                    itemEl.setAttribute('data-savings', selectedSavings);
+                    const tag = itemEl.querySelector('#savings-tag-A02');
+                    if (tag) tag.textContent = `-$${selectedSavings.toFixed(2)}/mo`;
+                    // Update meta with selected interval
+                    const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
+                    currentMeta.interval = radio.value;
+                    itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
+                });
+            });
+            // Initialize meta with default selection
+            const defaultRadio = itemEl.querySelector('input[name="hb-interval"]:checked');
+            if (defaultRadio) {
+                const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
+                currentMeta.interval = defaultRadio.value;
+                itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
+            }
+        }
+
+        list.appendChild(itemEl);
     });
 }
 

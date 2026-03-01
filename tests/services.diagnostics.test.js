@@ -60,8 +60,16 @@ describe('DiagnosticsEngine', () => {
 
         const action = result.actions.find(a => a.actionId === 'A02');
         expect(action).toBeDefined();
-        expect(action.codeTag).toBe('heartbeat.every: "0m"');
+        expect(action.codeTag).toBe('heartbeat.every');
         expect(action.savings).toBeGreaterThan(0);
+        // Should have multi-interval options
+        expect(action.options).toBeDefined();
+        expect(action.options.length).toBeGreaterThan(0);
+        // Last option should be 'Disable completely'
+        const disableOpt = action.options.find(o => o.value === '0m');
+        expect(disableOpt).toBeDefined();
+        expect(disableOpt.savings).toBeGreaterThan(0);
+        expect(action._meta.type).toBe('heartbeat-interval');
     });
 
     test('D05: Should flag high thinkingDefault', async () => {

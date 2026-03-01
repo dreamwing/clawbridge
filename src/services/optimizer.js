@@ -82,14 +82,18 @@ class OptimizerService {
                 };
                 break;
             }
-            case 'A02':
-                result = await configManager.setConfig('agents.defaults.heartbeat.every', '0m');
+            case 'A02': {
+                // Support custom interval (e.g., '2h', '30m') or full disable ('0m')
+                const interval = (meta && meta.interval) || '0m';
+                result = await configManager.setConfig('agents.defaults.heartbeat.every', interval);
+                const isDisabled = interval === '0m' || interval === '0';
                 details = {
-                    title: 'Disable Background Polling',
+                    title: isDisabled ? 'Disabled Background Polling' : `Heartbeat set to ${interval}`,
                     savings: dynamicSavings || 0,
-                    configChanged: 'heartbeat.every: 0m'
+                    configChanged: `heartbeat.every: ${interval}`
                 };
                 break;
+            }
             case 'A05':
                 result = await configManager.setConfig('agents.defaults.thinkingDefault', 'minimal');
                 details = {
