@@ -698,19 +698,25 @@ async function fetchDiagnostics() {
     try {
         const res = await fetchAuth(API + '/diagnostics');
         diagnosticsData = await res.json();
+        // Normalize field name (backend sends totalMonthlySavings)
+        diagnosticsData.monthlySavings = diagnosticsData.totalMonthlySavings || 0;
 
         const actions = diagnosticsData.actions || [];
         totalActions = actions.length;
 
-        if (totalActions > 0) {
+        if (diagnosticsData.noData) {
+            trigger.style.display = 'flex';
+            trigger.classList.add('all-done');
+            triggerText.innerHTML = '<strong>No usage data yet.</strong> Start using OpenClaw to see optimization suggestions.';
+            triggerBtn.textContent = 'History';
+            isFullyOptimized = true;
+        } else if (totalActions > 0) {
             trigger.style.display = 'flex';
             trigger.classList.remove('all-done');
-            document.getElementById('trigger-savings').innerText = '$' + diagnosticsData.monthlySavings.toFixed(2) + '/mo';
             triggerText.innerHTML = `<strong>${totalActions} actions</strong> available. Tap to save <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.`;
             triggerBtn.textContent = 'Optimize';
             isFullyOptimized = false;
         } else {
-            // Fully Optimized! Let's check history
             isFullyOptimized = true;
             trigger.style.display = 'flex';
             trigger.classList.add('all-done');
@@ -757,14 +763,17 @@ function renderOptimizerList() {
         if (act.actionId === 'A07') title = 'Enable Compaction Safeguard';
         if (act.actionId === 'A09') title = 'Reduce Output Verbosity';
 
+        // Store meta for dynamic A01 model target
+        const metaAttr = act._meta ? ' data-meta=\'' + JSON.stringify(act._meta).replace(/'/g, '&#39;') + '\'' : '';
+
         const itemHtml = `
-                    <div class="opt-item ${savingsClass}" data-action="${act.actionId}" data-savings="${act.savings}">
+                    <div class="opt-item ${savingsClass}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
                         <div class="opt-header"><span class="opt-title">${escapeHtml(title)}</span><span class="opt-savings-tag">${savingsStr}</span></div>
-                        <div class="opt-desc">${escapeHtml(act.reason)}</div>
+                        <div class="opt-desc">${escapeHtml(act.description || '')}</div>
                         ${sideEffectHtml}
                         <div class="opt-action-line">
                             <span class="code-tag">${escapeHtml(act.actionId)}: Apply Patch</span>
-                            <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="done-label">✓ Applied</span></button>
+                            <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying…</span><span class="done-label">✓ Applied</span></button>
                         </div>
                     </div>`;
 
@@ -793,7 +802,7 @@ async function renderHistoryList() {
             const date = new Date(hist.timestamp);
             const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            let title = 'Applied Optimization: ' + hist.actionId;
+            let title = hist.title || ('Applied: ' + hist.actionId);
             if (hist.actionId === 'A01') title = 'Switched to a more efficient Model';
             if (hist.actionId === 'A02') title = 'Disabled Background Polling';
             if (hist.actionId === 'A05') title = 'Reduced AI Thinking Allowance';
@@ -801,17 +810,20 @@ async function renderHistoryList() {
             if (hist.actionId === 'A07') title = 'Enabled Compaction Safeguard';
             if (hist.actionId === 'A09') title = 'Reduced Output Verbosity';
 
+            // Show savings amount per PRD 3.4.2
+            const savingsTag = hist.savings > 0 ? ` — saved $${Number(hist.savings).toFixed(2)}/mo` : '';
+
             const div = document.createElement('div');
             div.className = 'timeline-item';
             const dotColor = i === 0 ? 'var(--accent-green)' : 'var(--text-dim)';
             div.innerHTML = `
                             <div class="timeline-dot" style="border-color: ${dotColor};"></div>
                             <div class="timeline-time">${timeStr}</div>
-                            <div class="timeline-content">${escapeHtml(title)}</div>
+                            <div class="timeline-content">${escapeHtml(title)}${savingsTag}</div>
                         `;
             list.appendChild(div);
         });
-    } catch (e) { }
+    } catch (_e) { }
 }
 
 function flipToOptimizer() {
@@ -859,32 +871,57 @@ async function handleOpt(btn, actionId) {
         clearTimeout(btn._timer);
         btn.classList.remove('confirming');
 
+        // Disable button during request (loading state)
+        btn.disabled = true;
+        btn.classList.add('applying');
+
         try {
-            const savings = parseFloat(item.getAttribute('data-savings')) || 0;
+            const savingsVal = parseFloat(item.getAttribute('data-savings')) || 0;
+            let meta = null;
+            try { meta = JSON.parse(item.getAttribute('data-meta')); } catch (_e) { /* no meta */ }
+
             const res = await fetchAuth(API + '/optimize/' + actionId, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ savings })
+                body: JSON.stringify({ savings: savingsVal, meta })
             });
             if (res.ok) {
+                btn.classList.remove('applying');
                 item.classList.add('done');
                 actionsApplied++;
 
-                const savings = parseFloat(item.getAttribute('data-savings'));
                 const mainAmount = document.getElementById('main-savings-amount');
                 let cur = parseFloat(mainAmount.textContent.replace('$', ''));
-                mainAmount.textContent = '$' + Math.max(0, cur - savings).toFixed(2);
+                mainAmount.textContent = '$' + Math.max(0, cur - savingsVal).toFixed(2);
 
                 if (actionsApplied >= totalActions) {
                     setTimeout(showSuccess, 1000);
                 }
             } else {
-                alert('Optimization failed to apply');
+                btn.classList.remove('applying');
+                btn.disabled = false;
+                showToast('Optimization failed: ' + (await res.json().catch(() => ({}))).details || 'Unknown error');
             }
         } catch (e) {
-            alert('Optimization failed to apply');
+            btn.classList.remove('applying');
+            btn.disabled = false;
+            showToast('Network error: ' + e.message);
         }
     }
+}
+
+function showToast(message) {
+    let toast = document.getElementById('opt-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'opt-toast';
+        toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card-bg);color:var(--text);padding:10px 20px;border-radius:8px;border:1px solid rgba(255,80,80,0.4);font-size:13px;z-index:9999;opacity:0;transition:opacity 0.3s;max-width:90vw;text-align:center;';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => { toast.style.opacity = '0'; }, 4000);
 }
 
 function showSuccess() {

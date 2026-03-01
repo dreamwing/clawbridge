@@ -2,21 +2,27 @@ const configManager = require('./openclaw_config');
 const fs = require('fs').promises;
 const path = require('path');
 
-// Basic mapping of expensive models to cheaper alternatives (D01)
+// Dynamic mapping of expensive models to cheaper alternatives (D01)
+// savingsRatio = 1 - (alternativePrice / originalPrice)
 const MODEL_REPLACEMENTS = {
     'claude-3-5-opus-20240229': {
         alternative: 'claude-3-5-sonnet-20241022',
-        savingsRatio: 0.8 // Rough estimation: 80% cheaper
+        savingsRatio: 0.8
     },
     'gpt-4o': {
         alternative: 'gpt-4o-mini',
-        savingsRatio: 0.95 // Very rough
+        savingsRatio: 0.95
     },
     'gemini-1.5-pro': {
         alternative: 'gemini-1.5-flash',
         savingsRatio: 0.9
     }
 };
+
+// Cache for diagnostic results (60s TTL)
+let _diagCache = null;
+let _diagCacheTs = 0;
+const DIAG_CACHE_TTL = 60000;
 
 class DiagnosticsEngine {
     constructor() {
@@ -27,29 +33,44 @@ class DiagnosticsEngine {
         try {
             const data = await fs.readFile(this.statsPath, 'utf8');
             return JSON.parse(data);
-        } catch (err) {
-            console.warn("Could not read stats file, using mock stats for diagnostics:", err.message);
-            // Return some mock data if stats aren't available yet
-            // This block is for when the actual stats file cannot be read.
-            // The provided `Code Edit` seems to be a snippet from a test file
-            // that mocks `fs.readFile` for different paths.
-            // I will keep the original mock data for the `getStats` function's
-            // catch block, as it's the most sensible default for a missing stats file.
+        } catch (_err) {
+            // No stats available — return zeroed structure, never fake data
             return {
-                totals: { input: 20000000, output: 290000, cacheRead: 5000000 },
-                cost: {
-                    total: 102.69,
-                    byModel: {
-                        'claude-3-5-opus-20240229': 60.50,
-                        'gemini-1.5-pro': 20.19,
-                        'gpt-4o': 22.00
-                    }
-                }
+                totals: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+                cost: { total: 0, byModel: {} },
+                history: {},
+                _empty: true
             };
         }
     }
 
+    /**
+     * Compute the per-token cost ratio for a given token type from per-model data.
+     * Uses the actual model rates from latest.json to get precise $/token.
+     */
+    _computeTokenCostRatio(models, tokenType) {
+        let totalTokens = 0;
+        let totalCost = 0;
+        for (const m of Object.values(models || {})) {
+            totalTokens += m[tokenType] || 0;
+            // We only have aggregate cost per model, so we estimate per-type cost
+            // using the token proportion within that model.
+            const modelTotal = (m.input || 0) + (m.output || 0) + (m.cacheRead || 0);
+            if (modelTotal > 0 && m.cost) {
+                totalCost += m.cost * ((m[tokenType] || 0) / modelTotal);
+            }
+        }
+        if (totalTokens === 0) return 0;
+        return totalCost / totalTokens;
+    }
+
     async runDiagnostics() {
+        // Return cached result if still fresh
+        const now = Date.now();
+        if (_diagCache && (now - _diagCacheTs) < DIAG_CACHE_TTL) {
+            return _diagCache;
+        }
+
         const results = [];
         let totalMonthlySavings = 0;
 
@@ -58,36 +79,54 @@ class DiagnosticsEngine {
         const defaults = agentsConfig.defaults || {};
 
         // 2. Get usage stats
-        let rawStats = await this.getStats();
+        const rawStats = await this.getStats();
 
-        // Normalize the raw data from `latest.json` to the diagnostic structure expected below
-        // Backwards compatibility: Older versions use `stats.cost.total`, newer versions use `stats.total.cost`
+        // If stats are empty, return no recommendations rather than fake ones
+        if (rawStats._empty) {
+            const emptyResult = {
+                totalMonthlySavings: 0,
+                currentMonthlyCost: 0,
+                actions: [],
+                noData: true
+            };
+            _diagCache = emptyResult;
+            _diagCacheTs = now;
+            return emptyResult;
+        }
+
+        // Normalize data: support both old (cost.total) and new (total.cost) formats
+        const rawModels = (rawStats.total && rawStats.total.models) || {};
         const stats = {
             totals: rawStats.totals || rawStats.total || { input: 0, output: 0, cacheRead: 0 },
             cost: {
-                total: (rawStats.cost && rawStats.cost.total) ? rawStats.cost.total : (rawStats.total ? rawStats.total.cost : 0),
-                byModel: (rawStats.cost && rawStats.cost.byModel) ? rawStats.cost.byModel :
-                    (rawStats.total && rawStats.total.models) ?
-                        Object.fromEntries(Object.entries(rawStats.total.models).map(([k, v]) => [k, v.cost])) : {}
+                total: (rawStats.cost && rawStats.cost.total) ? rawStats.cost.total
+                    : (rawStats.total ? rawStats.total.cost : 0) || 0,
+                byModel: (rawStats.cost && rawStats.cost.byModel) ? rawStats.cost.byModel
+                    : Object.fromEntries(Object.entries(rawModels).map(([k, v]) => [k, v.cost || 0]))
             },
+            models: rawModels,
             activeDays: Math.max(1, Object.keys(rawStats.history || {}).length)
         };
 
-        // --- Run Rules ---
+        const totalCost = stats.cost.total || 0;
+        const monthlyMultiplier = 30 / stats.activeDays;
+        const totalInput = stats.totals.input || 0;
+        const totalOutput = stats.totals.output || 0;
+        const totalCacheRead = stats.totals.cacheRead || 0;
 
-        const safeTotalCost = (stats.cost && stats.cost.total) ? stats.cost.total : 100;
+        // Precise per-token cost ratios from actual model data
+        const inputCostPerToken = this._computeTokenCostRatio(stats.models, 'input');
+        const outputCostPerToken = this._computeTokenCostRatio(stats.models, 'output');
 
-        // D01: Expensive Model
-        // Check if > 50% of cost comes from an expensive model
-        const byModelStats = stats.cost?.byModel || {};
+        // --- D01: Expensive Model ---
+        const byModelStats = stats.cost.byModel;
+        let detectedExpensiveModel = null;
         for (const [modelId, cost] of Object.entries(byModelStats)) {
-            if (MODEL_REPLACEMENTS[modelId] && (cost / safeTotalCost) > 0.5) {
+            if (totalCost > 0 && MODEL_REPLACEMENTS[modelId] && (cost / totalCost) > 0.5) {
                 const info = MODEL_REPLACEMENTS[modelId];
-                // Estimate monthly savings based on active days
-                const monthlyMultiplier = 30 / stats.activeDays;
-                const estimatedMonthlyCost = cost * monthlyMultiplier;
-                const estimatedSavings = estimatedMonthlyCost * info.savingsRatio;
+                const estimatedSavings = cost * monthlyMultiplier * info.savingsRatio;
                 totalMonthlySavings += estimatedSavings;
+                detectedExpensiveModel = { modelId, alternative: info.alternative };
 
                 results.push({
                     actionId: 'A01',
@@ -97,158 +136,173 @@ class DiagnosticsEngine {
                     savings: estimatedSavings,
                     savingsStr: `-$${estimatedSavings.toFixed(2)}/mo`,
                     codeTag: `model: "${info.alternative}"`,
-                    level: 'high'
+                    level: 'high',
+                    _meta: { alternative: info.alternative }
                 });
-                break; // Only suggest one main model switch
+                break;
             }
         }
 
-        // D02: Heartbeat Enabled
+        // --- D02: Heartbeat Optimization ---
         let hbEvery = defaults.heartbeat?.every;
-        let heartbeatTasksText = "";
+        let heartbeatTasksText = '';
         try {
             const homeDir = process.env.HOME || process.env.USERPROFILE;
             const hbPath = path.join(homeDir, '.openclaw', 'workspace', 'HEARTBEAT.md');
             const fileContent = await fs.readFile(hbPath, 'utf8');
-            // Remove comments and empty lines to get actual tasks
             heartbeatTasksText = fileContent.split('\n')
                 .filter(l => l.trim() && !l.trim().startsWith('#'))
                 .join('\n');
-        } catch (e) {
-            // Ignore if file doesn't exist
+        } catch (_e) {
+            // File doesn't exist
         }
 
-        // If openclaw.json is unreadable but HEARTBEAT.md has tasks, assume default 5m
         if (!hbEvery && heartbeatTasksText.length > 0) {
-            hbEvery = '5m';
+            hbEvery = '5m'; // OpenClaw default
         }
 
-        // OpenClaw skips heartbeat execution entirely if HEARTBEAT.md is empty (no tasks)
         if (hbEvery && hbEvery !== '0m' && hbEvery !== '0' && heartbeatTasksText.length > 0) {
             let intervalMinutes = 5;
             if (hbEvery.endsWith('m')) intervalMinutes = parseInt(hbEvery) || 5;
             else if (hbEvery.endsWith('h')) intervalMinutes = (parseInt(hbEvery) || 1) * 60;
 
             const runsPerMonth = (30 * 24 * 60) / Math.max(1, intervalMinutes);
-
-            // Rough token estimate: Base system prompt (~2000 tokens) + Task tokens (~chars/4)
             const taskTokens = Math.ceil(heartbeatTasksText.length / 4);
-            const tokensPerRun = 2000 + taskTokens;
+            const tokensPerRun = 2000 + taskTokens; // base system prompt + task
+            const hbMonthlyTokens = runsPerMonth * tokensPerRun;
 
-            const hbEstimatedMonthlyTokens = runsPerMonth * tokensPerRun;
-
-            const inputCostRatio = (stats.cost && stats.cost.input) ? (stats.cost.input / Math.max(stats.totals.input, 1)) : (0.10 / 1000000); // fallback to $3/M
-            const hbCostEstimate = hbEstimatedMonthlyTokens * inputCostRatio;
+            // Use precise input cost ratio, fallback to Gemini Flash rate ($0.10/1M)
+            const hbCostPerToken = inputCostPerToken > 0 ? inputCostPerToken : (0.10 / 1000000);
+            const hbCostEstimate = hbMonthlyTokens * hbCostPerToken;
 
             totalMonthlySavings += hbCostEstimate;
             results.push({
                 actionId: 'A02',
                 title: 'Disable Background Polling',
-                description: `Heartbeats consume ~${(hbEstimatedMonthlyTokens / 1000000).toFixed(1)}M background tokens/mo based on tasks.`,
+                description: `Heartbeats consume ~${(hbMonthlyTokens / 1000000).toFixed(1)}M tokens/mo (every ${hbEvery}, ${heartbeatTasksText.split('\n').length} tasks).`,
                 sideEffect: '⚠ Passive cross-agent messages require manual refresh.',
                 savings: hbCostEstimate,
                 savingsStr: `-$${hbCostEstimate.toFixed(2)}/mo`,
-                codeTag: `heartbeat.every: "0m"`,
+                codeTag: 'heartbeat.every: "0m"',
                 level: 'medium'
             });
         }
 
-        // D05: Reasoning / Thinking Tokens
+        // --- D05: Thinking Token Overhead ---
         const thinking = defaults.thinkingDefault;
         if (!thinking || thinking === 'high' || thinking === 'xhigh' || thinking === 'on') {
-            // Estimate thinking takes ~20% of output cost
-            const savingsAllTime = safeTotalCost * 0.15; // Rough estimate
-            const monthlyMultiplier = 30 / stats.activeDays;
-            const thinkingSavings = savingsAllTime * monthlyMultiplier;
-            totalMonthlySavings += thinkingSavings;
-            results.push({
-                actionId: 'A05',
-                title: 'Reduce Thinking Overhead',
-                description: 'Default reasoning level is high. Minimal mode forces models to think less and output faster.',
-                sideEffect: '⚠ May reduce mathematical or logical accuracy on hard prompts.',
-                savings: thinkingSavings,
-                savingsStr: `-$${thinkingSavings.toFixed(2)}/mo`,
-                codeTag: `thinkingDefault: "minimal"`,
-                level: 'medium'
-            });
+            // Precise: thinking tokens are output tokens that the model generates internally.
+            // With "high" thinking, ~40% of output goes to reasoning. Minimal reduces this by ~75%.
+            // Savings = outputTokens * thinkingProportion * reductionRatio * outputCostPerToken
+            const thinkingProportion = 0.40;
+            const reductionRatio = 0.75;
+            const thinkingSavingsAllTime = totalOutput * thinkingProportion * reductionRatio * outputCostPerToken;
+            const thinkingSavings = thinkingSavingsAllTime * monthlyMultiplier;
+
+            if (thinkingSavings > 0) {
+                totalMonthlySavings += thinkingSavings;
+                results.push({
+                    actionId: 'A05',
+                    title: 'Reduce Thinking Overhead',
+                    description: `~${(totalOutput * thinkingProportion / 1000).toFixed(0)}K output tokens spent on reasoning. Minimal mode cuts this by ${(reductionRatio * 100).toFixed(0)}%.`,
+                    sideEffect: '⚠ May reduce mathematical or logical accuracy on hard prompts.',
+                    savings: thinkingSavings,
+                    savingsStr: `-$${thinkingSavings.toFixed(2)}/mo`,
+                    codeTag: 'thinkingDefault: "minimal"',
+                    level: 'medium'
+                });
+            }
         }
 
-        // D06: Prompt Caching
-        // If caching is missing or cache hits are very low compared to input.
-        if (stats.totals && stats.totals.cacheRead < (stats.totals.input * 0.1)) {
-            // Calculate dynamic savings:
-            // Assuming 80% of current input could be cached.
-            // Cost of input = rate.input
-            // Cost of cacheRead = rate.input * 0.1
-            // Savings per token = rate.input * 0.9
-            const cacheableInput = stats.totals.input * 0.8;
-            const inputCostRatio = (stats.cost && stats.cost.input) ? (stats.cost.input / Math.max(stats.totals.input, 1)) : (0.10 / 1000000); // fallback to $3/M
+        // --- D06: Prompt Caching ---
+        // PRD formula: hitRate = cacheRead / (input + cacheRead)
+        const cacheHitRate = (totalInput + totalCacheRead) > 0
+            ? totalCacheRead / (totalInput + totalCacheRead) : 0;
 
-            // Extrapolate to monthly based on active days tracked
-            const monthlyMultiplier = 30 / stats.activeDays;
-            const savingsAllTime = cacheableInput * inputCostRatio * 0.9;
-            const cachingSavings = savingsAllTime * monthlyMultiplier;
+        if (cacheHitRate < 0.10) {
+            // Savings = uncached input that could be cached * (inputPrice - cacheReadPrice)
+            // cacheRead typically costs 10% of input price
+            const cacheableInput = totalInput * 0.8; // 80% of input is system prompt / repeatable
+            const cacheDiscount = 0.9; // cache reads are 90% cheaper
+            const cachingSavingsAllTime = cacheableInput * inputCostPerToken * cacheDiscount;
+            const cachingSavings = cachingSavingsAllTime * monthlyMultiplier;
 
-            totalMonthlySavings += cachingSavings;
-            results.push({
-                actionId: 'A06',
-                title: 'Enable Prompt Caching',
-                description: 'System prompts run uncached. Cache hits cost significantly less.',
-                sideEffect: '⚠ First message per session remains full price.',
-                savings: cachingSavings,
-                savingsStr: `-$${cachingSavings.toFixed(2)}/mo`,
-                codeTag: `cachePolicy: "aggressive"`,
-                level: 'high'
-            });
+            if (cachingSavings > 0) {
+                totalMonthlySavings += cachingSavings;
+                results.push({
+                    actionId: 'A06',
+                    title: 'Enable Prompt Caching',
+                    description: `Cache hit rate is ${(cacheHitRate * 100).toFixed(1)}%. ${(cacheableInput / 1000).toFixed(0)}K input tokens could be cached at 90% discount.`,
+                    sideEffect: '⚠ First message per session remains full price.',
+                    savings: cachingSavings,
+                    savingsStr: `-$${cachingSavings.toFixed(2)}/mo`,
+                    codeTag: 'cachePolicy: "aggressive"',
+                    level: 'high'
+                });
+            }
         }
 
-        // D07: Security Compaction
-        const compactionMode = defaults.compaction?.mode;
-        if (compactionMode !== 'safeguard') {
+        // --- D07: Safeguard Compaction ---
+        if (defaults.compaction?.mode !== 'safeguard') {
             results.push({
                 actionId: 'A07',
                 title: 'Enable Compaction Safeguard',
                 description: 'Auto-compacts at 50K tokens to prevent extreme single-session billing.',
                 sideEffect: '⚠ May truncate history during massive code translation sessions.',
                 savings: 0,
-                savingsStr: `🛡️ Protection`,
-                codeTag: `mode: "safeguard"`,
+                savingsStr: '🛡️ Protection',
+                codeTag: 'mode: "safeguard"',
                 level: 'safety'
             });
         }
 
-        // D09: Output Verbosity (SOUL.md)
-        // Check if ratio of output to input is suspiciously high (e.g. > 10%)
-        if (stats.totals && stats.totals.output > (stats.totals.input * 0.05)) {
-            // Assume concise mode reduces output by 30%
-            const reducibleOutput = stats.totals.output * 0.3;
-            const outputCostRatio = (stats.cost && stats.cost.output) ? (stats.cost.output / Math.max(stats.totals.output, 1)) : (0.40 / 1000000); // fallback to $12/M
+        // --- D09: Output Verbosity ---
+        // Precise: compare output/input ratio. Industry average is ~5-15%.
+        // If > 15%, output is verbose. "Be concise" typically reduces by 30%.
+        const outputRatio = totalInput > 0 ? totalOutput / totalInput : 0;
+        if (outputRatio > 0.10 && totalOutput > 1000) {
+            const reductionFactor = 0.30;
+            const reducibleOutput = totalOutput * reductionFactor;
+            const verbositySavingsAllTime = reducibleOutput * outputCostPerToken;
+            const verbositySavings = verbositySavingsAllTime * monthlyMultiplier;
 
-            const savingsAllTime = reducibleOutput * outputCostRatio;
-            const monthlyMultiplier = 30 / stats.activeDays;
-            const verbositySavings = savingsAllTime * monthlyMultiplier;
-
-            totalMonthlySavings += verbositySavings;
-            results.push({
-                actionId: 'A09',
-                title: 'Reduce Output Verbosity',
-                description: 'Concise mode typically cuts output tokens by 30%.',
-                sideEffect: '⚠ Responses become visibly shorter.',
-                savings: verbositySavings,
-                savingsStr: `-$${verbositySavings.toFixed(2)}/mo`,
-                codeTag: `SOUL.md += "Be concise"`,
-                level: 'high'
-            });
+            if (verbositySavings > 0) {
+                totalMonthlySavings += verbositySavings;
+                results.push({
+                    actionId: 'A09',
+                    title: 'Reduce Output Verbosity',
+                    description: `Output/Input ratio is ${(outputRatio * 100).toFixed(1)}% (${(totalOutput / 1000).toFixed(0)}K tokens). Concise mode cuts ~30%.`,
+                    sideEffect: '⚠ Responses become visibly shorter.',
+                    savings: verbositySavings,
+                    savingsStr: `-$${verbositySavings.toFixed(2)}/mo`,
+                    codeTag: 'SOUL.md += "Be concise"',
+                    level: 'high'
+                });
+            }
         }
 
-        // Sort results by savings descending
+        // Sort by savings descending (protection items last)
         results.sort((a, b) => b.savings - a.savings);
 
-        return {
+        const currentMonthlyCost = totalCost * monthlyMultiplier;
+        const result = {
             totalMonthlySavings,
-            currentMonthlyCost: safeTotalCost,
+            currentMonthlyCost,
+            cacheHitRate,
             actions: results
         };
+
+        // Cache the result
+        _diagCache = result;
+        _diagCacheTs = now;
+
+        return result;
+    }
+
+    /** Invalidate cached diagnostics (e.g. after optimization applied) */
+    invalidateCache() {
+        _diagCache = null;
+        _diagCacheTs = 0;
     }
 }
 

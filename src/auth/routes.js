@@ -2,6 +2,7 @@
  * Auth routes — POST /api/auth, POST /api/logout
  */
 const router = require('express').Router();
+const crypto = require('crypto');
 const { SECRET_KEY } = require('../config');
 const {
     generateSessionToken,
@@ -11,13 +12,25 @@ const {
     resetAuthAttempts,
 } = require('./sessions');
 
+function safeCompare(a, b) {
+    if (typeof a !== 'string' || typeof b !== 'string') return false;
+    const bufA = Buffer.from(a);
+    const bufB = Buffer.from(b);
+    if (bufA.length !== bufB.length) {
+        const hashA = crypto.createHash('sha256').update(bufA).digest();
+        const hashB = crypto.createHash('sha256').update(bufB).digest();
+        return crypto.timingSafeEqual(hashA, hashB);
+    }
+    return crypto.timingSafeEqual(bufA, bufB);
+}
+
 // POST /api/auth — Login
 router.post('/api/auth', (req, res) => {
     if (!checkAuthRateLimit(req.ip)) {
         return res.status(429).json({ error: 'Too many attempts. Please wait.' });
     }
     const { key } = req.body;
-    if (key === SECRET_KEY) {
+    if (safeCompare(key, SECRET_KEY)) {
         resetAuthAttempts(req.ip);
         const token = generateSessionToken();
         addSession(token);
