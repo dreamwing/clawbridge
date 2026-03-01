@@ -5,6 +5,11 @@ const diagnosticsEngine = require('../services/diagnostics');
 router.get('/api/diagnostics', async (req, res) => {
     try {
         const result = await diagnosticsEngine.runDiagnostics();
+        // Strip _rawData unless ?verbose=true (advanced user API export)
+        if (req.query.verbose !== 'true') {
+            const { _rawData, ...clean } = result;
+            return res.json(clean);
+        }
         res.json(result);
     } catch (err) {
         console.error("Diagnostics error:", err);

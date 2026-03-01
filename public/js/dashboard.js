@@ -744,6 +744,15 @@ function renderOptimizerList() {
     const list = document.getElementById('opt-list');
     list.innerHTML = '';
 
+    // Display cache hit rate in the optimizer header
+    const cacheEl = document.getElementById('cache-hit-rate');
+    if (cacheEl && diagnosticsData.cacheHitRate !== undefined) {
+        const rate = (diagnosticsData.cacheHitRate * 100).toFixed(1);
+        const color = diagnosticsData.cacheHitRate >= 0.5 ? 'var(--accent-green)' : (diagnosticsData.cacheHitRate >= 0.1 ? 'rgba(245, 158, 11, 0.9)' : '#ef4444');
+        cacheEl.innerHTML = `<span style="color:${color}">${rate}%</span>`;
+        cacheEl.parentElement.style.display = '';
+    }
+
     const actions = diagnosticsData.actions || [];
     actions.forEach(act => {
         const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}/mo` : '🛡️ Protection';
@@ -793,9 +802,12 @@ function renderOptimizerList() {
             detailsHtml = `<details class="opt-details"><summary>Technical Details</summary><div class="opt-details-body">${detailParts.join('')}</div></details>`;
         }
 
+        // Tooltip ? icon for helpText
+        const tooltipHtml = act.helpText ? `<span class="opt-help" title="${escapeHtml(act.helpText)}">?</span>` : '';
+
         const itemHtml = `
                     <div class="opt-item ${savingsClass}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
-                        <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)}</span><span class="opt-savings-tag" id="savings-tag-${act.actionId}">${savingsStr}</span></div>
+                        <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)} ${tooltipHtml}</span><span class="opt-savings-tag" id="savings-tag-${act.actionId}">${savingsStr}</span></div>
                         <div class="opt-desc">${escapeHtml(act.description || '')}</div>
                         ${sideEffectHtml}
                         ${optionsHtml}

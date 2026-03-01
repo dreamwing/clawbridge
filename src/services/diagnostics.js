@@ -27,6 +27,33 @@ const DIAG_CACHE_TTL = 60000;
 class DiagnosticsEngine {
     constructor() {
         this.statsPath = path.join(__dirname, '../../data/token_stats/latest.json');
+        this.thresholdsPath = path.join(__dirname, '../../data/diagnostics.config.json');
+        this._thresholds = null;
+    }
+
+    /**
+     * Load custom thresholds from diagnostics.config.json.
+     * Falls back to defaults if file doesn't exist.
+     */
+    async _getThresholds() {
+        if (this._thresholds) return this._thresholds;
+        const defaults = {
+            D01_modelCostRatio: 0.5,        // trigger if single model > 50% of total cost
+            D06_cacheHitRateMin: 0.10,       // trigger if cache hit rate < 10%
+            D06_cacheableRatio: 0.80,        // assume 80% of input is cacheable
+            D09_outputRatioThreshold: 0.10,  // trigger if output/input > 10%
+            D09_minOutputTokens: 1000,       // minimum output tokens to trigger
+            D09_reductionFactor: 0.30,       // concise mode reduces output by 30%
+            D05_thinkingProportion: 0.40,    // 40% of output is thinking
+            D05_reductionRatio: 0.75         // minimal mode cuts thinking by 75%
+        };
+        try {
+            const data = await fs.readFile(this.thresholdsPath, 'utf8');
+            this._thresholds = { ...defaults, ...JSON.parse(data) };
+        } catch (_e) {
+            this._thresholds = defaults;
+        }
+        return this._thresholds;
     }
 
     async getStats() {
@@ -73,6 +100,9 @@ class DiagnosticsEngine {
 
         const results = [];
         let totalMonthlySavings = 0;
+
+        // Load threshold config (custom or defaults)
+        const thresholds = await this._getThresholds();
 
         // 1. Get current config
         const agentsConfig = await configManager.getRawConfig();
@@ -121,7 +151,7 @@ class DiagnosticsEngine {
         // --- D01: Expensive Model ---
         const byModelStats = stats.cost.byModel;
         for (const [modelId, cost] of Object.entries(byModelStats)) {
-            if (totalCost > 0 && MODEL_REPLACEMENTS[modelId] && (cost / totalCost) > 0.5) {
+            if (totalCost > 0 && MODEL_REPLACEMENTS[modelId] && (cost / totalCost) > thresholds.D01_modelCostRatio) {
                 const info = MODEL_REPLACEMENTS[modelId];
                 const estimatedSavings = cost * monthlyMultiplier * info.savingsRatio;
                 totalMonthlySavings += estimatedSavings;
@@ -131,6 +161,7 @@ class DiagnosticsEngine {
                     actionId: 'A01',
                     title: `Downgrade ${modelId.split('-').slice(0, 2).join(' ')}`,
                     plainTitle: 'Switch to a cheaper AI model',
+                    helpText: 'AI models come in different tiers. Premium models are smarter but cost more per message. This switches to a model that\'s almost as good but significantly cheaper.',
                     description: `Primary usage is on premium model. Switching to ${info.alternative} saves ~${(info.savingsRatio * 100).toFixed(0)}%.`,
                     sideEffect: '⚠ Mild decrease in performance on highly complex reasoning tasks.',
                     plainSideEffect: 'Complex math or logic problems might get slightly less accurate answers.',
@@ -215,6 +246,7 @@ class DiagnosticsEngine {
                 actionId: 'A02',
                 title: 'Adjust Heartbeat Interval',
                 plainTitle: 'Reduce background checking frequency',
+                helpText: 'Heartbeat is a background process that periodically runs tasks (like checking emails). Each run costs tokens. Reducing the frequency means fewer runs and lower costs.',
                 description: `Running every ${hbEvery} with ${taskCount} task${taskCount > 1 ? 's' : ''}, consuming ~${(currentMonthlyTokens / 1000000).toFixed(1)}M tokens/mo ($${currentMonthlyCostHB.toFixed(2)}/mo).`,
                 sideEffect: '⚠ Longer intervals delay cross-agent message delivery.',
                 plainSideEffect: 'Your AI agent will check for updates less often. You may need to manually refresh for new messages.',
@@ -236,8 +268,8 @@ class DiagnosticsEngine {
             // Precise: thinking tokens are output tokens that the model generates internally.
             // With "high" thinking, ~40% of output goes to reasoning. Minimal reduces this by ~75%.
             // Savings = outputTokens * thinkingProportion * reductionRatio * outputCostPerToken
-            const thinkingProportion = 0.40;
-            const reductionRatio = 0.75;
+            const thinkingProportion = thresholds.D05_thinkingProportion;
+            const reductionRatio = thresholds.D05_reductionRatio;
             const thinkingSavingsAllTime = totalOutput * thinkingProportion * reductionRatio * outputCostPerToken;
             const thinkingSavings = thinkingSavingsAllTime * monthlyMultiplier;
 
@@ -247,6 +279,7 @@ class DiagnosticsEngine {
                     actionId: 'A05',
                     title: 'Reduce Thinking Overhead',
                     plainTitle: 'Make the AI think less before answering',
+                    helpText: 'AI models can "think" before responding — like showing their work on a math problem. This uses extra tokens. Minimal mode skips most internal reasoning to save costs.',
                     description: `~${(totalOutput * thinkingProportion / 1000).toFixed(0)}K output tokens spent on reasoning. Minimal mode cuts this by ${(reductionRatio * 100).toFixed(0)}%.`,
                     sideEffect: '⚠ May reduce mathematical or logical accuracy on hard prompts.',
                     plainSideEffect: 'The AI might make more mistakes on tricky math or logic questions.',
@@ -265,10 +298,8 @@ class DiagnosticsEngine {
         const cacheHitRate = (totalInput + totalCacheRead) > 0
             ? totalCacheRead / (totalInput + totalCacheRead) : 0;
 
-        if (cacheHitRate < 0.10) {
-            // Savings = uncached input that could be cached * (inputPrice - cacheReadPrice)
-            // cacheRead typically costs 10% of input price
-            const cacheableInput = totalInput * 0.8; // 80% of input is system prompt / repeatable
+        if (cacheHitRate < thresholds.D06_cacheHitRateMin) {
+            const cacheableInput = totalInput * thresholds.D06_cacheableRatio;
             const cacheDiscount = 0.9; // cache reads are 90% cheaper
             const cachingSavingsAllTime = cacheableInput * inputCostPerToken * cacheDiscount;
             const cachingSavings = cachingSavingsAllTime * monthlyMultiplier;
@@ -279,6 +310,7 @@ class DiagnosticsEngine {
                     actionId: 'A06',
                     title: 'Enable Prompt Caching',
                     plainTitle: 'Turn on memory for repeated prompts',
+                    helpText: 'Every conversation starts with a system prompt that costs tokens. Caching stores this prompt so it doesn\'t need to be re-sent each time — like keeping a textbook open instead of re-reading it.',
                     description: `Cache hit rate is ${(cacheHitRate * 100).toFixed(1)}%. ${(cacheableInput / 1000).toFixed(0)}K input tokens could be cached at 90% discount.`,
                     sideEffect: '⚠ First message per session remains full price.',
                     plainSideEffect: 'The first question in each conversation costs the same. Savings kick in from the second question onwards.',
@@ -299,6 +331,7 @@ class DiagnosticsEngine {
                 actionId: 'A07',
                 title: 'Enable Compaction Safeguard',
                 plainTitle: 'Auto-trim long conversations to save money',
+                helpText: 'Very long conversations can accumulate huge token costs in a single session. Compaction automatically summarizes the history when it gets too long, preventing surprise bills.',
                 description: 'Auto-compacts at 50K tokens to prevent extreme single-session billing.',
                 sideEffect: '⚠ May truncate history during massive code translation sessions.',
                 plainSideEffect: 'Very long conversations may lose some early messages to keep costs down.',
@@ -314,8 +347,8 @@ class DiagnosticsEngine {
         // Precise: compare output/input ratio. Industry average is ~5-15%.
         // If > 15%, output is verbose. "Be concise" typically reduces by 30%.
         const outputRatio = totalInput > 0 ? totalOutput / totalInput : 0;
-        if (outputRatio > 0.10 && totalOutput > 1000) {
-            const reductionFactor = 0.30;
+        if (outputRatio > thresholds.D09_outputRatioThreshold && totalOutput > thresholds.D09_minOutputTokens) {
+            const reductionFactor = thresholds.D09_reductionFactor;
             const reducibleOutput = totalOutput * reductionFactor;
             const verbositySavingsAllTime = reducibleOutput * outputCostPerToken;
             const verbositySavings = verbositySavingsAllTime * monthlyMultiplier;
@@ -326,6 +359,7 @@ class DiagnosticsEngine {
                     actionId: 'A09',
                     title: 'Reduce Output Verbosity',
                     plainTitle: 'Ask the AI to give shorter answers',
+                    helpText: 'AI responses include explanations, examples, and formatting. "Concise mode" tells the AI to skip the fluff and give direct answers — saving output tokens.',
                     description: `Output/Input ratio is ${(outputRatio * 100).toFixed(1)}% (${(totalOutput / 1000).toFixed(0)}K tokens). Concise mode cuts ~30%.`,
                     sideEffect: '⚠ Responses become visibly shorter.',
                     plainSideEffect: 'The AI will give you more concise answers — less explanation, more action.',
@@ -348,6 +382,20 @@ class DiagnosticsEngine {
             currentMonthlyCost,
             cacheHitRate,
             actions: results
+        };
+
+        // Attach raw data for verbose API export (advanced users)
+        result._rawData = {
+            activeDays: stats.activeDays,
+            totalCost,
+            monthlyMultiplier,
+            totalInput,
+            totalOutput,
+            totalCacheRead,
+            inputCostPerToken,
+            outputCostPerToken,
+            byModel: stats.cost.byModel,
+            thresholds
         };
 
         // Cache the result
