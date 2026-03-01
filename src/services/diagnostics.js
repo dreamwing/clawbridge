@@ -101,20 +101,47 @@ class DiagnosticsEngine {
         }
 
         // D02: Heartbeat Enabled
-        const hbEvery = defaults.heartbeat?.every;
-        if (hbEvery && hbEvery !== '0m' && hbEvery !== '0') {
-            // Heartbeat costs money over time.
+        let hbEvery = defaults.heartbeat?.every;
+        let heartbeatTasksText = "";
+        try {
+            const homeDir = process.env.HOME || process.env.USERPROFILE;
+            const hbPath = path.join(homeDir, '.openclaw', 'workspace', 'HEARTBEAT.md');
+            const fileContent = await fs.readFile(hbPath, 'utf8');
+            // Remove comments and empty lines to get actual tasks
+            heartbeatTasksText = fileContent.split('\n')
+                .filter(l => l.trim() && !l.trim().startsWith('#'))
+                .join('\n');
+        } catch (e) {
+            // Ignore if file doesn't exist
+        }
+
+        // If openclaw.json is unreadable but HEARTBEAT.md has tasks, assume default 5m
+        if (!hbEvery && heartbeatTasksText.length > 0) {
+            hbEvery = '5m';
+        }
+
+        // OpenClaw skips heartbeat execution entirely if HEARTBEAT.md is empty (no tasks)
+        if (hbEvery && hbEvery !== '0m' && hbEvery !== '0' && heartbeatTasksText.length > 0) {
+            let intervalMinutes = 5;
+            if (hbEvery.endsWith('m')) intervalMinutes = parseInt(hbEvery) || 5;
+            else if (hbEvery.endsWith('h')) intervalMinutes = (parseInt(hbEvery) || 1) * 60;
+
+            const runsPerMonth = (30 * 24 * 60) / Math.max(1, intervalMinutes);
+
+            // Rough token estimate: Base system prompt (~2000 tokens) + Task tokens (~chars/4)
+            const taskTokens = Math.ceil(heartbeatTasksText.length / 4);
+            const tokensPerRun = 2000 + taskTokens;
+
+            const hbEstimatedMonthlyTokens = runsPerMonth * tokensPerRun;
+
             const inputCostRatio = (stats.cost && stats.cost.input) ? (stats.cost.input / Math.max(stats.totals.input, 1)) : (0.10 / 1000000); // fallback to $3/M
-            // Background polling approx tokens per month (e.g. 500 tokens per minute, 24/7 = 21M tokens/month)
-            // Using a conservative 2M tokens/month for just passive checking
-            const hbEstimatedMonthlyTokens = 2000000;
             const hbCostEstimate = hbEstimatedMonthlyTokens * inputCostRatio;
 
             totalMonthlySavings += hbCostEstimate;
             results.push({
                 actionId: 'A02',
                 title: 'Disable Background Polling',
-                description: `Heartbeats consume constant background tokens. Disabling saves this entirely.`,
+                description: `Heartbeats consume ~${(hbEstimatedMonthlyTokens / 1000000).toFixed(1)}M background tokens/mo based on tasks.`,
                 sideEffect: '⚠ Passive cross-agent messages require manual refresh.',
                 savings: hbCostEstimate,
                 savingsStr: `-$${hbCostEstimate.toFixed(2)}/mo`,
