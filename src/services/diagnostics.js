@@ -180,6 +180,9 @@ class DiagnosticsEngine {
                 { label: 'Every 1 hour', value: '1h', minutes: 60 },
                 { label: 'Every 2 hours', value: '2h', minutes: 120 },
                 { label: 'Every 4 hours', value: '4h', minutes: 240 },
+                { label: 'Every 6 hours', value: '6h', minutes: 360 },
+                { label: 'Every 12 hours', value: '12h', minutes: 720 },
+                { label: 'Every 24 hours', value: '24h', minutes: 1440 },
                 { label: 'Disable completely', value: '0m', minutes: Infinity }
             ];
 
