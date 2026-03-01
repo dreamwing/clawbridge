@@ -1,8 +1,10 @@
 const diagnosticsEngine = require('../src/services/diagnostics');
 const configManager = require('../src/services/openclaw_config');
+const pricingService = require('../src/services/pricing');
 const fs = require('fs').promises;
 
 jest.mock('../src/services/openclaw_config');
+jest.mock('../src/services/pricing');
 jest.mock('fs', () => ({
     promises: {
         readFile: jest.fn(),
@@ -22,6 +24,12 @@ describe('DiagnosticsEngine', () => {
         fs.readdir.mockResolvedValue([]);
         fs.stat.mockResolvedValue({ mtimeMs: Date.now() });
         fs.access.mockResolvedValue(undefined);
+
+        // Setup default pricing mock so savings calculation works
+        pricingService.getModelPrice.mockResolvedValue({ input: 5.0, output: 15.0 });
+        pricingService.getReplacements.mockResolvedValue({
+            'claude-3-5-opus-20240229': { alternative: 'claude-3-5-sonnet-20241022', savingsRatio: 0.8 }
+        });
     });
 
     test('D01: Should flag expensive models if >50% usage', async () => {
@@ -185,12 +193,23 @@ describe('DiagnosticsEngine', () => {
         configManager.getRawConfig.mockResolvedValue({ defaults: {} });
 
         const mockStats = {
-            totals: { input: 1000, output: 100, cacheRead: 0 },
-            cost: { total: 5 },
+            totals: { input: 100000, output: 100, cacheRead: 0 },
+            cost: {
+                total: 50,
+                byModel: {
+                    'claude-3-5-sonnet-20241022': 50
+                }
+            },
+            total: {
+                models: {
+                    'claude-3-5-sonnet-20241022': { input: 100000, output: 0, cost: 50 }
+                }
+            },
+            activeDays: 2,
             history: {
-                '2026-03-01': { input: 1000, cost: 5, sessions: 10 },
-                '2026-03-02': { input: 1000, cost: 5, sessions: 12 },
-            } // avg = 11 > threshold of 5
+                '2026-03-01': { input: 50000, cost: 25, sessions: 10 },
+                '2026-03-02': { input: 50000, cost: 25, sessions: 12 }
+            }
         };
         fs.readFile.mockResolvedValue(JSON.stringify(mockStats));
 
@@ -198,7 +217,7 @@ describe('DiagnosticsEngine', () => {
 
         const action = result.actions.find(a => a.actionId === 'A03');
         expect(action).toBeDefined();
-        expect(action.title).toBe('Reduce Frequency of Session Resets');
+        expect(action.title).toBe('Reduce Session Resets');
         expect(action.savings).toBeGreaterThan(0);
     });
 
