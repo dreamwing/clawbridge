@@ -24,13 +24,15 @@ if (fs.existsSync(PRICING_FILE)) {
     } catch (e) { console.warn('[Analyzer] Failed to load pricing file:', e.message); }
 }
 
-function calcCost(model, input, output, cacheRead = 0) {
+function calcCost(model, input, output, cacheRead = 0, cacheWrite = 0) {
     const key = Object.keys(COST_MAP).find(k => model && model.includes(k)) || 'default';
     const rate = COST_MAP[key];
-    const cacheRate = rate.cacheRead || (rate.input * 0.25);
+    const cacheReadRate = rate.cacheRead || (rate.input * 0.10); // Standard Anthropic proportion
+    const cacheWriteRate = rate.cacheWrite || (rate.input * 1.25);
     return (input / 1000000 * rate.input) +
         (output / 1000000 * rate.output) +
-        (cacheRead / 1000000 * cacheRate);
+        (cacheRead / 1000000 * cacheReadRate) +
+        (cacheWrite / 1000000 * cacheWriteRate);
 }
 
 // --- Path Discovery ---
@@ -154,7 +156,7 @@ function processFile(filePath, startOffset = 0) {
                     cost = usage.cost.total;
                 } else {
                     // Fallback: calculate from pricing map for this single message
-                    cost = calcCost(model, input, output, cacheRead);
+                    cost = calcCost(model, input, output, cacheRead, cacheWrite);
                 }
 
                 messages.push({
