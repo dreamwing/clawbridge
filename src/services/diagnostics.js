@@ -283,30 +283,30 @@ class DiagnosticsEngine {
         }
 
         // --- D04: Idle Skill Detection (Granular) ---
-        // Scan each Skill folder's mtime to classify as Idle (>7d) or Quiet (>3d).
-        // Skills are installed at ~/.openclaw/skills/ and optionally ~/.openclaw/workspace/skills/
+        // Reference: openclaw/src/agents/skills/workspace.ts loadSkillEntries()
+        // Skills are loaded from 6 sources (precedence: extra < bundled < managed < personal-agents < project-agents < workspace).
+        // For idle detection, we only scan "managed" skills (user-installed via `openclaw skills install`).
+        // Managed dir: CONFIG_DIR/skills = (OPENCLAW_STATE_DIR || ~/.openclaw)/skills
+        // A valid skill folder must contain SKILL.md.
         try {
-            const homeDir = process.env.HOME || process.env.USERPROFILE;
-            const skillsDirs = [
-                path.join(homeDir, '.openclaw', 'skills'),
-                path.join(homeDir, '.openclaw', 'workspace', 'skills')
-            ];
+            const configDir = process.env.OPENCLAW_STATE_DIR
+                || path.join(process.env.HOME || process.env.USERPROFILE, '.openclaw');
+            const managedSkillsDir = path.join(configDir, 'skills');
+            const entries = await fs.readdir(managedSkillsDir, { withFileTypes: true });
 
-            // Collect all skill folders from both directories (deduplicated by name)
-            const seenNames = new Set();
+            // Match OpenClaw's listChildDirectories: skip dotfiles, handle symlinks
             const skillFolders = [];
-            for (const dir of skillsDirs) {
-                try {
-                    const entries = await fs.readdir(dir, { withFileTypes: true });
-                    for (const e of entries) {
-                        if ((e.isDirectory() || e.isSymbolicLink()) && !e.name.startsWith('.') && !seenNames.has(e.name)) {
-                            seenNames.add(e.name);
-                            skillFolders.push({ name: e.name, dir });
-                        }
-                    }
-                } catch (_dirErr) {
-                    // Directory doesn't exist — skip
+            for (const e of entries) {
+                if (e.name.startsWith('.') || e.name === 'node_modules') continue;
+                const fullPath = path.join(managedSkillsDir, e.name);
+                let isDir = e.isDirectory();
+                if (!isDir && e.isSymbolicLink()) {
+                    try { isDir = (await fs.stat(fullPath)).isDirectory(); } catch { continue; }
                 }
+                if (!isDir) continue;
+                // Must contain SKILL.md to be a valid Skill
+                try { await fs.access(path.join(fullPath, 'SKILL.md')); } catch { continue; }
+                skillFolders.push({ name: e.name, path: fullPath });
             }
 
             const idleDaysThreshold = thresholds.D04_idleDaysThreshold || 7;
@@ -318,7 +318,7 @@ class DiagnosticsEngine {
 
             for (const folder of skillFolders) {
                 try {
-                    const folderPath = path.join(folder.dir, folder.name);
+                    const folderPath = folder.path;
                     const stat = await fs.stat(folderPath);
                     const daysSince = (now - stat.mtimeMs) / (1000 * 60 * 60 * 24);
 
