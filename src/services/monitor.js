@@ -69,9 +69,9 @@ function checkSystemStatus(callback) {
     let mergedCmd = '';
 
     if (osType === 'Darwin') {
-        mergedCmd = `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f 'openclaw gateway' | head -n 1 || true; echo "===PS==="; ps -Ao pid,pcpu,comm,args -r | head -n 21`;
+        mergedCmd = `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f '[o]penclaw.*gateway' | head -n 1 || true; echo "===PS==="; ps -Ao pid,pcpu,comm,args -r | head -n 21`;
     } else {
-        mergedCmd = `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f 'openclaw gateway' | head -n 1 || true; echo "===PS==="; ps -eo pid,pcpu,comm,args --sort=-pcpu | head -n 20`;
+        mergedCmd = `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f '[o]penclaw.*gateway' | head -n 1 || true; echo "===PS==="; ps -eo pid,pcpu,comm,args --sort=-pcpu | head -n 20`;
     }
 
     exec(mergedCmd, (err, stdout) => {

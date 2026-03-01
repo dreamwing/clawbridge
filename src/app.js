@@ -11,6 +11,8 @@ const apiRoutes = require('./routes');
 
 const app = express();
 
+app.set('trust proxy', 'loopback');
+
 // Body parsing & cookies
 app.use(express.json());
 app.use(cookieParser());
