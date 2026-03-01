@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.2] - 2026-03-01
 
+### Fixed
+- Resolve installation wget errors, auth redirect loop, and gateway PID detection (PR #21) (Thanks @chrisuhg for contribution and suggestions in Issue #19)
+- Resolve looping token verify issue on local and VPN HTTP access (PR #21)
+- Prefer real workspace over state dir when auto-detecting (PR #22) (Thanks @zjy4fun for contribution and suggestions in PR #22)
+
+### Added
+- Auto-credit PR authors and issue openers, and auto-generate changelog in release script.
+
 ## [1.1.1] - 2026-02-26
 
 ### Added
