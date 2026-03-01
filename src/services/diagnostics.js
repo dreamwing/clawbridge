@@ -56,12 +56,14 @@ class DiagnosticsEngine {
         let rawStats = await this.getStats();
 
         // Normalize the raw data from `latest.json` to the diagnostic structure expected below
+        // Backwards compatibility: Older versions use `stats.cost.total`, newer versions use `stats.total.cost`
         const stats = {
             totals: rawStats.totals || rawStats.total || { input: 0, output: 0, cacheRead: 0 },
-            cost: rawStats.cost || {
-                total: rawStats.total ? rawStats.total.cost : 0,
-                byModel: (rawStats.total && rawStats.total.models) ?
-                    Object.fromEntries(Object.entries(rawStats.total.models).map(([k, v]) => [k, v.cost])) : {}
+            cost: {
+                total: (rawStats.cost && rawStats.cost.total) ? rawStats.cost.total : (rawStats.total ? rawStats.total.cost : 0),
+                byModel: (rawStats.cost && rawStats.cost.byModel) ? rawStats.cost.byModel :
+                    (rawStats.total && rawStats.total.models) ?
+                        Object.fromEntries(Object.entries(rawStats.total.models).map(([k, v]) => [k, v.cost])) : {}
             },
             activeDays: Math.max(1, Object.keys(rawStats.history || {}).length)
         };
