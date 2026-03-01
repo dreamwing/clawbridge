@@ -146,4 +146,49 @@ CORRUPTED LINE
 
         expect(history).toEqual([]);
     });
+
+    test('Should return null from backupConfig if write fails (non-blocking)', async () => {
+        fs.writeFile.mockRejectedValue(new Error('Write failed'));
+        const result = await optimizerService.backupConfig();
+        expect(result).toBeNull();
+    });
+
+    test('restoreBackup restores config keys accurately', async () => {
+        const mockBackup = {
+            defaults: {
+                model: "gpt-4-turbo",
+                heartbeat: { every: "12h" },
+                thinkingDefault: "maximal",
+                compaction: { mode: "safe", reserveTokens: "100" },
+                contextPruning: { mode: "lru" }
+            }
+        };
+        fs.readFile.mockResolvedValue(JSON.stringify(mockBackup));
+
+        const result = await optimizerService.restoreBackup('/fake/backup/path.json');
+
+        // Check if configManager was called 6 times with the valid backup keys
+        expect(configManager.setConfig).toHaveBeenCalledTimes(6);
+        expect(configManager.setConfig).toHaveBeenCalledWith('agents.defaults.model', 'gpt-4-turbo');
+        expect(configManager.setConfig).toHaveBeenCalledWith('agents.defaults.heartbeat.every', '12h');
+        expect(configManager.setConfig).toHaveBeenCalledWith('agents.defaults.thinkingDefault', 'maximal');
+
+        expect(result.success).toBe(true);
+        expect(result.restoredKeys).toHaveLength(6);
+        expect(result.backupFile).toBe('path.json');
+
+        // Ensure diagnostics are invalidated
+        expect(diagnosticsEngine.invalidateCache).toHaveBeenCalled();
+
+        // Ensure the restore action is logged in optimizations history
+        const loggedCall = fs.appendFile.mock.calls.find(c => c[0].includes('optimizations.jsonl'));
+        expect(loggedCall[1]).toContain('Restored 6 keys');
+        expect(loggedCall[1]).toContain('"actionId":"UNDO"');
+    });
+
+    test('restoreBackup throws error if no backup path provided', async () => {
+        await expect(optimizerService.restoreBackup())
+            .rejects
+            .toThrow('No backup path provided');
+    });
 });

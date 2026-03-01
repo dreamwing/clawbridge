@@ -5,7 +5,10 @@ const fs = require('fs').promises;
 jest.mock('../src/services/openclaw_config');
 jest.mock('fs', () => ({
     promises: {
-        readFile: jest.fn()
+        readFile: jest.fn(),
+        readdir: jest.fn(),
+        stat: jest.fn(),
+        access: jest.fn()
     }
 }));
 
@@ -14,6 +17,11 @@ describe('DiagnosticsEngine', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         diagnosticsEngine.invalidateCache();
+
+        // Setup default non-failing fs mocks for non-targeted tests
+        fs.readdir.mockResolvedValue([]);
+        fs.stat.mockResolvedValue({ mtimeMs: Date.now() });
+        fs.access.mockResolvedValue(undefined);
     });
 
     test('D01: Should flag expensive models if >50% usage', async () => {
@@ -173,6 +181,68 @@ describe('DiagnosticsEngine', () => {
         expect(action.title).toBe('Reduce Output Verbosity');
         expect(action.savings).toBeGreaterThan(0);
     });
+    test('D03: Should flag frequent session resets', async () => {
+        configManager.getRawConfig.mockResolvedValue({ defaults: {} });
+
+        const mockStats = {
+            totals: { input: 1000, output: 100, cacheRead: 0 },
+            cost: { total: 5 },
+            history: {
+                '2026-03-01': { input: 1000, cost: 5, sessions: 10 },
+                '2026-03-02': { input: 1000, cost: 5, sessions: 12 },
+            } // avg = 11 > threshold of 5
+        };
+        fs.readFile.mockResolvedValue(JSON.stringify(mockStats));
+
+        const result = await diagnosticsEngine.runDiagnostics();
+
+        const action = result.actions.find(a => a.actionId === 'A03');
+        expect(action).toBeDefined();
+        expect(action.title).toBe('Reduce Frequency of Session Resets');
+        expect(action.savings).toBeGreaterThan(0);
+    });
+
+    test('D04: Should flag idle skills', async () => {
+        configManager.getRawConfig.mockResolvedValue({ defaults: {} });
+
+        const mockStats = {
+            totals: { input: 1000, output: 100, cacheRead: 0 },
+            cost: { total: 5 },
+            history: {
+                '2026-03-01': { input: 1000, cost: 5, sessions: 1 }
+            }
+        };
+        fs.readFile.mockImplementation(async (pathStr) => {
+            if (pathStr.includes('latest.json')) return JSON.stringify(mockStats);
+            throw new Error('ENOENT');
+        });
+
+        // Mock 1 idle skill (>7 days) and 1 quiet skill (>3 days)
+        fs.readdir.mockResolvedValue([
+            { name: 'idle-skill', isDirectory: () => true, isSymbolicLink: () => false },
+            { name: 'quiet-skill', isDirectory: () => true, isSymbolicLink: () => false },
+            { name: 'active-skill', isDirectory: () => true, isSymbolicLink: () => false }
+        ]);
+
+        const OneDay = 1000 * 60 * 60 * 24;
+        fs.stat.mockImplementation(async (filePath) => {
+            if (filePath.includes('idle-skill')) return { mtimeMs: Date.now() - 10 * OneDay };
+            if (filePath.includes('quiet-skill')) return { mtimeMs: Date.now() - 5 * OneDay };
+            if (filePath.includes('active-skill')) return { mtimeMs: Date.now() - 1 * OneDay };
+            return { mtimeMs: Date.now() };
+        });
+
+        const result = await diagnosticsEngine.runDiagnostics();
+
+        const action = result.actions.find(a => a.actionId === 'A04');
+        expect(action).toBeDefined();
+        expect(action.title).toContain('Review');
+        expect(action._meta.idleSkills).toHaveLength(1);
+        expect(action._meta.quietSkills).toHaveLength(1);
+        expect(action._meta.idleSkills[0].name).toBe('idle-skill');
+        expect(action._meta.quietSkills[0].name).toBe('quiet-skill');
+    });
+
 
     test('Should return no actions if perfectly optimized', async () => {
         configManager.getRawConfig.mockResolvedValue({
