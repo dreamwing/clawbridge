@@ -3,7 +3,6 @@ const pricingService = require('./pricing');
 const config = require('../config');
 const fs = require('fs').promises;
 const path = require('path');
-const os = require('os');
 
 // Cache for diagnostic results (60s TTL)
 let _diagCache = null;

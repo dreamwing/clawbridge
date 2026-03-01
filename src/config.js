@@ -3,7 +3,6 @@
  * Resolves all env vars, paths, and constants at startup.
  */
 const path = require('path');
-const os = require('os');
 
 // --- Environment ---
 const PORT = process.env.PORT || 3000;
