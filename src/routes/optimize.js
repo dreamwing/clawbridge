@@ -5,6 +5,15 @@ const optimizerService = require('../services/optimizer');
 router.post('/api/optimize/:action_id', async (req, res) => {
     const { action_id } = req.params;
     const { savings, meta } = req.body;
+
+    // Input validation
+    if (savings !== undefined && typeof savings !== 'number') {
+        return res.status(400).json({ error: 'savings must be a number' });
+    }
+    if (meta !== undefined && (typeof meta !== 'object' || meta === null || Array.isArray(meta))) {
+        return res.status(400).json({ error: 'meta must be a plain object' });
+    }
+
     try {
         const result = await optimizerService.applyAction(action_id, savings, meta);
         res.json(result);

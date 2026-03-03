@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
 const optimizerService = require('../services/optimizer');
+
+const BACKUPS_DIR = path.join(__dirname, '../../data/backups');
 
 router.get('/api/optimizations/history', async (req, res) => {
     try {
@@ -18,7 +21,14 @@ router.post('/api/optimizations/undo', async (req, res) => {
         if (!backupPath) {
             return res.status(400).json({ error: 'backupPath is required' });
         }
-        const result = await optimizerService.restoreBackup(backupPath);
+
+        // Security: resolve to expected directory, reject traversal attempts
+        const resolved = path.resolve(BACKUPS_DIR, path.basename(backupPath));
+        if (!resolved.startsWith(BACKUPS_DIR)) {
+            return res.status(400).json({ error: 'Invalid backup path' });
+        }
+
+        const result = await optimizerService.restoreBackup(resolved);
         res.json(result);
     } catch (err) {
         console.error('Undo error:', err);

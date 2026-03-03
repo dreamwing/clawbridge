@@ -1,3 +1,6 @@
+// Ensure tests don't depend on real ~/.openclaw config (avoids EACCES permission issues)
+process.env.OPENCLAW_STATE_DIR = process.env.OPENCLAW_STATE_DIR || '/tmp/openclaw-test';
+
 const request = require('supertest');
 const app = require('../src/app');
 

@@ -2,7 +2,6 @@ const configManager = require('./openclaw_config');
 const diagnosticsEngine = require('./diagnostics');
 const fs = require('fs').promises;
 const path = require('path');
-const os = require('os');
 
 class OptimizerService {
     constructor() {
@@ -162,7 +161,8 @@ class OptimizerService {
                 break;
             case 'A09':
                 try {
-                    const soulPath = path.join(os.homedir(), '.openclaw', 'workspace', 'SOUL.md');
+                    const { resolveHomeDir } = require('../utils/paths');
+                    const soulPath = path.join(resolveHomeDir(), '.openclaw', 'workspace', 'SOUL.md');
                     await fs.appendFile(soulPath, '\n\nBe concise.\n', 'utf8');
                     result = { success: true };
                 } catch (e) {

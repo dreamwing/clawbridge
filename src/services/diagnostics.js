@@ -48,7 +48,7 @@ class DiagnosticsEngine {
         } catch (_err) {
             // No stats available — return zeroed structure, never fake data
             return {
-                totals: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+                totals: { input: 0, output: 0, cacheRead: 0 },
                 cost: { total: 0, byModel: {} },
                 history: {},
                 _empty: true
@@ -159,6 +159,9 @@ class DiagnosticsEngine {
                     level: 'high',
                     _meta: { alternative: info.alternative }
                 });
+                // Intentional: only flag the top expensive model to keep recommendation
+                // actionable (one model switch at a time). Additional models below the
+                // threshold are not flagged.
                 break;
             }
         }
@@ -375,7 +378,9 @@ class DiagnosticsEngine {
 
         // --- D05: Thinking Token Overhead ---
         const thinking = defaults.thinkingDefault;
-        if (!thinking || thinking === 'high' || thinking === 'xhigh' || thinking === 'on') {
+        // Only trigger when user has explicitly configured a high-cost thinking mode.
+        // Skip when undefined (not configured) to avoid noise for new users.
+        if (thinking === 'high' || thinking === 'xhigh' || thinking === 'on') {
             // Precise: thinking tokens are output tokens that the model generates internally.
             // With "high" thinking, ~40% of output goes to reasoning. Minimal reduces this by ~75%.
             // Savings = outputTokens * thinkingProportion * reductionRatio * outputCostPerToken

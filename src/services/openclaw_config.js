@@ -1,8 +1,8 @@
 const { execFile } = require('child_process');
 const util = require('util');
 const path = require('path');
-const os = require('os');
 const fs = require('fs').promises;
+const { resolveConfigDir } = require('../utils/paths');
 
 const execFileAsync = util.promisify(execFile);
 
@@ -24,7 +24,7 @@ class OpenClawConfig {
             console.warn("Failed to get config via CLI, trying direct file read...");
             // Fallback: Read ~/.openclaw/openclaw.json directly
             try {
-                const configPath = path.join(os.homedir(), '.openclaw', 'openclaw.json');
+                const configPath = path.join(resolveConfigDir(), 'openclaw.json');
                 const content = await fs.readFile(configPath, 'utf-8');
                 return JSON.parse(content).agents || {};
             } catch (e) {
