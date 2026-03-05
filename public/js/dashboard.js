@@ -696,7 +696,7 @@ let diagnosticsData = null;
 
 async function fetchDiagnostics() {
     try {
-        const res = await fetchAuth(API + '/diagnostics');
+        const res = await fetchAuth(API + '/diagnostics?t=' + Date.now());
         diagnosticsData = await res.json();
         // Normalize field name (backend sends totalMonthlySavings)
         diagnosticsData.monthlySavings = diagnosticsData.totalMonthlySavings || 0;
