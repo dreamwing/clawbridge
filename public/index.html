@@ -267,8 +267,7 @@
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
                         </div>
-                        <div class="et-text" id="trigger-text"><strong>5 actions</strong> available. Tap to save <span
-                                class="et-savings" id="trigger-savings">$38.72/mo</span>.</div>
+                        <div class="et-text" id="trigger-text">Loading optimization data...</div>
                     </div>
                     <button class="et-btn" id="trigger-btn">Optimize</button>
                 </div>
@@ -402,17 +401,17 @@
                     <div class="scan-results" id="scan-results">
                         <div class="savings-hero">
                             <div class="savings-hero-label">Potential Monthly Savings</div>
-                            <div class="savings-hero-amount" id="main-savings-amount">$38.72</div>
+                            <div class="savings-hero-amount" id="main-savings-amount">--</div>
                         </div>
                         <div class="cost-comparison">
                             <div class="cost-compare-item">
                                 <div class="cost-compare-label">Current</div>
-                                <div class="cost-compare-val current">$169.20</div>
+                                <div class="cost-compare-val current">--</div>
                             </div>
                             <div class="cost-compare-arrow">→</div>
                             <div class="cost-compare-item">
                                 <div class="cost-compare-label">Optimized</div>
-                                <div class="cost-compare-val optimized">$130.48</div>
+                                <div class="cost-compare-val optimized">--</div>
                             </div>
                             <div class="cost-compare-item cache-rate-item" style="display:none;">
                                 <div class="cost-compare-label">Cache Hit</div>
@@ -421,72 +420,7 @@
                         </div>
                         <div class="result-title">Cost-Saving Actions Found</div>
                         <div class="opt-list" id="opt-list">
-                            <!-- A06 -->
-                            <div class="opt-item high-savings" data-savings="18.36">
-                                <div class="opt-header"><span class="opt-title">Enable Prompt
-                                        Caching</span><span class="opt-savings-tag">-$18.36/mo</span></div>
-                                <div class="opt-desc">System prompts run uncached. Cache hits cost $0.20/M
-                                    instead of $2.00/M.
-                                </div>
-                                <div class="opt-sideeffect">⚠ First message per session remains full price.
-                                </div>
-                                <div class="opt-action-line">
-                                    <span class="code-tag">cachePolicy: "aggressive"</span>
-                                    <button class="btn-mini" onclick="handleOpt(this)"><span
-                                            class="default-label">Apply</span><span
-                                            class="confirm-label">Confirm?</span><span class="done-label">✓
-                                            Applied</span></button>
-                                </div>
-                            </div>
-                            <!-- A09 -->
-                            <div class="opt-item high-savings" data-savings="10.45">
-                                <div class="opt-header"><span class="opt-title">Reduce Output
-                                        Verbosity</span><span class="opt-savings-tag">-$10.45/mo</span></div>
-                                <div class="opt-desc">Concise mode typically cuts output tokens by 30%.</div>
-                                <div class="opt-sideeffect">⚠ Responses become visibly shorter.</div>
-                                <div class="opt-action-line">
-                                    <span class="code-tag">SOUL.md += "Be concise"</span>
-                                    <button class="btn-mini" onclick="handleOpt(this)"><span
-                                            class="default-label">Apply</span><span
-                                            class="confirm-label">Confirm?</span><span class="done-label">✓
-                                            Applied</span></button>
-                                </div>
-                            </div>
-                            <!-- A02 -->
-                            <div class="opt-item medium-savings" data-savings="6.21">
-                                <div class="opt-header"><span class="opt-title">Disable Background
-                                        Polling</span><span class="opt-savings-tag">-$6.21/mo</span></div>
-                                <div class="opt-desc">Heartbeats consume $6.21. Disabling saves this entirely.
-                                </div>
-                                <div class="opt-sideeffect">⚠ Passive messages require manual refresh.</div>
-                                <div class="opt-action-line">
-                                    <span class="code-tag">heartbeat.every: "0m"</span>
-                                    <button class="btn-mini" onclick="handleOpt(this)"><span
-                                            class="default-label">Disable</span><span
-                                            class="confirm-label">Confirm?</span><span class="done-label">✓
-                                            Applied</span></button>
-                                </div>
-                            </div>
-                            <!-- A07 -->
-                            <div class="opt-item safety" data-savings="0">
-                                <div class="opt-header"><span class="opt-title">Enable Compaction
-                                        Safeguard</span><span class="opt-savings-tag"
-                                        style="color:var(--text-dim);font-size:11px;">🛡️
-                                        Protection</span></div>
-                                <div class="opt-desc">Auto-compacts at 50K tokens to prevent extreme
-                                    single-session billing.
-                                </div>
-                                <div class="opt-sideeffect">⚠ May truncate history during massive code
-                                    translation sessions.
-                                </div>
-                                <div class="opt-action-line">
-                                    <span class="code-tag">mode: "safeguard"</span>
-                                    <button class="btn-mini" onclick="handleOpt(this)"><span
-                                            class="default-label">Enable</span><span
-                                            class="confirm-label">Confirm?</span><span class="done-label">✓
-                                            Applied</span></button>
-                                </div>
-                            </div>
+                            <!-- Dynamically populated by renderOptimizerList() -->
                         </div>
                     </div>
 
