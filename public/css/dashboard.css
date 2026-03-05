@@ -27,7 +27,6 @@
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
-            perspective: 1500px;
             overflow-x: hidden;
         }
 
@@ -165,6 +164,10 @@
             max-width: 480px;
             display: none;
             animation: fadeIn 0.2s ease-out;
+        }
+
+        #view-tokens {
+            perspective: 1500px;
         }
 
         /* Adaptive Home View */
