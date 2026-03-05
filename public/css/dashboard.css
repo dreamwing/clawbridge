@@ -613,6 +613,7 @@
             background: linear-gradient(145deg, #18192a 0%, #1e1933 100%);
             border: 1px solid rgba(168, 85, 247, 0.2);
             transform: rotateY(180deg);
+            padding-bottom: calc(var(--nav-height) + 40px);
         }
 
         /* ========== EXTERNAL TRIGGER ========== */
