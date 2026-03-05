@@ -577,7 +577,7 @@
         .flip-container {
             width: 100%;
             max-width: 480px;
-            position: relative;
+            display: grid;
             transform-style: preserve-3d;
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             min-height: 720px;
@@ -589,9 +589,8 @@
 
         .card-face {
             width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
+            grid-area: 1 / 1;
+            position: relative;
             backface-visibility: hidden;
             border-radius: 20px;
             padding: 24px 20px;
