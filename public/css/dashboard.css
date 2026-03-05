@@ -23,6 +23,7 @@
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
+            perspective: 1500px;
         }
 
         /* Modal Styles */
@@ -568,7 +569,7 @@
         /* ========== FLIP CONTAINER ========== */
         .flip-container {
             width: 100%;
-            maxWidth: 480px;
+            max-width: 480px;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);

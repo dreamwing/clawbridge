@@ -270,255 +270,253 @@
                         <div class="et-text" id="trigger-text"><strong>5 actions</strong> available. Tap to save <span
                                 class="et-savings" id="trigger-savings">$38.72/mo</span>.</div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- THE ROTATING CARD -->
-                    <div class="flip-container card-wrapper" id="flip-container">
-                        <!-- CARD SIDE 1: Dashboard -->
-                        <div class="card-face card-front card" id="token-card">
+            <!-- THE ROTATING CARD -->
+            <div class="flip-container" id="flip-container">
+                <!-- CARD SIDE 1: Dashboard -->
+                <div class="card-face card-front" id="token-card">
 
-                            <div class="section-header"
-                                style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                                <span style="font-weight:600">Token Economy</span>
-                                <div style="font-size:12px; color:var(--text-dim)">
-                                    Total: <span style="color:var(--text); font-weight:bold"
-                                        id="grand-total-cost">--</span>
+                    <div class="section-header"
+                        style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                        <span style="font-weight:600">Token Economy</span>
+                        <div style="font-size:12px; color:var(--text-dim)">
+                            Total: <span style="color:var(--text); font-weight:bold" id="grand-total-cost">--</span>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; padding: 20px 0;">
+                        <div
+                            style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">
+                            Today's Cost</div>
+                        <div style="font-size:42px; font-weight:800; color:var(--success); margin:10px 0;"
+                            id="token-cost">
+                            --</div>
+
+                        <!-- Forecast Banner -->
+                        <div
+                            style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px; margin-top:5px;">
+                            <span style="font-size:11px; color:var(--text-dim);">Est. Monthly</span>
+                            <span style="font-size:12px; font-weight:600; color:var(--accent);"
+                                id="monthly-forecast">--</span>
+                        </div>
+                    </div>
+
+                    <!-- Meta Info & Refresh -->
+                    <div
+                        style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:10px; color:var(--text-dim);">LAST UPDATED</span>
+                            <span style="font-size:11px; font-family:monospace;" id="token-updated">Never</span>
+                        </div>
+                        <button class="btn"
+                            style="width:auto; padding:6px 12px; font-size:12px; background:var(--accent);"
+                            onclick="refreshTokenStats()">
+                            ↻ Refresh
+                        </button>
+                    </div>
+                    <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;">
+                        System automatically recalculates every hour.
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                        <div class="metric-box" style="padding:10px;">
+                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">INPUT (READ)
+                            </div>
+                            <div style="font-size:16px; font-weight:600;" id="token-in">--</div>
+                        </div>
+                        <div class="metric-box" style="padding:10px;">
+                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">OUTPUT
+                                (WRITE)</div>
+                            <div style="font-size:16px; font-weight:600;" id="token-out">--</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">COST TREND (7
+                            DAYS)</div>
+                        <div id="trend-chart"
+                            style="display:flex; align-items:flex-end; gap:8px; height:100px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div id="trend-labels"
+                            style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim); margin-top:6px; padding:0 4px;">
+                        </div>
+                    </div>
+
+                    <!-- Top Models List -->
+                    <div style="margin-top:25px;">
+                        <div
+                            style="font-size:11px; color:var(--text-dim); margin-bottom:10px; display:flex; justify-content:space-between;">
+                            <span>TOP MODELS</span>
+                            <span>COST</span>
+                        </div>
+                        <div id="top-models-list">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+
+                    <div id="daily-detail"
+                        style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:15px; margin-top:20px; border:1px solid var(--border);">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <span style="font-size:14px; font-weight:bold; color:var(--text)" id="detail-date">--</span>
+                            <span style="font-size:16px; font-weight:bold; color:var(--success)"
+                                id="detail-cost">--</span>
+                        </div>
+                        <div style="display:flex; gap:15px; font-size:12px; color:var(--text-dim);">
+                            <span>In: <span id="detail-input" style="color:var(--text)">--</span></span>
+                            <span>Out: <span id="detail-output" style="color:var(--text)">--</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD SIDE 2: Optimizer Interface -->
+                <div class="card-face card-back">
+                    <div class="back-header">
+                        <div class="optimizer-brand">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22"
+                                height="22">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                            Optimizer
+                        </div>
+                        <button class="btn-close-back" onclick="flipToDashboard()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"
+                                height="14">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Loader State -->
+                    <div class="scan-progress" id="scan-progress">
+                        <div class="scan-spinner"></div>
+                        <div class="progress-title">Analyzing Usage Patterns</div>
+                        <div class="progress-sub" id="scan-step-text">Reading 6 days of history...</div>
+                    </div>
+
+                    <!-- ACTIVE RESULTS VIEW -->
+                    <div class="scan-results" id="scan-results">
+                        <div class="savings-hero">
+                            <div class="savings-hero-label">Potential Monthly Savings</div>
+                            <div class="savings-hero-amount" id="main-savings-amount">$38.72</div>
+                        </div>
+                        <div class="cost-comparison">
+                            <div class="cost-compare-item">
+                                <div class="cost-compare-label">Current</div>
+                                <div class="cost-compare-val current">$169.20</div>
+                            </div>
+                            <div class="cost-compare-arrow">→</div>
+                            <div class="cost-compare-item">
+                                <div class="cost-compare-label">Optimized</div>
+                                <div class="cost-compare-val optimized">$130.48</div>
+                            </div>
+                            <div class="cost-compare-item cache-rate-item" style="display:none;">
+                                <div class="cost-compare-label">Cache Hit</div>
+                                <div class="cost-compare-val" id="cache-hit-rate">—</div>
+                            </div>
+                        </div>
+                        <div class="result-title">Cost-Saving Actions Found</div>
+                        <div class="opt-list" id="opt-list">
+                            <!-- A06 -->
+                            <div class="opt-item high-savings" data-savings="18.36">
+                                <div class="opt-header"><span class="opt-title">Enable Prompt
+                                        Caching</span><span class="opt-savings-tag">-$18.36/mo</span></div>
+                                <div class="opt-desc">System prompts run uncached. Cache hits cost $0.20/M
+                                    instead of $2.00/M.
+                                </div>
+                                <div class="opt-sideeffect">⚠ First message per session remains full price.
+                                </div>
+                                <div class="opt-action-line">
+                                    <span class="code-tag">cachePolicy: "aggressive"</span>
+                                    <button class="btn-mini" onclick="handleOpt(this)"><span
+                                            class="default-label">Apply</span><span
+                                            class="confirm-label">Confirm?</span><span class="done-label">✓
+                                            Applied</span></button>
                                 </div>
                             </div>
-
-                            <div style="text-align:center; padding: 20px 0;">
-                                <div
-                                    style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">
-                                    Today's Cost</div>
-                                <div style="font-size:42px; font-weight:800; color:var(--success); margin:10px 0;"
-                                    id="token-cost">
-                                    --</div>
-
-                                <!-- Forecast Banner -->
-                                <div
-                                    style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px; margin-top:5px;">
-                                    <span style="font-size:11px; color:var(--text-dim);">Est. Monthly</span>
-                                    <span style="font-size:12px; font-weight:600; color:var(--accent);"
-                                        id="monthly-forecast">--</span>
+                            <!-- A09 -->
+                            <div class="opt-item high-savings" data-savings="10.45">
+                                <div class="opt-header"><span class="opt-title">Reduce Output
+                                        Verbosity</span><span class="opt-savings-tag">-$10.45/mo</span></div>
+                                <div class="opt-desc">Concise mode typically cuts output tokens by 30%.</div>
+                                <div class="opt-sideeffect">⚠ Responses become visibly shorter.</div>
+                                <div class="opt-action-line">
+                                    <span class="code-tag">SOUL.md += "Be concise"</span>
+                                    <button class="btn-mini" onclick="handleOpt(this)"><span
+                                            class="default-label">Apply</span><span
+                                            class="confirm-label">Confirm?</span><span class="done-label">✓
+                                            Applied</span></button>
                                 </div>
                             </div>
-
-                            <!-- Meta Info & Refresh -->
-                            <div
-                                style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
-                                <div style="display:flex; flex-direction:column;">
-                                    <span style="font-size:10px; color:var(--text-dim);">LAST UPDATED</span>
-                                    <span style="font-size:11px; font-family:monospace;" id="token-updated">Never</span>
+                            <!-- A02 -->
+                            <div class="opt-item medium-savings" data-savings="6.21">
+                                <div class="opt-header"><span class="opt-title">Disable Background
+                                        Polling</span><span class="opt-savings-tag">-$6.21/mo</span></div>
+                                <div class="opt-desc">Heartbeats consume $6.21. Disabling saves this entirely.
                                 </div>
-                                <button class="btn"
-                                    style="width:auto; padding:6px 12px; font-size:12px; background:var(--accent);"
-                                    onclick="refreshTokenStats()">
-                                    ↻ Refresh
-                                </button>
-                            </div>
-                            <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;">
-                                System automatically recalculates every hour.
-                            </div>
-
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-                                <div class="metric-box" style="padding:10px;">
-                                    <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">INPUT (READ)
-                                    </div>
-                                    <div style="font-size:16px; font-weight:600;" id="token-in">--</div>
-                                </div>
-                                <div class="metric-box" style="padding:10px;">
-                                    <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">OUTPUT
-                                        (WRITE)</div>
-                                    <div style="font-size:16px; font-weight:600;" id="token-out">--</div>
+                                <div class="opt-sideeffect">⚠ Passive messages require manual refresh.</div>
+                                <div class="opt-action-line">
+                                    <span class="code-tag">heartbeat.every: "0m"</span>
+                                    <button class="btn-mini" onclick="handleOpt(this)"><span
+                                            class="default-label">Disable</span><span
+                                            class="confirm-label">Confirm?</span><span class="done-label">✓
+                                            Applied</span></button>
                                 </div>
                             </div>
-
-                            <div style="margin-top:20px;">
-                                <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">COST TREND (7
-                                    DAYS)</div>
-                                <div id="trend-chart"
-                                    style="display:flex; align-items:flex-end; gap:8px; height:100px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <!-- A07 -->
+                            <div class="opt-item safety" data-savings="0">
+                                <div class="opt-header"><span class="opt-title">Enable Compaction
+                                        Safeguard</span><span class="opt-savings-tag"
+                                        style="color:var(--text-dim);font-size:11px;">🛡️
+                                        Protection</span></div>
+                                <div class="opt-desc">Auto-compacts at 50K tokens to prevent extreme
+                                    single-session billing.
                                 </div>
-                                <div id="trend-labels"
-                                    style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim); margin-top:6px; padding:0 4px;">
+                                <div class="opt-sideeffect">⚠ May truncate history during massive code
+                                    translation sessions.
                                 </div>
-                            </div>
-
-                            <!-- Top Models List -->
-                            <div style="margin-top:25px;">
-                                <div
-                                    style="font-size:11px; color:var(--text-dim); margin-bottom:10px; display:flex; justify-content:space-between;">
-                                    <span>TOP MODELS</span>
-                                    <span>COST</span>
-                                </div>
-                                <div id="top-models-list">
-                                    <!-- Injected via JS -->
-                                </div>
-                            </div>
-
-                            <div id="daily-detail"
-                                style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:15px; margin-top:20px; border:1px solid var(--border);">
-                                <div
-                                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                                    <span style="font-size:14px; font-weight:bold; color:var(--text)"
-                                        id="detail-date">--</span>
-                                    <span style="font-size:16px; font-weight:bold; color:var(--success)"
-                                        id="detail-cost">--</span>
-                                </div>
-                                <div style="display:flex; gap:15px; font-size:12px; color:var(--text-dim);">
-                                    <span>In: <span id="detail-input" style="color:var(--text)">--</span></span>
-                                    <span>Out: <span id="detail-output" style="color:var(--text)">--</span></span>
+                                <div class="opt-action-line">
+                                    <span class="code-tag">mode: "safeguard"</span>
+                                    <button class="btn-mini" onclick="handleOpt(this)"><span
+                                            class="default-label">Enable</span><span
+                                            class="confirm-label">Confirm?</span><span class="done-label">✓
+                                            Applied</span></button>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- CARD SIDE 2: Optimizer Interface -->
-                        <div class="card-face card-back">
-                            <div class="back-header">
-                                <div class="optimizer-brand">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                        width="22" height="22">
-                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                                    </svg>
-                                    Optimizer
-                                </div>
-                                <button class="btn-close-back" onclick="flipToDashboard()">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                        width="14" height="14">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                </button>
-                            </div>
+                    <!-- SUCCESS STATE VIEW -->
+                    <div class="success-state" id="success-state">
+                        <div class="success-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="40"
+                                height="40">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="success-title">Fully Optimized</div>
+                        <div class="success-desc">Great job! Your token consumption is now running at maximum
+                            efficiency.</div>
 
-                            <!-- Loader State -->
-                            <div class="scan-progress" id="scan-progress">
-                                <div class="scan-spinner"></div>
-                                <div class="progress-title">Analyzing Usage Patterns</div>
-                                <div class="progress-sub" id="scan-step-text">Reading 6 days of history...</div>
-                            </div>
-
-                            <!-- ACTIVE RESULTS VIEW -->
-                            <div class="scan-results" id="scan-results">
-                                <div class="savings-hero">
-                                    <div class="savings-hero-label">Potential Monthly Savings</div>
-                                    <div class="savings-hero-amount" id="main-savings-amount">$38.72</div>
-                                </div>
-                                <div class="cost-comparison">
-                                    <div class="cost-compare-item">
-                                        <div class="cost-compare-label">Current</div>
-                                        <div class="cost-compare-val current">$169.20</div>
-                                    </div>
-                                    <div class="cost-compare-arrow">→</div>
-                                    <div class="cost-compare-item">
-                                        <div class="cost-compare-label">Optimized</div>
-                                        <div class="cost-compare-val optimized">$130.48</div>
-                                    </div>
-                                    <div class="cost-compare-item cache-rate-item" style="display:none;">
-                                        <div class="cost-compare-label">Cache Hit</div>
-                                        <div class="cost-compare-val" id="cache-hit-rate">—</div>
+                        <div class="history-section">
+                            <div class="history-title">Recent Optimizations</div>
+                            <div class="timeline" id="timline-list">
+                                <!-- Timeline items will be injected here -->
+                                <div class="timeline-item">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-time">JUST NOW</div>
+                                    <div class="timeline-content">Applied 4 cost-saving policies
+                                        <span>-$35.02/mo</span>
                                     </div>
                                 </div>
-                                <div class="result-title">Cost-Saving Actions Found</div>
-                                <div class="opt-list" id="opt-list">
-                                    <!-- A06 -->
-                                    <div class="opt-item high-savings" data-savings="18.36">
-                                        <div class="opt-header"><span class="opt-title">Enable Prompt
-                                                Caching</span><span class="opt-savings-tag">-$18.36/mo</span></div>
-                                        <div class="opt-desc">System prompts run uncached. Cache hits cost $0.20/M
-                                            instead of $2.00/M.
-                                        </div>
-                                        <div class="opt-sideeffect">⚠ First message per session remains full price.
-                                        </div>
-                                        <div class="opt-action-line">
-                                            <span class="code-tag">cachePolicy: "aggressive"</span>
-                                            <button class="btn-mini" onclick="handleOpt(this)"><span
-                                                    class="default-label">Apply</span><span
-                                                    class="confirm-label">Confirm?</span><span class="done-label">✓
-                                                    Applied</span></button>
-                                        </div>
-                                    </div>
-                                    <!-- A09 -->
-                                    <div class="opt-item high-savings" data-savings="10.45">
-                                        <div class="opt-header"><span class="opt-title">Reduce Output
-                                                Verbosity</span><span class="opt-savings-tag">-$10.45/mo</span></div>
-                                        <div class="opt-desc">Concise mode typically cuts output tokens by 30%.</div>
-                                        <div class="opt-sideeffect">⚠ Responses become visibly shorter.</div>
-                                        <div class="opt-action-line">
-                                            <span class="code-tag">SOUL.md += "Be concise"</span>
-                                            <button class="btn-mini" onclick="handleOpt(this)"><span
-                                                    class="default-label">Apply</span><span
-                                                    class="confirm-label">Confirm?</span><span class="done-label">✓
-                                                    Applied</span></button>
-                                        </div>
-                                    </div>
-                                    <!-- A02 -->
-                                    <div class="opt-item medium-savings" data-savings="6.21">
-                                        <div class="opt-header"><span class="opt-title">Disable Background
-                                                Polling</span><span class="opt-savings-tag">-$6.21/mo</span></div>
-                                        <div class="opt-desc">Heartbeats consume $6.21. Disabling saves this entirely.
-                                        </div>
-                                        <div class="opt-sideeffect">⚠ Passive messages require manual refresh.</div>
-                                        <div class="opt-action-line">
-                                            <span class="code-tag">heartbeat.every: "0m"</span>
-                                            <button class="btn-mini" onclick="handleOpt(this)"><span
-                                                    class="default-label">Disable</span><span
-                                                    class="confirm-label">Confirm?</span><span class="done-label">✓
-                                                    Applied</span></button>
-                                        </div>
-                                    </div>
-                                    <!-- A07 -->
-                                    <div class="opt-item safety" data-savings="0">
-                                        <div class="opt-header"><span class="opt-title">Enable Compaction
-                                                Safeguard</span><span class="opt-savings-tag"
-                                                style="color:var(--text-dim);font-size:11px;">🛡️
-                                                Protection</span></div>
-                                        <div class="opt-desc">Auto-compacts at 50K tokens to prevent extreme
-                                            single-session billing.
-                                        </div>
-                                        <div class="opt-sideeffect">⚠ May truncate history during massive code
-                                            translation sessions.
-                                        </div>
-                                        <div class="opt-action-line">
-                                            <span class="code-tag">mode: "safeguard"</span>
-                                            <button class="btn-mini" onclick="handleOpt(this)"><span
-                                                    class="default-label">Enable</span><span
-                                                    class="confirm-label">Confirm?</span><span class="done-label">✓
-                                                    Applied</span></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- SUCCESS STATE VIEW -->
-                            <div class="success-state" id="success-state">
-                                <div class="success-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                                        width="40" height="40">
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                    </svg>
-                                </div>
-                                <div class="success-title">Fully Optimized</div>
-                                <div class="success-desc">Great job! Your token consumption is now running at maximum
-                                    efficiency.</div>
-
-                                <div class="history-section">
-                                    <div class="history-title">Recent Optimizations</div>
-                                    <div class="timeline" id="timline-list">
-                                        <!-- Timeline items will be injected here -->
-                                        <div class="timeline-item">
-                                            <div class="timeline-dot"></div>
-                                            <div class="timeline-time">JUST NOW</div>
-                                            <div class="timeline-content">Applied 4 cost-saving policies
-                                                <span>-$35.02/mo</span>
-                                            </div>
-                                        </div>
-                                        <div class="timeline-item">
-                                            <div class="timeline-dot" style="border-color: var(--text-dim);"></div>
-                                            <div class="timeline-time">2 DAYS AGO</div>
-                                            <div class="timeline-content">Switched to Gemini 3.5 Sonnet</div>
-                                        </div>
-                                    </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot" style="border-color: var(--text-dim);"></div>
+                                    <div class="timeline-time">2 DAYS AGO</div>
+                                    <div class="timeline-content">Switched to Gemini 3.5 Sonnet</div>
                                 </div>
                             </div>
                         </div>
