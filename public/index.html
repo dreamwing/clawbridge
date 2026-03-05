@@ -510,7 +510,8 @@
                                             <div class="timeline-dot"></div>
                                             <div class="timeline-time">JUST NOW</div>
                                             <div class="timeline-content">Applied 4 cost-saving policies
-                                                <span>-$35.02/mo</span></div>
+                                                <span>-$35.02/mo</span>
+                                            </div>
                                         </div>
                                         <div class="timeline-item">
                                             <div class="timeline-dot" style="border-color: var(--text-dim);"></div>
@@ -522,119 +523,117 @@
                             </div>
                         </div>
                     </div>
-
-
                 </div>
+            </div>
+        </div>
 
-                <!-- VIEW: SETTINGS -->
-                <div id="view-settings" class="view-container">
-                    <div class="card">
-                        <h3 style="margin-top:0">Danger Zone</h3>
-                        <div style="display:grid; gap:15px;">
-                            <div>
-                                <button class="btn btn-restart" onclick="restartGateway()">
-                                    <span>♻️</span> Restart Gateway Service
-                                </button>
-                                <div style="font-size:11px; color:var(--text-dim); margin-top:5px; text-align:center;">
-                                    Current PID: <span id="gateway-pid"
-                                        style="font-family:monospace; color:var(--accent)">--</span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <button class="btn btn-danger" onclick="killAll()">
-                                    <span>🛑</span> Emergency Stop All Scripts
-                                </button>
-                                <div id="running-scripts-list"
-                                    style="font-size:11px; color:var(--text-dim); margin-top:8px; padding:0 5px;">
-                                    <!-- Scripts injected here -->
-                                </div>
-                            </div>
+        <!-- VIEW: SETTINGS -->
+        <div id="view-settings" class="view-container">
+            <div class="card">
+                <h3 style="margin-top:0">Danger Zone</h3>
+                <div style="display:grid; gap:15px;">
+                    <div>
+                        <button class="btn btn-restart" onclick="restartGateway()">
+                            <span>♻️</span> Restart Gateway Service
+                        </button>
+                        <div style="font-size:11px; color:var(--text-dim); margin-top:5px; text-align:center;">
+                            Current PID: <span id="gateway-pid"
+                                style="font-family:monospace; color:var(--accent)">--</span>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <h3 style="margin-top:0">About</h3>
-                        <div class="info-row">
-                            <span class="info-label">ClawBridge Version</span>
-                            <span class="info-val" id="ver-num">Loading...</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Environment</span>
-                            <span class="info-val">Node.js (Systemd)</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Server Timezone</span>
-                            <span class="info-val" id="server-tz">--</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">OpenClaw Core</span>
-                            <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank"
-                                    style="color:var(--accent); text-decoration:none;" id="ver-core">--</a></span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">ClawBridge Source</span>
-                            <span class="info-val"><a
-                                    href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard"
-                                    target="_blank" style="color:var(--accent); text-decoration:none;"
-                                    id="ver-dash">View
-                                    GitHub</a></span>
-                        </div>
-
-                        <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
-                            ClawBridge is the mobile-first dashboard for your AI Agent runtime.
-                            <br>Designed for monitoring, cost tracking, and task management.
+                    <div>
+                        <button class="btn btn-danger" onclick="killAll()">
+                            <span>🛑</span> Emergency Stop All Scripts
+                        </button>
+                        <div id="running-scripts-list"
+                            style="font-size:11px; color:var(--text-dim); margin-top:8px; padding:0 5px;">
+                            <!-- Scripts injected here -->
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-top:0">About</h3>
+                <div class="info-row">
+                    <span class="info-label">ClawBridge Version</span>
+                    <span class="info-val" id="ver-num">Loading...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Environment</span>
+                    <span class="info-val">Node.js (Systemd)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Server Timezone</span>
+                    <span class="info-val" id="server-tz">--</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">OpenClaw Core</span>
+                    <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank"
+                            style="color:var(--accent); text-decoration:none;" id="ver-core">--</a></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">ClawBridge Source</span>
+                    <span class="info-val"><a href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard"
+                            target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-dash">View
+                            GitHub</a></span>
+                </div>
+
+                <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
+                    ClawBridge is the mobile-first dashboard for your AI Agent runtime.
+                    <br>Designed for monitoring, cost tracking, and task management.
+                </div>
+            </div>
+        </div>
 
 
-                <nav class="bottom-nav">
-                    <a class="nav-item active" onclick="switchTab('home')">
-                        <div class="nav-icon"><svg viewBox="0 0 24 24">
-                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                            </svg></div>
-                        <div>Home</div>
-                    </a>
-                    <a class="nav-item" onclick="switchTab('memory')">
-                        <div class="nav-icon"><svg viewBox="0 0 24 24">
-                                <path
-                                    d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.48-2.04z">
-                                </path>
-                                <path
-                                    d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.48-2.04z">
-                                </path>
-                            </svg></div>
-                        <div>Memory</div>
-                    </a>
-                    <a class="nav-item" onclick="switchTab('tokens')">
-                        <div class="nav-icon"><svg viewBox="0 0 24 24">
-                                <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5">
-                                </path>
-                                <line x1="18" y1="12" x2="22" y2="12"></line>
-                                <line x1="16" y1="9" x2="20" y2="9"></line>
-                                <line x1="16" y1="15" x2="20" y2="15"></line>
-                            </svg></div>
-                        <div>Tokens</div>
-                    </a>
-                    <a class="nav-item" onclick="switchTab('missions')">
-                        <div class="nav-icon"><svg viewBox="0 0 24 24">
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                            </svg></div>
-                        <div>Missions</div>
-                    </a>
-                    <a class="nav-item" onclick="switchTab('settings')">
-                        <div class="nav-icon"><svg viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path
-                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                                </path>
-                            </svg></div>
-                        <div>Settings</div>
-                    </a>
-                </nav>
+        <nav class="bottom-nav">
+            <a class="nav-item active" onclick="switchTab('home')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg></div>
+                <div>Home</div>
+            </a>
+            <a class="nav-item" onclick="switchTab('memory')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <path
+                            d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.48-2.04z">
+                        </path>
+                        <path
+                            d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.48-2.04z">
+                        </path>
+                    </svg></div>
+                <div>Memory</div>
+            </a>
+            <a class="nav-item" onclick="switchTab('tokens')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5">
+                        </path>
+                        <line x1="18" y1="12" x2="22" y2="12"></line>
+                        <line x1="16" y1="9" x2="20" y2="9"></line>
+                        <line x1="16" y1="15" x2="20" y2="15"></line>
+                    </svg></div>
+                <div>Tokens</div>
+            </a>
+            <a class="nav-item" onclick="switchTab('missions')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg></div>
+                <div>Missions</div>
+            </a>
+            <a class="nav-item" onclick="switchTab('settings')">
+                <div class="nav-icon"><svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg></div>
+                <div>Settings</div>
+            </a>
+        </nav>
 
-                <script src="js/dashboard.js" defer></script>
+        <script src="js/dashboard.js" defer></script>
 </body>
 
 </html>
