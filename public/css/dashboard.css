@@ -605,6 +605,7 @@
         /* FRONT: Dashboard */
         .card-front {
             background: var(--card-bg);
+            border: 1px solid var(--border);
             z-index: 2;
             transform: rotateY(0deg);
         }
