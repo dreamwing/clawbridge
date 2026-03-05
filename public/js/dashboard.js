@@ -843,8 +843,7 @@ function renderOptimizerList() {
                         ${sideEffectHtml}
                         ${optionsHtml}
                         ${detailsHtml}
-                        <div class="opt-action-line">
-                            <span class="code-tag">${escapeHtml(act.actionId)}</span>
+                        <div class="opt-action-line" style="justify-content: flex-end;">
                             <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>
                         </div>
                     </div>`;
