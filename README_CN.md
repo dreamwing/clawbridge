@@ -61,13 +61,14 @@ curl -sL https://clawbridge.app/install.sh | bash
 
 ### 3. 配置固定域名 (进阶)
 想要一个固定的 `dash.yoursite.com`？
-1.  在 Cloudflare Zero Trust 后台创建一个 Tunnel 并获取 Token。
+1.  前往 [Cloudflare Dash \> Networking \> Tunnels](https://dash.cloudflare.com/?to=/:account/tunnels) 创建一个 Tunnel 并获取 Token。
 2.  使用 Token 运行安装脚本：
     ```bash
     cd skills/clawbridge
     ./install.sh --token=<YOUR_TOKEN>
     ```
     *   或者强制开启临时公网隧道：`./install.sh --force-cf`
+3.  安装成功后，回到 Cloudflare 隧道的 **Public Hostname**（或 **Routes**）页面，点击 **Add a public hostname** 将您自己的域名绑定到 `localhost:3000` 即可实现永久的域名访问。
 
 ## 📱 移动端 App (PWA)
 1.  在 Safari (iOS) 或 Chrome (Android) 中打开 Dashboard。

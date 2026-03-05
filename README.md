@@ -64,13 +64,14 @@ If **Tailscale** or **WireGuard** is detected, the installer skips the public tu
 
 ### 3. Permanent Public Domain (Advanced)
 Want a fixed URL like `dash.yoursite.com`?
-1.  Obtain a **Cloudflare Tunnel Token** from the Zero Trust Dashboard.
+1.  Obtain a **Cloudflare Tunnel Token** from [Cloudflare Dash \> Networking \> Tunnels](https://dash.cloudflare.com/?to=/:account/tunnels).
 2.  Run the installer with the token:
     ```bash
     cd skills/clawbridge
     ./install.sh --token=<YOUR_TOKEN>
     ```
     *   Or force a new Quick Tunnel: `./install.sh --force-cf`
+3.  After the installation is successful, go back to the Cloudflare Tunnel's **Public Hostname** (or **Routes**) page and click **Add a public hostname** to bind your own domain to `localhost:3000` for permanent access.
 
 ## 📱 Mobile App (PWA)
 1.  Open the dashboard in Safari (iOS) or Chrome (Android).
