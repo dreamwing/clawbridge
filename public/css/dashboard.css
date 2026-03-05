@@ -9,6 +9,10 @@
             --warning: #eab308;
             --border: rgba(255, 255, 255, 0.05);
             --nav-height: 60px;
+            --card-bg: #1e293b;
+            --accent-green: #22c55e;
+            --opt-glow: #a855f7;
+            --opt-purple: #d8b4fe;
         }
 
         body {
