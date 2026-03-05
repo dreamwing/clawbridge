@@ -9,7 +9,6 @@
             --warning: #eab308;
             --border: rgba(255, 255, 255, 0.05);
             --nav-height: 60px;
-            --card-bg: #1e293b;
             --accent-green: #22c55e;
             --opt-glow: #a855f7;
             --opt-purple: #d8b4fe;
@@ -604,10 +603,9 @@
 
         /* FRONT: Dashboard */
         .card-front {
-            background: var(--card-bg);
+            background: var(--card);
             border: 1px solid var(--border);
             z-index: 2;
-            transform: rotateY(0deg);
         }
 
         /* BACK: Optimizer */
@@ -1412,7 +1410,7 @@
             top: 4px;
             width: 10px;
             height: 10px;
-            background: var(--card-bg);
+            background: var(--card);
             border: 2px solid var(--accent-green);
             border-radius: 50%;
         }
