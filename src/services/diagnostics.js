@@ -339,7 +339,7 @@ class DiagnosticsEngine {
                 const totalIdleCount = idleSkills.length + quietSkills.length;
                 // Each Skill adds ~750 tokens to system prompt per session
                 const totalSessions = historyDays.reduce((sum, day) => sum + (day.sessions || day.count || 1), 0);
-                const idleTokenWaste = idleSkills.length * 750;
+                const idleTokenWaste = totalIdleCount * 750;
                 const skillWasteSavings = idleTokenWaste * totalSessions * inputCostPerToken * monthlyMultiplier;
 
                 // Build description with specific skill names
@@ -361,9 +361,9 @@ class DiagnosticsEngine {
                     savings: skillWasteSavings,
                     savingsStr: skillWasteSavings > 0 ? `-$${skillWasteSavings.toFixed(2)}/mo` : '🛡️ Review',
                     codeTag: `${idleSkills.length} idle, ${quietSkills.length} quiet`,
-                    calcDetail: `${idleSkills.length} idle × 750 tok/session × ${totalSessions} sessions × $${(inputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
-                    configDiff: { key: 'skills', from: `${skillFolders.length} installed`, to: `remove ${idleSkills.length} idle` },
-                    level: idleSkills.length > 0 ? 'medium' : 'low',
+                    calcDetail: `${totalIdleCount} unused × 750 tok/session × ${totalSessions} sessions × $${(inputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'skills', from: `${skillFolders.length} installed`, to: `remove ${totalIdleCount} unused` },
+                    level: totalIdleCount > 0 ? 'medium' : 'low',
                     _meta: {
                         type: 'skill-audit',
                         idleSkills,

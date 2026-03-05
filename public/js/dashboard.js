@@ -713,7 +713,11 @@ async function fetchDiagnostics() {
         } else if (totalActions > 0) {
             trigger.style.display = 'flex';
             trigger.classList.remove('all-done');
-            triggerText.innerHTML = `<strong>${totalActions} actions</strong> available. Tap to save <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.`;
+            if (diagnosticsData.monthlySavings > 0) {
+                triggerText.innerHTML = `<strong>${totalActions} action${totalActions > 1 ? 's' : ''}</strong> available. Tap to save <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.`;
+            } else {
+                triggerText.innerHTML = `<strong>${totalActions} action${totalActions > 1 ? 's' : ''}</strong> found. Tap to review & protect.`;
+            }
             triggerBtn.textContent = 'Optimize';
             isFullyOptimized = false;
         } else {
@@ -731,7 +735,13 @@ async function fetchDiagnostics() {
 function renderOptimizerList() {
     if (!diagnosticsData) return;
 
-    document.getElementById('main-savings-amount').innerText = '$' + diagnosticsData.monthlySavings.toFixed(2);
+    if (diagnosticsData.monthlySavings > 0) {
+        document.getElementById('main-savings-amount').innerText = '$' + diagnosticsData.monthlySavings.toFixed(2);
+        document.getElementById('main-savings-amount').style.fontSize = '56px';
+    } else {
+        document.getElementById('main-savings-amount').innerText = '🛡️ Preventative';
+        document.getElementById('main-savings-amount').style.fontSize = '36px';
+    }
 
     const currentCost = diagnosticsData.currentMonthlyCost || 0;
     const optimizedCost = Math.max(0, currentCost - diagnosticsData.monthlySavings);
