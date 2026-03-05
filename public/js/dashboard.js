@@ -836,9 +836,12 @@ function renderOptimizerList() {
         const tooltipHtml = act.helpText ? `<span class="opt-help" onclick="toggleHelp(this, event)">?</span>` : '';
         const helpBoxHtml = act.helpText ? `<div class="opt-help-box">${escapeHtml(act.helpText)}</div>` : '';
 
+        const tagInteractive = act.savings === 0 ? ' interactive' : '';
+        const tagOnclick = act.savings === 0 ? ' onclick="toggleHelp(this, event)"' : '';
+
         const itemHtml = `
                     <div class="opt-item ${savingsClass}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
-                        <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)} ${tooltipHtml}</span><span class="opt-savings-tag" id="savings-tag-${act.actionId}">${savingsStr}</span></div>
+                        <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)} ${tooltipHtml}</span><span class="opt-savings-tag${tagInteractive}" id="savings-tag-${act.actionId}"${tagOnclick}>${savingsStr}</span></div>
                         <div class="opt-desc">${escapeHtml(act.description || '')}</div>
                         ${act._meta && act._meta.type === 'skill-audit' ? renderSkillAuditList(act._meta) : ''}
                         ${helpBoxHtml}
