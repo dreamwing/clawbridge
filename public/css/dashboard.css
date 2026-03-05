@@ -898,6 +898,7 @@
             color: white;
             background: -webkit-linear-gradient(0deg, #d8b4fe, #a855f7);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -1256,9 +1257,39 @@
             transition: background 0.2s;
         }
 
-        .opt-help:hover {
+        .opt-help:hover,
+        .opt-help.active {
             background: rgba(255, 255, 255, 0.2);
             color: var(--text);
+        }
+
+        .opt-help-box {
+            display: none;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin: 10px 0;
+            animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .opt-help-box.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .cache-rate-item {

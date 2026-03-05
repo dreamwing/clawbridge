@@ -833,13 +833,15 @@ function renderOptimizerList() {
         }
 
         // Tooltip ? icon for helpText
-        const tooltipHtml = act.helpText ? `<span class="opt-help" title="${escapeHtml(act.helpText)}">?</span>` : '';
+        const tooltipHtml = act.helpText ? `<span class="opt-help" onclick="toggleHelp(this, event)">?</span>` : '';
+        const helpBoxHtml = act.helpText ? `<div class="opt-help-box">${escapeHtml(act.helpText)}</div>` : '';
 
         const itemHtml = `
                     <div class="opt-item ${savingsClass}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
                         <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)} ${tooltipHtml}</span><span class="opt-savings-tag" id="savings-tag-${act.actionId}">${savingsStr}</span></div>
                         <div class="opt-desc">${escapeHtml(act.description || '')}</div>
                         ${act._meta && act._meta.type === 'skill-audit' ? renderSkillAuditList(act._meta) : ''}
+                        ${helpBoxHtml}
                         ${sideEffectHtml}
                         ${optionsHtml}
                         ${detailsHtml}
@@ -1070,4 +1072,15 @@ function showSuccess() {
         triggerText.innerHTML = '<strong>System Optimized.</strong> Token usage is 100% efficient.';
         triggerBtn.textContent = 'History';
     }, 500);
+}
+
+function toggleHelp(el, event) {
+    if (event) event.stopPropagation();
+    const item = el.closest('.opt-item');
+    if (!item) return;
+    const box = item.querySelector('.opt-help-box');
+    if (box) {
+        box.classList.toggle('active');
+        el.classList.toggle('active');
+    }
 }
