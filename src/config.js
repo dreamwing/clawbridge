@@ -3,8 +3,6 @@
  * Resolves all env vars, paths, and constants at startup.
  */
 const path = require('path');
-const fs = require('fs');
-const os = require('os');
 
 // --- Environment ---
 const PORT = process.env.PORT || 3000;
@@ -16,8 +14,11 @@ if (!SECRET_KEY) {
 const TUNNEL_TOKEN = process.env.TUNNEL_TOKEN;
 
 // --- Paths ---
-const HOME_DIR = os.homedir();
-const STATE_DIR = process.env.OPENCLAW_STATE_DIR || path.join(HOME_DIR, '.openclaw');
+// Shared home/config directory resolution, aligned with OpenClaw's src/infra/home-dir.ts.
+const { resolveHomeDir, resolveConfigDir } = require('./utils/paths');
+
+const HOME_DIR = resolveHomeDir();
+const STATE_DIR = resolveConfigDir();
 const APP_DIR = path.resolve(__dirname, '..');
 
 const LOG_DIR = path.join(APP_DIR, 'data/logs');
@@ -40,4 +41,6 @@ module.exports = {
     ID_FILE,
     ANALYZE_SCRIPT,
     CACHE_TTL_MS,
+    resolveHomeDir,
+    resolveConfigDir,
 };

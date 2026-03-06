@@ -23,12 +23,12 @@ router.get('/api/check_update', (req, res) => {
                 apiRes.on('end', () => {
                     try {
                         res.json(JSON.parse(data));
-                    } catch (e) {
+                    } catch (_e) {
                         res.json({ error: 'Invalid JSON', version: '0.0.0' });
                     }
                 });
             })
-            .on('error', e => {
+            .on('error', _e => {
                 res.json({ error: 'Update check failed', version: '0.0.0' });
             });
     };

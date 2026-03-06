@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { SECRET_KEY } = require('../config');
 const { hasSession, generateSessionToken, addSession } = require('./sessions');
+const { safeCompare } = require('./utils');
 
 // Cache login page HTML at startup
 const LOGIN_PAGE = fs.readFileSync(path.join(__dirname, 'login.html'), 'utf8');
@@ -15,10 +16,10 @@ function authMiddleware(req, res, next) {
     if (sessionToken && hasSession(sessionToken)) return next();
 
     // 2. Header-based auth (for API/programmatic access)
-    if (req.headers['x-claw-key'] === SECRET_KEY) return next();
+    if (safeCompare(req.headers['x-claw-key'], SECRET_KEY)) return next();
 
     // 3. Query key (legacy, backward-compatible magic links — sets cookie then redirects)
-    if (req.query.key === SECRET_KEY) {
+    if (safeCompare(req.query.key, SECRET_KEY)) {
         const token = generateSessionToken();
         addSession(token);
         res.cookie('claw_session', token, {
