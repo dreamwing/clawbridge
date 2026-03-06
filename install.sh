@@ -16,12 +16,30 @@ else
     sed_inplace() { sed -i "$@"; }
 fi
 
-# Detect if running from inside the installation directory
-if [ "$(basename "$PWD")" == "clawbridge" ] && [ "$(basename "$(dirname "$PWD")")" == "skills" ]; then
-    TARGET_DIR="."
+# Default values
+TARGET_DIR="skills/clawbridge"
+[ "$(basename "$PWD")" == "clawbridge" ] && [ "$(basename "$(dirname "$PWD")")" == "skills" ] && TARGET_DIR="."
+
+# Arguments parsing
+PASSTHROUGH_ARGS=""
+EXTRACTED_TOKEN=""
+
+for arg in "$@"; do
+    case $arg in
+        --token=*)
+            EXTRACTED_TOKEN="${arg#*=}"
+            PASSTHROUGH_ARGS="$PASSTHROUGH_ARGS $arg"
+            ;;
+        *)
+            PASSTHROUGH_ARGS="$PASSTHROUGH_ARGS $arg"
+            ;;
+    esac
+done
+
+if [ "$TARGET_DIR" == "." ]; then
     echo "📂 Detected execution from inside installation directory."
 else
-    TARGET_DIR="skills/clawbridge"
+    mkdir -p "$(dirname "$TARGET_DIR")"
 fi
 
 NEEDS_BUILD=true
@@ -199,28 +217,30 @@ fi
 echo "🚀 Configuring..."
 chmod +x setup.sh
 
-# Check if we have a permanent token in .env
-HAS_TOKEN=false
-if [ -f "$TARGET_DIR/.env" ]; then
-    if grep -q "TUNNEL_TOKEN=" "$TARGET_DIR/.env"; then
-        HAS_TOKEN=true
+# Determine final arguments for setup.sh
+FINAL_ARGS="$PASSTHROUGH_ARGS"
+
+# If no token in args, but exists in .env, append it to FINAL_ARGS
+# Note: We've already cd'd into TARGET_DIR, so use .env directly
+if [ -z "$EXTRACTED_TOKEN" ] && [ -f ".env" ]; then
+    ENV_TOKEN=$(grep "TUNNEL_TOKEN=" ".env" | cut -d'=' -f2)
+    if [ ! -z "$ENV_TOKEN" ]; then
+        echo "ℹ️  Found existing tunnel token in .env, reusing it..."
+        FINAL_ARGS="$FINAL_ARGS --token=$ENV_TOKEN"
     fi
 fi
 
-if [ "$HAS_TOKEN" = true ]; then
-    echo "ℹ️  Preserving existing permanent tunnel configuration..."
-    # Don't use --quick which forces quick tunnel. 
-    # Use --no-tunnel to skip interactive prompt, but setup.sh logic needs to be robust.
-    # Actually, setup.sh reads .env. If we don't pass --quick, it might prompt.
-    # We need a flag for "non-interactive but keep current config".
-    # Let's modify setup.sh to support --update mode or similar.
-    # OR: Extract token and pass it back?
-    TOKEN=$(grep "TUNNEL_TOKEN=" "$TARGET_DIR/.env" | cut -d'=' -f2)
-    ./setup.sh --token="$TOKEN"
-else
-    # Force quick mode for zero-friction
-    ./setup.sh --quick
+# If after that we still don't have a token, and no explicit tunnel mode set, default to --quick
+# We check if FINAL_ARGS contains --token, --quick, or --no-tunnel
+if [[ ! "$FINAL_ARGS" == *"--token="* ]] && [[ ! "$FINAL_ARGS" == *"--quick"* ]] && [[ ! "$FINAL_ARGS" == *"--no-tunnel"* ]]; then
+    echo "🌊 No tunnel mode specified, defaulting to Quick Tunnel..."
+    FINAL_ARGS="$FINAL_ARGS --quick"
 fi
+
+# Log without exposing token
+SAFE_LOG=$(echo "$FINAL_ARGS" | sed 's/--token=[^ ]*/--token=****/g')
+echo "✅ Running setup: ./setup.sh $SAFE_LOG"
+./setup.sh $FINAL_ARGS
 
 # Final Notification
 if [ ! -z "$BACKUP_MSG" ]; then
