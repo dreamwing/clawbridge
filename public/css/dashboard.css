@@ -1096,6 +1096,16 @@
             color: #facc15;
         }
 
+        .opt-savings-tag.interactive {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .opt-savings-tag.interactive:hover {
+            filter: brightness(1.2);
+            transform: translateY(-1px);
+        }
+
         .opt-item.done .opt-savings-tag {
             display: none;
         }

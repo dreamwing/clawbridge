@@ -4,6 +4,7 @@ const diagnosticsEngine = require('../services/diagnostics');
 
 router.get('/api/diagnostics', async (req, res) => {
     try {
+        res.setHeader('Cache-Control', 'no-store');
         const result = await diagnosticsEngine.runDiagnostics();
         // Strip _rawData unless ?verbose=true (advanced user API export)
         if (req.query.verbose !== 'true') {
