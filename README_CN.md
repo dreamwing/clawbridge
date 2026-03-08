@@ -70,6 +70,17 @@ curl -sL https://clawbridge.app/install.sh | bash
     *   或者强制开启临时公网隧道：`./install.sh --force-cf`
 3.  安装成功后，回到 Cloudflare 隧道的 **Public Hostname**（或 **Routes**）页面，点击 **Add a public hostname** 将您自己的域名绑定到 `localhost:3000` 即可实现永久的域名访问。
 
+### 4. Docker 部署 (容器化)
+您也可以通过 Docker 运行 ClawBridge。镜像每次正式发布时会自动被推送至 [GitHub Container Registry](https://github.com/dreamwing/clawbridge/pkgs/container/clawbridge)。
+```bash
+docker pull ghcr.io/dreamwing/clawbridge:latest
+docker run -d --name clawbridge \
+  -p 3000:3000 \
+  -e ACCESS_KEY=您的安全密钥 \
+  -v ./data:/app/data \
+  ghcr.io/dreamwing/clawbridge:latest
+```
+
 ## 📱 移动端 App (PWA)
 1.  在 Safari (iOS) 或 Chrome (Android) 中打开 Dashboard。
 2.  点击 "分享" -> "添加到主屏幕"。

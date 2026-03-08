@@ -73,6 +73,17 @@ Want a fixed URL like `dash.yoursite.com`?
     *   Or force a new Quick Tunnel: `./install.sh --force-cf`
 3.  After the installation is successful, go back to the Cloudflare Tunnel's **Public Hostname** (or **Routes**) page and click **Add a public hostname** to bind your own domain to `localhost:3000` for permanent access.
 
+### 4. Docker (Containerized)
+You can run ClawBridge as a Docker container. The images are automatically published to the [GitHub Container Registry (ghcr.io)](https://github.com/dreamwing/clawbridge/pkgs/container/clawbridge).
+```bash
+docker pull ghcr.io/dreamwing/clawbridge:latest
+docker run -d --name clawbridge \
+  -p 3000:3000 \
+  -e ACCESS_KEY=your_secret_key \
+  -v ./data:/app/data \
+  ghcr.io/dreamwing/clawbridge:latest
+```
+
 ## 📱 Mobile App (PWA)
 1.  Open the dashboard in Safari (iOS) or Chrome (Android).
 2.  Tap "Share" -> "Add to Home Screen".
