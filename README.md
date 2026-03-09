@@ -26,6 +26,7 @@
 *   **📱 Mobile-First Dashboard**: Optimized for phone screens. View logs, stats, and controls without squinting.
 *   **🧠 Live Activity Feed**: Watch your agent "think" and execute tools in real-time. Features intelligent parallel logging (no missed background tasks) and deduplication.
 *   **💰 Token Economy**: Track daily/monthly LLM costs and usage trends. Know exactly where your money goes.
+*   **🔍 [Cost Control Center](docs/cost-control-center.md)**: 10 automated diagnostics that scan your usage, calculate savings, and let you apply optimizations with one tap. Cut API costs by 30–90%.
 *   **📜 Memory Timeline**: Browse your agent's daily journals and long-term memory evolution.
 *   **🚀 Mission Control**: Trigger cron jobs, restart services, or kill runaway scripts directly from the UI.
 *   **⚡ Zero-Config Remote**: 
