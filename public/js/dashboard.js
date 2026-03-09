@@ -87,7 +87,7 @@ async function initMemory() {
         } else {
             document.getElementById('memory-content').innerText = 'No memories found.';
         }
-    } catch (e) { }
+    } catch (e) { console.warn('[Memory] Init failed:', e.message); }
 }
 
 async function fetchMemory(date) {
@@ -105,13 +105,14 @@ async function fetchMemory(date) {
             .replace(/^# (.*$)/gim, '<h3 style="margin-top:0;color:var(--accent)">$1</h3>')
             .replace(/^## (.*$)/gim, '<h4 style="margin:10px 0 5px;color:var(--text)">$1</h4>')
             .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
-            .replace(/^- (.*$)/gim, '• $1')
+            .replace(/^\- (.*$)/gim, '• $1')
             .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" style="color:var(--accent)">$1</a>');
 
         document.getElementById('memory-content').innerHTML = html;
         document.getElementById('memory-content').style.opacity = '1';
     } catch (e) {
         document.getElementById('memory-content').innerText = 'Failed to load memory.';
+        console.warn('[Memory] Fetch failed:', e.message);
     }
 }
 
@@ -147,9 +148,38 @@ function connectWS() {
         if (data.type === 'heartbeat') {
             document.getElementById('heartbeat').innerText = new Date(data.ts).toLocaleTimeString();
         }
+        // --- Analysis WS Events ---
+        if (data.type === 'analysis_complete') {
+            handleAnalysisComplete();
+        }
+        if (data.type === 'analysis_error') {
+            handleAnalysisError(data.error);
+        }
     };
 }
 connectWS();
+
+// --- Analysis WS Handlers ---
+let _analysisResolve = null;
+
+function handleAnalysisComplete() {
+    if (currentTab === 'tokens') {
+        fetchTokens();
+        try { fetchDiagnostics(); } catch (_) { }
+    }
+    if (_analysisResolve) {
+        _analysisResolve('complete');
+        _analysisResolve = null;
+    }
+}
+
+function handleAnalysisError(error) {
+    console.warn('[Analysis] Error:', error);
+    if (_analysisResolve) {
+        _analysisResolve('error');
+        _analysisResolve = null;
+    }
+}
 
 function timeAgo(ms) {
     if (!ms) return 'Never';
@@ -184,7 +214,6 @@ async function fetchStatus() {
         } else {
             document.getElementById('gateway-pid').innerText = 'Stopped / Not Found';
         }
-
         // Update Scripts List
         const scriptList = document.getElementById('running-scripts-list');
         if (data.scripts && data.scripts.length > 0) {
@@ -312,27 +341,12 @@ async function fetchHistory() {
         const feed = document.getElementById('activity-feed');
         feed.innerHTML = '';
 
-        // Append in order: Newest at Top (via simple append order if list is New->Old? No.)
-        // If we want Newest at TOP:
-        // DOM:
-        // [Newest]
-        // [Older]
-        // [Oldest]
-
-        // history array is [Newest, Older, Oldest]
-        // If we appendChild(Newest), then appendChild(Older)...
-        // Result:
-        // [Newest]
-        // [Older]
-        // Perfect.
 
         history.forEach(item => {
             addFeedItem(item.ts, item.task, 'append');
             lastTask = item.task; // Sync latest seen
         });
-
-        // No scroll to bottom needed
-    } catch (e) { }
+    } catch (e) { console.warn('[History] Fetch failed:', e.message); }
 }
 
 // --- MISSIONS ---
@@ -401,7 +415,7 @@ async function fetchJobs() {
                     `;
             container.appendChild(div);
         });
-    } catch (e) { }
+    } catch (e) { console.warn('[Missions] Fetch failed:', e.message); }
 }
 
 async function runJob(id) {
@@ -421,57 +435,56 @@ async function restartGateway() {
 }
 
 async function refreshTokenStats() {
-    const btn = document.querySelector('#view-tokens button');
+    const btn = document.querySelector('#view-tokens .section-header button') || document.querySelector('#view-tokens button');
     const origText = btn.innerText;
-    const timeEl = document.getElementById('token-updated');
-    const initialTime = timeEl.innerText;
 
-    // Set Loading State (Immediate Countdown)
-    btn.innerText = '⏳ Calc... (10s)';
+    // Prevent double-click
+    if (btn.disabled) return;
+
+    // Set Loading State
+    btn.innerText = '⏳ Analyzing...';
     btn.disabled = true;
     btn.style.opacity = '0.7';
 
     try {
-        // 1. Trigger
-        await fetchAuth(API + '/tokens/refresh', { method: 'POST' });
+        // 1. Trigger analysis
+        const triggerRes = await fetchAuth(API + '/tokens/refresh', { method: 'POST' });
 
-        // 2. Poll for changes
-        let attempts = 0;
-        const poll = setInterval(async () => {
-            attempts++;
-            const remaining = 10 - attempts;
-            btn.innerText = `⏳ Calc... (${remaining}s)`;
+        if (triggerRes.status === 409) {
+            // Already running — wait for WS completion
+            btn.innerText = '⏳ In progress...';
+        }
 
-            try {
-                const res = await fetchAuth(API + '/tokens');
-                const data = await res.json();
+        // 2. Wait for WS completion event OR timeout at 30s
+        const result = await Promise.race([
+            new Promise(resolve => { _analysisResolve = resolve; }),
+            new Promise(resolve => setTimeout(() => resolve('timeout'), 30000)),
+        ]);
 
-                // Parse time to compare string difference
-                const newDate = new Date(data.updatedAt);
-                const newTimeStr = newDate.toLocaleTimeString();
+        // 3. Refresh UI regardless of result
+        await fetchTokens();
 
-                // If time changed OR attempts > 10
-                if (newTimeStr !== initialTime || attempts > 10) {
-                    clearInterval(poll);
-                    fetchTokens(); // Refresh UI
-
-                    btn.innerText = origText;
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-
-                    if (attempts > 10) console.warn('Refresh timed out (no change detected)');
-                }
-            } catch (e) { clearInterval(poll); }
-        }, 1000);
-
+        if (result === 'timeout') {
+            console.warn('[Tokens] Refresh timed out, showing latest available data');
+        } else if (result === 'error') {
+            console.warn('[Tokens] Analysis reported an error');
+        }
     } catch (e) {
-        alert('Trigger failed');
+        console.warn('[Tokens] Refresh trigger failed:', e.message);
+        // Try to show whatever data is available
+        try { await fetchTokens(); } catch (_) { }
+    } finally {
+        // Always restore button state
         btn.innerText = origText;
         btn.disabled = false;
+        btn.style.opacity = '1';
+        _analysisResolve = null;
     }
 }
 
 // --- TOKENS ---
+let showAllModels = false;
+
 async function fetchTokens() {
     try {
         // Use API, not static file
@@ -479,25 +492,38 @@ async function fetchTokens() {
         const data = await res.json();
         document.getElementById('token-card').style.display = 'block';
 
-        // Also fetch optimizations
-        fetchDiagnostics();
-
         if (data.updatedAt) {
             const date = new Date(data.updatedAt);
             document.getElementById('token-updated').innerText = date.toLocaleTimeString();
         }
 
         if (data.today) {
-            document.getElementById('token-cost').innerText = '$' + data.today.cost.toFixed(4);
-            document.getElementById('token-in').innerText = (data.today.input / 1000).toFixed(1) + 'k';
-            document.getElementById('token-out').innerText = (data.today.output / 1000).toFixed(1) + 'k';
+            document.getElementById('token-cost').innerText = '$' + (data.today.cost || 0).toFixed(4);
+            document.getElementById('token-in').innerText = ((data.today.input || 0) / 1000).toFixed(1) + 'k';
+            document.getElementById('token-out').innerText = ((data.today.output || 0) / 1000).toFixed(1) + 'k';
         }
-        if (data.total) {
-            document.getElementById('grand-total-cost').innerText = '$' + data.total.cost.toFixed(2);
 
-            // Forecast Logic
-            const days = Object.keys(data.history || {}).length || 1;
-            const avg = data.total.cost / days;
+        // Cache Hit Rate
+        const totalInput = (data.total?.input || 0);
+        const totalCacheRead = (data.total?.cacheRead || 0);
+        const cacheHitRate = (totalInput + totalCacheRead) > 0
+            ? ((totalCacheRead / (totalInput + totalCacheRead)) * 100).toFixed(1)
+            : '0.0';
+        const cacheHitEl = document.getElementById('cache-hit-rate');
+        if (cacheHitEl) cacheHitEl.innerText = cacheHitRate + '%';
+
+        if (data.total) {
+            document.getElementById('grand-total-cost').innerText = '$' + (data.total.cost || 0).toFixed(2);
+
+            // Forecast Logic — use recent 7-day average for smarter estimate
+            let avg = 0;
+            if (data.recentCosts && data.recentCosts.last7dAvg > 0) {
+                avg = data.recentCosts.last7dAvg;
+            } else {
+                // Fallback to all-time average
+                const days = Object.keys(data.history || {}).length || 1;
+                avg = (data.total.cost || 0) / days;
+            }
             const forecast = avg * 30;
             document.getElementById('monthly-forecast').innerText = '$' + forecast.toFixed(2);
         }
@@ -506,7 +532,8 @@ async function fetchTokens() {
         if (data.topModels) {
             const list = document.getElementById('top-models-list');
             list.innerHTML = '';
-            data.topModels.slice(0, 5).forEach(m => {
+            const modelsToShow = showAllModels ? data.topModels : data.topModels.slice(0, 5);
+            modelsToShow.forEach(m => {
                 const div = document.createElement('div');
                 div.style.display = 'flex';
                 div.style.justifyContent = 'space-between';
@@ -527,6 +554,22 @@ async function fetchTokens() {
                         `;
                 list.appendChild(div);
             });
+
+            // Show toggle if more than 5 models
+            if (data.topModels.length > 5) {
+                const toggleDiv = document.createElement('div');
+                toggleDiv.style.textAlign = 'center';
+                toggleDiv.style.padding = '8px 0';
+                toggleDiv.style.fontSize = '12px';
+                toggleDiv.style.color = 'var(--accent)';
+                toggleDiv.style.cursor = 'pointer';
+                toggleDiv.innerText = showAllModels ? '▲ Show less' : '▼ Show all (' + data.topModels.length + ')';
+                toggleDiv.onclick = () => {
+                    showAllModels = !showAllModels;
+                    fetchTokens();
+                };
+                list.appendChild(toggleDiv);
+            }
         }
 
         if (data.history) {
@@ -540,7 +583,7 @@ async function fetchTokens() {
             const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: serverTz });
             if (days.length > 0) {
                 const maxCost = Math.max(...days.map(d => data.history[d].cost)) || 0.01;
-                days.forEach(day => {
+                days.forEach((day, idx) => {
                     const stats = data.history[day];
                     const height = Math.max(5, (stats.cost / maxCost) * 100);
                     const bar = document.createElement('div');
@@ -549,6 +592,18 @@ async function fetchTokens() {
                     bar.style.backgroundColor = 'var(--accent)';
                     bar.style.borderRadius = '4px 4px 0 0';
                     bar.style.opacity = day === todayStr ? '1' : '0.4';
+
+                    // Show cost change percentage vs previous day
+                    let changeText = '';
+                    if (idx > 0) {
+                        const prevDay = days[idx - 1];
+                        const prevCost = data.history[prevDay].cost;
+                        if (prevCost > 0) {
+                            const pct = ((stats.cost - prevCost) / prevCost * 100).toFixed(0);
+                            changeText = pct >= 0 ? '+' + pct + '%' : pct + '%';
+                        }
+                    }
+
                     bar.onclick = () => {
                         Array.from(chart.children).forEach(c => c.style.opacity = '0.4');
                         bar.style.opacity = '1';
@@ -556,8 +611,20 @@ async function fetchTokens() {
                         detail.style.display = 'block';
                         document.getElementById('detail-date').innerText = day;
                         document.getElementById('detail-cost').innerText = '$' + stats.cost.toFixed(4);
-                        document.getElementById('detail-input').innerText = (stats.input / 1000).toFixed(1) + 'k';
-                        document.getElementById('detail-output').innerText = (stats.output / 1000).toFixed(1) + 'k';
+                        document.getElementById('detail-input').innerText = ((stats.input || 0) / 1000).toFixed(1) + 'k';
+                        document.getElementById('detail-output').innerText = ((stats.output || 0) / 1000).toFixed(1) + 'k';
+                        document.getElementById('detail-cache-read').innerText = ((stats.cacheRead || 0) / 1000).toFixed(1) + 'k';
+                        document.getElementById('detail-cache-write').innerText = ((stats.cacheWrite || 0) / 1000).toFixed(1) + 'k';
+
+                        // Show change percentage
+                        const changeEl = document.getElementById('detail-change');
+                        if (changeEl && changeText) {
+                            changeEl.innerText = changeText;
+                            changeEl.style.color = changeText.startsWith('+') ? 'var(--danger)' : 'var(--success)';
+                            changeEl.style.display = 'inline';
+                        } else if (changeEl) {
+                            changeEl.style.display = 'none';
+                        }
 
                         // Auto Scroll to Detail (Delayed for render)
                         setTimeout(() => {
@@ -571,113 +638,8 @@ async function fetchTokens() {
                 });
             }
         }
-    } catch (e) { }
+    } catch (e) { console.warn('[Tokens] Fetch failed:', e.message); }
 }
-
-// --- INIT ---
-if (window.location.hostname.endsWith('trycloudflare.com')) {
-    document.getElementById('quick-tunnel-alert').style.display = 'block';
-}
-
-fetchHistory();
-fetchStatus();
-checkUpdate(); // Check on load
-
-setInterval(fetchStatus, 5000);
-
-/* Tab Swipe Logic */
-let touchStartX = 0;
-let touchEndX = 0;
-
-document.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-}, false);
-
-document.addEventListener('touchend', e => {
-    touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-}, false);
-
-function handleSwipe() {
-    if (currentTab !== 'memory') return;
-    const threshold = 50;
-    if (touchEndX < touchStartX - threshold) navMemory(1); // Swipe Left -> Next Day
-    if (touchEndX > touchStartX + threshold) navMemory(-1); // Swipe Right -> Prev Day
-}
-
-function toggleLegend(show) {
-    const modal = document.getElementById('legend-modal');
-    if (show) modal.classList.add('active');
-    else modal.classList.remove('active');
-}
-
-function showTokenHelp() {
-    toggleTokenHelp(true);
-}
-
-function toggleTokenHelp(show) {
-    const modal = document.getElementById('token-modal');
-    if (show) modal.classList.add('active');
-    else modal.classList.remove('active');
-}
-
-function toggleUpdateHelp(show) {
-    const modal = document.getElementById('update-modal');
-    if (show) modal.classList.add('active');
-    else modal.classList.remove('active');
-}
-
-function showUpdateHelp() { toggleUpdateHelp(true); }
-
-function copyText(el, text) {
-    navigator.clipboard.writeText(text);
-    const icon = el.querySelector('.copy-icon');
-    const original = icon.innerText;
-    icon.innerText = '✅';
-    setTimeout(() => icon.innerText = original, 2000);
-}
-
-function skipVersion() {
-    const ver = document.getElementById('update-ver').innerText;
-    localStorage.setItem('clawbridge_skip_version', ver);
-    toggleUpdateHelp(false);
-    document.getElementById('update-alert').style.display = 'none';
-}
-
-async function checkUpdate() {
-    try {
-        // Get Local Version
-        const statusRes = await fetchAuth(API + '/status');
-        const statusData = await statusRes.json();
-        const currentVer = statusData.versions?.dashboard || '0.0.0';
-
-        // Get Remote Version (via Backend Proxy)
-        const checkRes = await fetchAuth(API + '/check_update');
-        const remoteData = await checkRes.json();
-        const remoteVer = remoteData.version;
-
-        if (remoteVer && remoteVer !== currentVer && semverCompare(remoteVer, currentVer) > 0) {
-            // Check skipped
-            if (localStorage.getItem('clawbridge_skip_version') === remoteVer) return;
-
-            document.getElementById('update-ver').innerText = 'v' + remoteVer;
-            document.getElementById('update-alert').style.display = 'block';
-        }
-    } catch (e) { }
-}
-
-// Semantic version comparison: returns >0 if a > b, <0 if a < b, 0 if equal
-function semverCompare(a, b) {
-    const pa = String(a).replace(/^v/, '').split('.').map(Number);
-    const pb = String(b).replace(/^v/, '').split('.').map(Number);
-    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-        const na = pa[i] || 0;
-        const nb = pb[i] || 0;
-        if (na !== nb) return na - nb;
-    }
-    return 0;
-}
-
 
 // === COST OPTIMIZER LOGIC ===
 const container = document.getElementById('flip-container');
@@ -693,6 +655,8 @@ let actionsApplied = 0;
 let totalActions = 0;
 let isFullyOptimized = false;
 let diagnosticsData = null;
+
+
 
 async function fetchDiagnostics() {
     try {
@@ -955,7 +919,7 @@ async function handleUndo(backupPath) {
             showToast(`✓ Restored ${result.restoredKeys.length} settings from ${result.backupFile}`);
             await renderHistoryList();
             // Refresh diagnostics
-            diagnosticsEngine_cache = null;
+            diagnosticsEngine_cache = null; // Assuming this is a global cache variable
             await fetchDiagnostics();
         } else {
             showToast('Undo failed: ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
@@ -1047,6 +1011,111 @@ async function handleOpt(btn, actionId) {
             showToast('Network error: ' + e.message);
         }
     }
+}
+
+// --- INIT ---
+if (window.location.hostname.endsWith('trycloudflare.com')) {
+    document.getElementById('quick-tunnel-alert').style.display = 'block';
+}
+
+fetchHistory();
+fetchStatus();
+checkUpdate(); // Check on load
+fetchDiagnostics(); // Load diagnostics on init
+
+setInterval(fetchStatus, 5000);
+
+/* Tab Swipe Logic */
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+}, false);
+
+document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+}, false);
+
+function handleSwipe() {
+    if (currentTab !== 'memory') return;
+    const threshold = 50;
+    if (touchEndX < touchStartX - threshold) navMemory(1); // Swipe Left -> Next Day
+    if (touchEndX > touchStartX + threshold) navMemory(-1); // Swipe Right -> Prev Day
+}
+
+function toggleLegend(show) {
+    const modal = document.getElementById('legend-modal');
+    if (show) modal.classList.add('active');
+    else modal.classList.remove('active');
+}
+
+function showTokenHelp() {
+    toggleTokenHelp(true);
+}
+
+function toggleTokenHelp(show) {
+    const modal = document.getElementById('token-modal');
+    if (show) modal.classList.add('active');
+    else modal.classList.remove('active');
+}
+
+function toggleUpdateHelp(show) {
+    const modal = document.getElementById('update-modal');
+    if (show) modal.classList.add('active');
+    else modal.classList.remove('active');
+}
+
+function showUpdateHelp() { toggleUpdateHelp(true); }
+
+function copyText(el, text) {
+    navigator.clipboard.writeText(text);
+    const icon = el.querySelector('.copy-icon');
+    const original = icon.innerText;
+    icon.innerText = '✅';
+    setTimeout(() => icon.innerText = original, 2000);
+}
+
+function skipVersion() {
+    const ver = document.getElementById('update-ver').innerText;
+    localStorage.setItem('clawbridge_skip_version', ver);
+    toggleUpdateHelp(false);
+    document.getElementById('update-alert').style.display = 'none';
+}
+
+async function checkUpdate() {
+    try {
+        // Get Local Version
+        const statusRes = await fetchAuth(API + '/status');
+        const statusData = await statusRes.json();
+        const currentVer = statusData.versions?.dashboard || '0.0.0';
+
+        // Get Remote Version (via Backend Proxy)
+        const checkRes = await fetchAuth(API + '/check_update');
+        const remoteData = await checkRes.json();
+        const remoteVer = remoteData.version;
+
+        if (remoteVer && remoteVer !== currentVer && semverCompare(remoteVer, currentVer) > 0) {
+            // Check skipped
+            if (localStorage.getItem('clawbridge_skip_version') === remoteVer) return;
+
+            document.getElementById('update-ver').innerText = 'v' + remoteVer;
+            document.getElementById('update-alert').style.display = 'block';
+        }
+    } catch (e) { console.warn('[Update] Check failed:', e.message); }
+}
+
+// Semantic version comparison: returns >0 if a > b, <0 if a < b, 0 if equal
+function semverCompare(a, b) {
+    const pa = String(a).replace(/^v/, '').split('.').map(Number);
+    const pb = String(b).replace(/^v/, '').split('.').map(Number);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        const na = pa[i] || 0;
+        const nb = pb[i] || 0;
+        if (na !== nb) return na - nb;
+    }
+    return 0;
 }
 
 function showToast(message) {

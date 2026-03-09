@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const readline = require('readline');
 const { resolveHomeDir } = require('../src/utils/paths');
 
 // --- Config ---
@@ -9,6 +10,9 @@ const CONFIG_DIR = path.join(__dirname, '../data/config');
 const PRICING_FILE = path.join(CONFIG_DIR, 'pricing.json');
 const OUTPUT_FILE = path.join(DATA_DIR, 'latest.json');
 const CACHE_FILE = path.join(DATA_DIR, 'cache.json');
+
+// Cache retention: prune messages older than this many days
+const CACHE_MAX_DAYS = 90;
 
 // --- Timezone ---
 const APP_TIMEZONE = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -26,9 +30,6 @@ if (fs.existsSync(PRICING_FILE)) {
 }
 
 // [P1 Fix] Model alias map: provider-native model names → pricing.json keys.
-// JSONL logs use provider-native names (e.g. 'gemini-3-pro-high') while
-// pricing.json uses OpenRouter-style keys (e.g. 'google/gemini-3-pro-preview').
-// This map bridges the gap for the fallback cost calculation.
 const MODEL_ALIAS_MAP = {
     // Google Antigravity / Gemini CLI
     'gemini-3-pro-high': 'google/gemini-3-pro-preview',
@@ -73,6 +74,11 @@ const MODEL_ALIAS_MAP = {
     'kimi-k2': 'moonshotai/kimi-k2',
 };
 
+// Sort model keys longest-first for most specific match
+const COST_MAP_KEYS = Object.keys(COST_MAP)
+    .filter(k => k !== 'default')
+    .sort((a, b) => b.length - a.length);
+
 function resolveModelPricingKey(model) {
     if (!model) return 'default';
     // 1. Direct alias lookup
@@ -82,16 +88,16 @@ function resolveModelPricingKey(model) {
     }
     // 2. Exact match in COST_MAP
     if (COST_MAP[model]) return model;
-    // 3. Partial match (original logic): pricing key is substring of model name
-    const partialKey = Object.keys(COST_MAP).find(
-        k => k !== 'default' && k !== 'updatedAt' && model.includes(k)
-    );
+    // 3. Partial match (optimized logic): pricing key is substring of model name, sorted by length
+    const partialKey = COST_MAP_KEYS.find(k => model.includes(k));
     if (partialKey) return partialKey;
+
     // 4. Reverse partial: model name is substring of pricing key
     const reverseKey = Object.keys(COST_MAP).find(
         k => k !== 'default' && k !== 'updatedAt' && k.includes(model)
     );
     if (reverseKey) return reverseKey;
+
     return 'default';
 }
 
@@ -175,7 +181,6 @@ function getDateFromEntry(entry) {
 // Returns an array of per-message result objects
 function processFile(filePath, startOffset = 0) {
     return new Promise((resolve, reject) => {
-        const readline = require('readline');
         const stream = fs.createReadStream(filePath, {
             encoding: 'utf8',
             start: startOffset
@@ -184,10 +189,23 @@ function processFile(filePath, startOffset = 0) {
 
         const messages = [];
         let bytesRead = startOffset;
+        let isFirstLine = startOffset > 0;
 
         rl.on('line', (line) => {
             // Track byte position (line + newline)
             bytesRead += Buffer.byteLength(line, 'utf8') + 1;
+
+            // Skip first partial line when resuming from offset mid-file
+            if (isFirstLine) {
+                isFirstLine = false;
+                // If starting from a non-zero offset, the first line may be partial JSON.
+                // Try to parse it; if it fails, skip it safely.
+                try {
+                    JSON.parse(line);
+                } catch (e) {
+                    return; // Skip partial line
+                }
+            }
 
             try {
                 const entry = JSON.parse(line);
@@ -253,6 +271,18 @@ function processFile(filePath, startOffset = 0) {
     });
 }
 
+// --- Prune old messages from cache ---
+function pruneCacheMessages(messages) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - CACHE_MAX_DAYS);
+    const cutoffStr = getLocalDate(cutoffDate);
+
+    return messages.filter(msg => {
+        if (msg.date === 'unknown') return false;
+        return msg.date >= cutoffStr; // String comparison works for YYYY-MM-DD
+    });
+}
+
 // --- Main Analysis ---
 async function analyze() {
     const allFiles = discoverSessionFiles();
@@ -264,7 +294,8 @@ async function analyze() {
             today: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 },
             total: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, models: {} },
             history: {},
-            topModels: []
+            topModels: [],
+            recentCosts: { last7dAvg: 0, last30dAvg: 0 },
         };
         if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
         fs.writeFileSync(OUTPUT_FILE, JSON.stringify(emptyData, null, 2));
@@ -292,15 +323,19 @@ async function analyze() {
             const cached = cache[cacheKey];
 
             if (cached && cached.fileSize === fileSize) {
-                // File unchanged — reuse cached messages
-                newCache[cacheKey] = cached;
+                // File unchanged — reuse cached messages (but prune old ones)
+                newCache[cacheKey] = {
+                    ...cached,
+                    messages: pruneCacheMessages(cached.messages || []),
+                };
             } else if (cached && fileSize > cached.fileSize && cached.byteOffset <= fileSize) {
                 // File grew — incremental parse from last offset
                 const { messages: newMsgs, bytesRead } = await processFile(filePath, cached.byteOffset);
+                const allMsgs = [...(cached.messages || []), ...newMsgs];
                 newCache[cacheKey] = {
                     fileSize,
                     byteOffset: bytesRead,
-                    messages: [...cached.messages, ...newMsgs]
+                    messages: pruneCacheMessages(allMsgs),
                 };
             } else {
                 // File is new, shrunk, or cache invalid — full parse
@@ -308,7 +343,7 @@ async function analyze() {
                 newCache[cacheKey] = {
                     fileSize,
                     byteOffset: bytesRead,
-                    messages
+                    messages: pruneCacheMessages(messages),
                 };
             }
         } catch (e) { console.warn('[Analyzer] Error processing file:', filePath, e.message); }
@@ -373,6 +408,17 @@ async function analyze() {
     const todayStr = getLocalDate();
     const todayUsage = history[todayStr] || { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 };
 
+    // Recent cost averages for smarter forecasting
+    const sortedDays = Object.keys(history).sort();
+    const last7days = sortedDays.slice(-7);
+    const last30days = sortedDays.slice(-30);
+    const sum7 = last7days.reduce((s, d) => s + history[d].cost, 0);
+    const sum30 = last30days.reduce((s, d) => s + history[d].cost, 0);
+    const recentCosts = {
+        last7dAvg: last7days.length > 0 ? sum7 / last7days.length : 0,
+        last30dAvg: last30days.length > 0 ? sum30 / last30days.length : 0,
+    };
+
     // Top models by cost
     const topModels = Object.entries(grandTotal.models)
         .map(([name, stats]) => ({ name, ...stats }))
@@ -385,7 +431,8 @@ async function analyze() {
         today: todayUsage,
         total: grandTotal,
         history,
-        topModels
+        topModels,
+        recentCosts,
     };
 
     // Write output
