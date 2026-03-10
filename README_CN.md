@@ -77,6 +77,8 @@ docker pull ghcr.io/dreamwing/clawbridge:latest
 docker run -d --name clawbridge \
   -p 3000:3000 \
   -e ACCESS_KEY=您的安全密钥 \
+  -e OPENCLAW_WORKSPACE=/openclaw/workspace \
+  -v ~/.openclaw/workspace:/openclaw/workspace:ro \
   -v ./data:/app/data \
   ghcr.io/dreamwing/clawbridge:latest
 ```

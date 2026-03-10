@@ -346,7 +346,8 @@ async function run() {
                                 formattedContributions.push(`${displayTitle} (#${c.num})`);
                             }
 
-                            const prefix = isChinese ? (c.isPR ? 'PR' : 'Issue') : (c.isPR ? 'PR' : 'Issue');
+                            const isPR = contributions.some(cont => cont.isPR);
+                            const prefix = isPR ? 'PR' : 'Issue';
                             const contributionText = isChinese
                                 ? `感谢其在 ${formattedContributions.join(', ')} 中的贡献与建议 (${prefix} #${contributions[0].num})。`
                                 : `for valuable contributions in ${formattedContributions.join(', ')} (${prefix} #${contributions[0].num}).`;
