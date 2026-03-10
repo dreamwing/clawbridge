@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-03-10
+
 ### Added
-- Docker image support: added `Dockerfile`, `.dockerignore`, and CI workflow for automatic image publishing to GitHub Container Registry (#24)
+- Docker image support: added `Dockerfile`, `.dockerignore`, and CI workflow for automatic image publishing to GitHub Container Registry (#24) (Thanks @ForceConstant for contribution and suggestions in Issue #24)
 - Docker usage instructions in README
+
+### Fixed
+- propagate --token and other CLI args from install.sh to setup.sh (PR #26)
+
 
 ## [1.1.2] - 2026-03-01
 

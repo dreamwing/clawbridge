@@ -103,6 +103,7 @@ Special thanks to our community for helping improve ClawBridge:
 - [@斯图超哥](https://x.com/StewartLi666) for feedback on Linux compatibility, IP detection stability, and Quick Tunnel refresh logic (#12).
 - [@zjy4fun](https://github.com/zjy4fun) for valuable contributions in workspace detection fix (PR #22).
 - [@chrisuhg](https://github.com/chrisuhg) for valuable contributions in resolving installation and auth loop issues (Issue #19).
+- [@ForceConstant](https://github.com/ForceConstant) for valuable contributions in Feature Request: versioned docker images (#24) (Issue #24).
 
 ---
 *MIT License. Built for the OpenClaw Community.*

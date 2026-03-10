@@ -4,15 +4,14 @@
 
 ## [Unreleased]
 
-## [1.1.2] - 2026-03-01
-
-### 修复
-- 解决安装时的 wget 错误、授权重定向循环以及网关 PID 检测问题 (PR #21) (感谢 @chrisuhg 贡献和建议 Issue #19)
-- 解决本地和 VPN HTTP 访问时的令牌验证循环问题 (PR #21)
-- 自动检测时优先选择实际工作区而非状态目录 (PR #22) (感谢 @zjy4fun 贡献和建议 PR #22)
+## [1.1.3] - 2026-03-10
 
 ### 新增
-- 发布脚本支持自动鸣谢 PR 作者和 Issue 提出者，并支持自动生成变更日志。
+ - Docker 镜像支持：添加了 `Dockerfile`、`.dockerignore` 和 CI 工作流程，用于自动将镜像发布到 GitHub 容器注册表 (#24)（感谢 @ForceConstant 在问题 #24 中的贡献和建议）
+ - README 中的 Docker 使用说明
+
+ ### 修复
+ - 将 --token 和其他 CLI 参数从 install.sh 传播到 setup.sh (PR #26)
 
 ## [1.1.1] - 2026-02-26
 

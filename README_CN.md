@@ -100,6 +100,7 @@ docker run -d --name clawbridge \
 - [@斯图超哥](https://x.com/StewartLi666) 提供关于 Linux 兼容性、IP 检测稳定性以及快速隧道刷新逻辑的反馈 (#12)。
 - [@zjy4fun](https://github.com/zjy4fun) 感谢其在 修复工作区检测问题 (PR #22) 中的贡献与建议。
 - [@chrisuhg](https://github.com/chrisuhg) 感谢其在 解决安装与授权重定向死循环 (Issue #19) 中的贡献与建议。
+- [@ForceConstant](https://github.com/ForceConstant) 感谢其在 功能请求：版本化的 docker 镜像 (#24) 中的贡献与建议 (Issue #24)。
 
 ---
 *MIT License. Built for the OpenClaw Community.*
