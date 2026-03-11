@@ -664,9 +664,10 @@ async function fetchDiagnostics() {
         diagnosticsData = await res.json();
         // Normalize field name (backend sends totalMonthlySavings)
         diagnosticsData.monthlySavings = diagnosticsData.totalMonthlySavings || 0;
+        diagnosticsData.advisorySavings = diagnosticsData.advisoryMonthlySavings || 0;
 
         const actions = diagnosticsData.actions || [];
-        totalActions = actions.length;
+        totalActions = actions.filter(a => a.type !== 'advisory').length;
 
         if (diagnosticsData.noData) {
             trigger.style.display = 'flex';
@@ -678,7 +679,10 @@ async function fetchDiagnostics() {
             trigger.style.display = 'flex';
             trigger.classList.remove('all-done');
             if (diagnosticsData.monthlySavings > 0) {
-                triggerText.innerHTML = `<strong>${totalActions} action${totalActions > 1 ? 's' : ''}</strong> available. Tap to save <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.`;
+                const advisoryNote = diagnosticsData.advisorySavings > 0
+                    ? ` <span class="opt-advisory-note">+ manual ~$${diagnosticsData.advisorySavings.toFixed(2)}/mo</span>`
+                    : '';
+                triggerText.innerHTML = `<strong>${totalActions} action${totalActions > 1 ? 's' : ''}</strong> available. Tap to save <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.${advisoryNote}`;
             } else {
                 triggerText.innerHTML = `<strong>${totalActions} action${totalActions > 1 ? 's' : ''}</strong> found. Tap to review & protect.`;
             }
@@ -723,14 +727,14 @@ function renderOptimizerList() {
         if (meta.idleSkills && meta.idleSkills.length > 0) {
             html += '<div class="skill-group"><span class="skill-group-label idle">Suggest Removal (' + meta.idleSkills.length + ')</span>';
             meta.idleSkills.forEach(s => {
-                html += '<span class="skill-badge idle">' + escapeHtml(s.name) + ' <small>' + s.daysSince + 'd</small></span>';
+                html += `<label class="skill-badge idle"><input type="checkbox" class="skill-checkbox" checked data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small></label>`;
             });
             html += '</div>';
         }
         if (meta.quietSkills && meta.quietSkills.length > 0) {
             html += '<div class="skill-group"><span class="skill-group-label quiet">Review Usage (' + meta.quietSkills.length + ')</span>';
             meta.quietSkills.forEach(s => {
-                html += '<span class="skill-badge quiet">' + escapeHtml(s.name) + ' <small>' + s.daysSince + 'd</small></span>';
+                html += `<label class="skill-badge quiet"><input type="checkbox" class="skill-checkbox" data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small></label>`;
             });
             html += '</div>';
         }
@@ -813,7 +817,10 @@ function renderOptimizerList() {
                         ${optionsHtml}
                         ${detailsHtml}
                         <div class="opt-action-line" style="justify-content: flex-end;">
-                            <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>
+                            ${act.type === 'advisory'
+                ? '<span class="btn-advisory">ℹ️ Manual Action</span>'
+                : `<button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>`
+            }
                         </div>
                     </div>`;
 
@@ -839,6 +846,35 @@ function renderOptimizerList() {
                 const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
                 currentMeta.interval = defaultRadio.value;
                 itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
+            }
+        }
+
+        // Wire up A04 skill checkboxes: select all idle by default, Apply sends selectedSkills
+        if (act.actionId === 'A04' && act._meta) {
+            const skillCheckboxes = itemEl.querySelectorAll('.skill-checkbox');
+            const applyBtn = itemEl.querySelector('.btn-mini');
+            if (applyBtn) {
+                const origOnclick = applyBtn.getAttribute('onclick');
+                applyBtn.removeAttribute('onclick');
+                applyBtn.addEventListener('click', () => {
+                    // Collect selected skills
+                    const selected = [];
+                    skillCheckboxes.forEach(cb => {
+                        if (cb.checked) {
+                            selected.push(cb.dataset.skillName);
+                        }
+                    });
+                    if (selected.length === 0) {
+                        showToast('Please select at least one skill to remove');
+                        return;
+                    }
+                    // Update meta with selection
+                    const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
+                    currentMeta.selectedSkillNames = selected;
+                    itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
+                    // Call original handler
+                    handleOpt(applyBtn, 'A04');
+                });
             }
         }
 
@@ -879,7 +915,7 @@ async function renderHistoryList() {
 
             // Add undo button to the most recent non-UNDO entry that has a backup
             let undoHtml = '';
-            if (i === 0 && hist.backupPath && hist.actionId !== 'UNDO') {
+            if (i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO') {
                 undoHtml = `<button class="btn-undo" onclick="handleUndo('${escapeHtml(hist.backupPath)}')">Undo</button>`;
             }
 

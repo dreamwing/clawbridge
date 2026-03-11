@@ -5,6 +5,15 @@ const fs = require('fs').promises;
 
 jest.mock('../src/services/openclaw_config');
 jest.mock('../src/services/pricing');
+jest.mock('../src/services/openclaw', () => ({
+    WORKSPACE_DIR: '/tmp/mock-workspace',
+    findWorkspace: jest.fn(() => '/tmp/mock-workspace'),
+    getOpenClawCommand: jest.fn(() => 'openclaw')
+}));
+jest.mock('../src/utils/paths', () => ({
+    resolveHomeDir: jest.fn(() => '/tmp/mock-home'),
+    resolveConfigDir: jest.fn(() => '/tmp/mock-home/.openclaw')
+}));
 jest.mock('fs', () => ({
     promises: {
         readFile: jest.fn(),
@@ -219,6 +228,8 @@ describe('DiagnosticsEngine', () => {
         expect(action).toBeDefined();
         expect(action.title).toBe('Reduce Session Resets');
         expect(action.savings).toBeGreaterThan(0);
+        expect(action.type).toBe('advisory');
+        expect(result.advisoryMonthlySavings).toBeGreaterThan(0);
     });
 
     test('D04: Should flag idle skills', async () => {

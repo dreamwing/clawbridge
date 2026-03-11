@@ -1560,3 +1560,29 @@
             opacity: 0.6;
             font-size: 9px;
         }
+
+        .skill-badge label,
+        label.skill-badge {
+            cursor: pointer;
+        }
+
+        .skill-checkbox {
+            accent-color: var(--opt-glow, #a855f7);
+            margin: 0 2px 0 0;
+        }
+
+        .btn-advisory {
+            font-size: 11px;
+            color: var(--text-dim);
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .opt-advisory-note {
+            display: inline-block;
+            margin-left: 6px;
+            font-size: 11px;
+            color: var(--text-dim);
+        }

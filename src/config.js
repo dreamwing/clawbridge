@@ -7,7 +7,7 @@ const path = require('path');
 // --- Environment ---
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.ACCESS_KEY;
-if (!SECRET_KEY) {
+if (!SECRET_KEY && !process.env.JEST_WORKER_ID) {
     console.error('❌ ACCESS_KEY not set in .env! Please set a secure key. Exiting.');
     process.exit(1);
 }

@@ -1,6 +1,7 @@
 const configManager = require('./openclaw_config');
 const pricingService = require('./pricing');
-const config = require('../config');
+const { WORKSPACE_DIR } = require('./openclaw');
+const { resolveConfigDir } = require('../utils/paths');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -85,6 +86,7 @@ class DiagnosticsEngine {
 
         const results = [];
         let totalMonthlySavings = 0;
+        let advisoryMonthlySavings = 0;
 
         // Load threshold config (custom or defaults)
         const thresholds = await this._getThresholds();
@@ -170,8 +172,7 @@ class DiagnosticsEngine {
         let hbEvery = defaults.heartbeat?.every;
         let heartbeatTasksText = '';
         try {
-            const homeDir = config.resolveHomeDir();
-            const hbPath = path.join(homeDir, '.openclaw', 'workspace', 'HEARTBEAT.md');
+            const hbPath = path.join(WORKSPACE_DIR, 'HEARTBEAT.md');
             const fileContent = await fs.readFile(hbPath, 'utf8');
             heartbeatTasksText = fileContent.split('\n')
                 .filter(l => l.trim() && !l.trim().startsWith('#'))
@@ -266,7 +267,7 @@ class DiagnosticsEngine {
                 const contextWasteSavings = wastedContextTokens * inputCostPerToken * monthlyMultiplier * 0.5; // 50% reduction if users continue sessions
 
                 if (contextWasteSavings > 0.1) {
-                    totalMonthlySavings += contextWasteSavings;
+                    advisoryMonthlySavings += contextWasteSavings;
                     results.push({
                         actionId: 'A03',
                         title: 'Reduce Session Resets',
@@ -280,7 +281,8 @@ class DiagnosticsEngine {
                         codeTag: 'session.resumeDefault: true',
                         calcDetail: `${totalSessions} sessions × 1K prompt tokens × $${(inputCostPerToken * 1000000).toFixed(2)}/M × 50% reduction × ${monthlyMultiplier.toFixed(1)}x`,
                         configDiff: { key: 'session.resumeDefault', from: 'false', to: 'true' },
-                        level: 'medium'
+                        level: 'medium',
+                        type: 'advisory'
                     });
                 }
             }
@@ -293,7 +295,7 @@ class DiagnosticsEngine {
         // Managed dir: CONFIG_DIR/skills = (OPENCLAW_STATE_DIR || ~/.openclaw)/skills
         // A valid skill folder must contain SKILL.md.
         try {
-            const configDir = config.resolveConfigDir();
+            const configDir = resolveConfigDir();
             const managedSkillsDir = path.join(configDir, 'skills');
             const entries = await fs.readdir(managedSkillsDir, { withFileTypes: true });
 
@@ -495,6 +497,7 @@ class DiagnosticsEngine {
         const currentMonthlyCost = totalCost * monthlyMultiplier;
         const result = {
             totalMonthlySavings,
+            advisoryMonthlySavings,
             currentMonthlyCost,
             cacheHitRate,
             actions: results

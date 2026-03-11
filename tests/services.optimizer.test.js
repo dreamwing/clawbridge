@@ -7,10 +7,22 @@ jest.mock('../src/services/openclaw_config');
 jest.mock('../src/services/diagnostics', () => ({
     invalidateCache: jest.fn()
 }));
+jest.mock('../src/services/openclaw', () => ({
+    WORKSPACE_DIR: '/tmp/mock-workspace',
+    findWorkspace: jest.fn(() => '/tmp/mock-workspace'),
+    getOpenClawCommand: jest.fn(() => 'openclaw')
+}));
+jest.mock('../src/utils/paths', () => ({
+    resolveHomeDir: jest.fn(() => '/tmp/mock-home'),
+    resolveConfigDir: jest.fn(() => '/tmp/mock-home/.openclaw')
+}));
 jest.mock('fs', () => ({
     promises: {
         appendFile: jest.fn().mockResolvedValue(undefined),
         mkdir: jest.fn().mockResolvedValue(undefined),
+        readdir: jest.fn().mockResolvedValue([]),
+        access: jest.fn().mockResolvedValue(undefined),
+        rename: jest.fn().mockResolvedValue(undefined),
         readFile: jest.fn(),
         writeFile: jest.fn().mockResolvedValue(undefined)
     }
@@ -184,6 +196,23 @@ CORRUPTED LINE
         const loggedCall = fs.appendFile.mock.calls.find(c => c[0].includes('optimizations.jsonl'));
         expect(loggedCall[1]).toContain('Restored 6 keys');
         expect(loggedCall[1]).toContain('"actionId":"UNDO"');
+    });
+
+    test('A04: removes only selected managed skills by name', async () => {
+        fs.readdir.mockResolvedValue([
+            { name: 'idle-skill', isDirectory: () => true },
+            { name: 'quiet-skill', isDirectory: () => true }
+        ]);
+
+        const result = await optimizerService.applyAction('A04', 12, {
+            selectedSkillNames: ['idle-skill']
+        });
+
+        expect(result.success).toBe(true);
+        expect(fs.rename).toHaveBeenCalledWith(
+            expect.stringContaining('/tmp/mock-home/.openclaw/skills/idle-skill'),
+            expect.stringContaining('/data/backups/skills/idle-skill_')
+        );
     });
 
     test('restoreBackup throws error if no backup path provided', async () => {

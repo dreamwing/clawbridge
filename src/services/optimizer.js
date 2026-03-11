@@ -1,5 +1,7 @@
 const configManager = require('./openclaw_config');
 const diagnosticsEngine = require('./diagnostics');
+const { WORKSPACE_DIR } = require('./openclaw');
+const { resolveConfigDir } = require('../utils/paths');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -17,13 +19,14 @@ class OptimizerService {
      * Backup current config before making changes (PRD requirement).
      * Saves a timestamped snapshot of the current config to data/backups/.
      */
-    async backupConfig() {
+    async backupConfig(extra) {
         try {
             await fs.mkdir(this.backupDir, { recursive: true });
             const config = await configManager.getRawConfig();
             const ts = new Date().toISOString().replace(/[:.]/g, '-');
             const backupPath = path.join(this.backupDir, `config_backup_${ts}.json`);
-            await fs.writeFile(backupPath, JSON.stringify(config, null, 2), 'utf8');
+            const payload = extra ? { ...config, ...extra } : config;
+            await fs.writeFile(backupPath, JSON.stringify(payload, null, 2), 'utf8');
             return backupPath;
         } catch (err) {
             console.warn('Config backup failed (non-blocking):', err.message);
@@ -31,7 +34,7 @@ class OptimizerService {
         }
     }
 
-    async logOptimization({ actionId, title, savings, configChanged, backupPath, preOptCostSnapshot }) {
+    async logOptimization({ actionId, title, savings, configChanged, backupPath, preOptCostSnapshot, undoable }) {
         await this.ensureLogDir();
         const entry = {
             timestamp: new Date().toISOString(),
@@ -40,7 +43,8 @@ class OptimizerService {
             savings: typeof savings === 'number' ? parseFloat(savings.toFixed(2)) : 0,
             configChanged,
             backupPath: backupPath || null,
-            preOptCostSnapshot: typeof preOptCostSnapshot === 'number' ? parseFloat(preOptCostSnapshot.toFixed(2)) : null
+            preOptCostSnapshot: typeof preOptCostSnapshot === 'number' ? parseFloat(preOptCostSnapshot.toFixed(2)) : null,
+            undoable: typeof undoable === 'boolean' ? undoable : false
         };
         await fs.appendFile(this.logPath, JSON.stringify(entry) + '\n', 'utf8');
     }
@@ -85,27 +89,54 @@ class OptimizerService {
             }
         }
 
+        // Restore file backup if present (e.g., SOUL.md from A09)
+        let fileRestored = null;
+        if (backupData._fileBackupPath) {
+            try {
+                const soulPath = path.join(WORKSPACE_DIR, 'SOUL.md');
+                const fileContent = await fs.readFile(backupData._fileBackupPath, 'utf8');
+                await fs.writeFile(soulPath, fileContent, 'utf8');
+                fileRestored = 'SOUL.md';
+            } catch (e) {
+                console.warn('File restore failed:', e.message);
+            }
+        }
+
+        // Restore moved skills if present (A04)
+        let skillsRestored = 0;
+        if (backupData._movedSkills && Array.isArray(backupData._movedSkills)) {
+            for (const skill of backupData._movedSkills) {
+                try {
+                    await fs.rename(skill.backup, skill.original);
+                    skillsRestored++;
+                } catch (e) {
+                    console.warn(`Failed to restore skill ${skill.original}:`, e.message);
+                }
+            }
+        }
+
         // Log the undo action
         await this.logOptimization({
             actionId: 'UNDO',
             title: 'Restored from backup',
             savings: 0,
-            configChanged: `Restored ${restored.length} keys from ${path.basename(backupPath)}`
+            configChanged: `Restored ${restored.length} keys${fileRestored ? ' + ' + fileRestored : ''}${skillsRestored ? ` + ${skillsRestored} skills` : ''} from ${path.basename(backupPath)}`,
+            undoable: false
         });
 
         diagnosticsEngine.invalidateCache();
-        return { success: true, restoredKeys: restored, backupFile: path.basename(backupPath) };
+        return { success: true, restoredKeys: restored, fileRestored, backupFile: path.basename(backupPath) };
     }
 
     async applyAction(actionId, dynamicSavings, meta) {
         // Validate actionId against whitelist
-        const VALID_ACTIONS = ['A01', 'A02', 'A05', 'A06', 'A07', 'A09'];
+        const VALID_ACTIONS = ['A01', 'A02', 'A04', 'A05', 'A06', 'A07', 'A09'];
         if (!VALID_ACTIONS.includes(actionId)) {
             throw new Error(`Unknown action: ${actionId}. Valid actions: ${VALID_ACTIONS.join(', ')}`);
         }
 
         // Backup config before any modification (PRD requirement)
-        const backupPath = await this.backupConfig();
+        let backupPath = await this.backupConfig();
 
         let result = false;
         let details = {};
@@ -134,6 +165,74 @@ class OptimizerService {
                 };
                 break;
             }
+            case 'A04': {
+                // Move selected managed skill folders to backup directory.
+                const skillBackupDir = path.join(this.backupDir, 'skills');
+                await fs.mkdir(skillBackupDir, { recursive: true });
+                const selectedSkillNames = (meta && meta.selectedSkillNames) || [];
+                if (selectedSkillNames.length === 0) {
+                    throw new Error('No skills selected for removal');
+                }
+
+                const managedSkillsDir = path.join(resolveConfigDir(), 'skills');
+                const allowedSkillNames = new Set();
+                const entries = await fs.readdir(managedSkillsDir, { withFileTypes: true });
+                for (const entry of entries) {
+                    if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+                    try {
+                        await fs.access(path.join(managedSkillsDir, entry.name, 'SKILL.md'));
+                        allowedSkillNames.add(entry.name);
+                    } catch (_e) {
+                        // Ignore invalid skill folders.
+                    }
+                }
+
+                const moved = [];
+                const movedSkillsData = [];
+
+                for (const rawName of selectedSkillNames) {
+                    const skillName = typeof rawName === 'string' ? rawName.trim() : '';
+                    if (!skillName || skillName !== path.basename(skillName) || skillName.includes(path.sep)) {
+                        console.warn(`Skipping invalid skill name: ${rawName}`);
+                        continue;
+                    }
+                    if (!allowedSkillNames.has(skillName)) {
+                        console.warn(`Skipping unknown skill: ${skillName}`);
+                        continue;
+                    }
+
+                    const resolved = path.resolve(managedSkillsDir, skillName);
+                    const managedRoot = path.resolve(managedSkillsDir) + path.sep;
+                    if (!resolved.startsWith(managedRoot)) {
+                        console.warn(`Skipping suspicious resolved path: ${resolved}`);
+                        continue;
+                    }
+
+                    const destPath = path.join(skillBackupDir, `${skillName}_${Date.now()}`);
+                    try {
+                        await fs.rename(resolved, destPath);
+                        moved.push(skillName);
+                        movedSkillsData.push({ original: resolved, backup: destPath });
+                    } catch (e) {
+                        console.warn(`Failed to move skill ${skillName}:`, e.message);
+                    }
+                }
+
+                if (moved.length === 0) {
+                    throw new Error('Failed to move any skills');
+                }
+
+                // Inject the moved skills into the backup JSON for Undo support
+                backupPath = await this.backupConfig({ _movedSkills: movedSkillsData });
+
+                result = { success: true };
+                details = {
+                    title: `Removed ${moved.length} Idle Skills`,
+                    savings: dynamicSavings || 0,
+                    configChanged: `Moved to backup: ${moved.join(', ')}`
+                };
+                break;
+            }
             case 'A05':
                 result = await configManager.setConfig('agents.defaults.thinkingDefault', 'minimal');
                 details = {
@@ -159,14 +258,24 @@ class OptimizerService {
                     configChanged: 'compaction.mode: safeguard'
                 };
                 break;
-            case 'A09':
+            case 'A09': {
+                const soulPath = path.join(WORKSPACE_DIR, 'SOUL.md');
                 try {
-                    const { resolveHomeDir } = require('../utils/paths');
-                    const soulPath = path.join(resolveHomeDir(), '.openclaw', 'workspace', 'SOUL.md');
+                    // Backup SOUL.md before modifying
+                    const originalContent = await fs.readFile(soulPath, 'utf8');
+                    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+                    const soulBackupPath = path.join(this.backupDir, `soul_backup_${ts}.md`);
+                    await fs.mkdir(this.backupDir, { recursive: true });
+                    await fs.writeFile(soulBackupPath, originalContent, 'utf8');
+
+                    // We must regenerate the backup JSON to inject _fileBackupPath for the Undo system
+                    backupPath = await this.backupConfig({ _fileBackupPath: soulBackupPath });
+
+                    // Append concise instruction
                     await fs.appendFile(soulPath, '\n\nBe concise.\n', 'utf8');
                     result = { success: true };
                 } catch (e) {
-                    console.error('Failed to append to SOUL.md', e);
+                    console.error('Failed to modify SOUL.md', e);
                     result = { success: false, error: e.message };
                 }
                 details = {
@@ -175,6 +284,7 @@ class OptimizerService {
                     configChanged: 'SOUL.md += "Be concise"'
                 };
                 break;
+            }
         }
 
         if (result && result.success !== false) {
@@ -183,7 +293,8 @@ class OptimizerService {
                 title: details.title,
                 savings: details.savings,
                 configChanged: details.configChanged,
-                backupPath
+                backupPath,
+                undoable: !!backupPath
             });
 
             // Invalidate diagnostics cache so next check reflects the change
