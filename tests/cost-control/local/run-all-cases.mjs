@@ -149,13 +149,17 @@ async function runCase(testCase, baseUrl, port) {
 
     for (const actionId of testCase.required.filter(id => actualIds.includes(id) && !['A03'].includes(id))) {
       const action = actions.find(item => item.actionId === actionId);
+      const payload = {
+        savings: action?.savings || 0
+      };
+      const meta = buildMeta(action);
+      if (meta) {
+        payload.meta = meta;
+      }
       const optimize = await fetchJson(`${baseUrl}/api/optimize/${actionId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          savings: action?.savings || 0,
-          meta: buildMeta(action)
-        })
+        body: JSON.stringify(payload)
       });
       applied.push({
         actionId,

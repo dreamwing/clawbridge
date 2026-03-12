@@ -126,6 +126,14 @@ describe('Cost Control API Integration Tests', () => {
         expect(response.body.success).toBe(true);
     });
 
+    test('POST /api/optimize treats null meta as absent', async () => {
+        const response = await request(app)
+            .post('/api/optimize/A05')
+            .send({ savings: 5, meta: null });
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+    });
+
     test('POST /api/optimize with invalid actionId returns 500', async () => {
         const response = await request(app)
             .post('/api/optimize/A99')

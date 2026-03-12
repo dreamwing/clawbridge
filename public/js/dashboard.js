@@ -1016,13 +1016,17 @@ async function handleOpt(btn, actionId) {
 
         try {
             const savingsVal = parseFloat(item.getAttribute('data-savings')) || 0;
-            let meta = null;
+            let meta;
             try { meta = JSON.parse(item.getAttribute('data-meta')); } catch (_e) { /* no meta */ }
+            const payload = { savings: savingsVal };
+            if (meta && typeof meta === 'object' && !Array.isArray(meta)) {
+                payload.meta = meta;
+            }
 
             const res = await fetchAuth(API + '/optimize/' + actionId, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ savings: savingsVal, meta })
+                body: JSON.stringify(payload)
             });
             if (res.ok) {
                 btn.classList.remove('applying');
