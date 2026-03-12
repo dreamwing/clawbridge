@@ -88,6 +88,7 @@ node tests/cost-control/local/run-all-cases.mjs
 
 - 总控脚本会为每个 case 自己启动一个 ClawBridge 进程。
 - 启动前会自动注入 sandbox 环境变量。
+- 对这些由验收脚本拉起的 ClawBridge 进程，会关闭启动时和定时 analyzer，避免 fixture 被覆盖。
 - 会从 `3399` 开始探测空闲端口，并把实际使用的 base URL 写进报告。
 
 ## 推荐流程

@@ -18,6 +18,7 @@ const { checkSystemStatus } = require('./src/services/monitor');
 const { runAnalyzer, setWss } = require('./src/services/analyzer');
 const { WORKSPACE_DIR } = require('./src/services/openclaw');
 const tunnel = require('./tunnel');
+const disableAnalyzer = process.env.COST_CONTROL_SKIP_ANALYZER === 'true';
 
 // --- Create Server ---
 const server = createServer(app);
@@ -31,8 +32,10 @@ setWss(wss);
 setInterval(() => {
     checkSystemStatus(() => { });
 }, 3000);
-runAnalyzer();
-setInterval(runAnalyzer, 60 * 60 * 1000);
+if (!disableAnalyzer) {
+    runAnalyzer();
+    setInterval(runAnalyzer, 60 * 60 * 1000);
+}
 
 // --- Startup ---
 async function main() {

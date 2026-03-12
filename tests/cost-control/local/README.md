@@ -88,6 +88,7 @@ Notes:
 
 - The controller starts its own ClawBridge process for each case.
 - It automatically injects the sandbox env before startup.
+- It disables startup and hourly analyzer runs for those harness-managed ClawBridge processes so fixtures are not overwritten.
 - It probes for a free port starting from `3399` and records the actual base URL in the report.
 
 ## Suggested flow

@@ -96,6 +96,7 @@ function startServer(caseId, port) {
       PORT: String(port),
       OPENCLAW_STATE_DIR: sandboxDir,
       OPENCLAW_WORKSPACE: sandboxWorkspace,
+      COST_CONTROL_SKIP_ANALYZER: 'true',
       ENABLE_EMBEDDED_TUNNEL: 'false'
     },
     stdio: ['ignore', 'pipe', 'pipe']

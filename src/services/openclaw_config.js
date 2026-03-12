@@ -5,6 +5,7 @@ const fs = require('fs').promises;
 const { resolveConfigDir } = require('../utils/paths');
 
 const execFileAsync = util.promisify(execFile);
+const CONFIG_GET_TIMEOUT_MS = 1500;
 
 // Helper to determine the openclaw binary path or just use 'openclaw'
 const OPENCLAW_BIN = 'openclaw';
@@ -17,7 +18,8 @@ class OpenClawConfig {
     async getRawConfig() {
         try {
             const { stdout } = await execFileAsync(OPENCLAW_BIN, ['config', 'get', 'agents', '--json'], {
-                env: { ...process.env, NO_COLOR: '1' } // Ensure pure JSON
+                env: { ...process.env, NO_COLOR: '1' }, // Ensure pure JSON
+                timeout: CONFIG_GET_TIMEOUT_MS
             });
             return JSON.parse(stdout);
         } catch (err) {
