@@ -65,6 +65,19 @@ describe('OptimizerService', () => {
         expect(configManager.setConfig).toHaveBeenCalledWith('agents.defaults.model', 'claude-3-5-sonnet-20241022');
     });
 
+    test('A01: Uses model.primary when config stores model as object', async () => {
+        configManager.getRawConfig.mockResolvedValue({
+            defaults: {
+                model: { primary: 'openai/gpt-5-pro' }
+            }
+        });
+
+        const result = await optimizerService.applyAction('A01', 50, { alternative: 'openai/gpt-5' });
+
+        expect(result.success).toBe(true);
+        expect(configManager.setConfig).toHaveBeenCalledWith('agents.defaults.model.primary', 'openai/gpt-5');
+    });
+
     test('A06: Enable Prompt Caching', async () => {
         const result = await optimizerService.applyAction('A06');
 
@@ -196,6 +209,22 @@ CORRUPTED LINE
         const loggedCall = fs.appendFile.mock.calls.find(c => c[0].includes('optimizations.jsonl'));
         expect(loggedCall[1]).toContain('Restored 6 keys');
         expect(loggedCall[1]).toContain('"actionId":"UNDO"');
+    });
+
+    test('restoreBackup restores object-style model via model.primary', async () => {
+        const mockBackup = {
+            defaults: {
+                model: { primary: 'openai/gpt-5-pro', fallbacks: ['openai/gpt-5'] },
+                heartbeat: { every: '12h' }
+            }
+        };
+        fs.readFile.mockResolvedValue(JSON.stringify(mockBackup));
+
+        const result = await optimizerService.restoreBackup('/fake/backup/path.json');
+
+        expect(result.success).toBe(true);
+        expect(configManager.setConfig).toHaveBeenCalledWith('agents.defaults.model.primary', 'openai/gpt-5-pro');
+        expect(configManager.setConfig).toHaveBeenCalledWith('agents.defaults.heartbeat.every', '12h');
     });
 
     test('A04: removes only selected managed skills by name', async () => {

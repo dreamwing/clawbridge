@@ -94,6 +94,9 @@ class DiagnosticsEngine {
         // 1. Get current config
         const agentsConfig = await configManager.getRawConfig();
         const defaults = agentsConfig.defaults || {};
+        const modelConfigKey = (defaults.model && typeof defaults.model === 'object' && !Array.isArray(defaults.model))
+            ? 'agents.defaults.model.primary'
+            : 'agents.defaults.model';
 
         // 2. Get usage stats
         const rawStats = await this.getStats();
@@ -157,7 +160,7 @@ class DiagnosticsEngine {
                     savingsStr: `-$${estimatedSavings.toFixed(2)}/mo`,
                     codeTag: `model: "${info.alternative}"`,
                     calcDetail: `${modelId}: $${cost.toFixed(2)} (${((cost / totalCost) * 100).toFixed(0)}% of total) × ${info.savingsRatio} ratio × ${monthlyMultiplier.toFixed(1)}x monthly`,
-                    configDiff: { key: 'agents.defaults.model', from: modelId, to: info.alternative },
+                    configDiff: { key: modelConfigKey, from: modelId, to: info.alternative },
                     level: 'high',
                     _meta: { alternative: info.alternative }
                 });

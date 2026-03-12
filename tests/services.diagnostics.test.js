@@ -37,20 +37,31 @@ describe('DiagnosticsEngine', () => {
         // Setup default pricing mock so savings calculation works
         pricingService.getModelPrice.mockResolvedValue({ input: 5.0, output: 15.0 });
         pricingService.getReplacements.mockResolvedValue({
-            'claude-3-5-opus-20240229': { alternative: 'claude-3-5-sonnet-20241022', savingsRatio: 0.8 }
+            'claude-3-5-opus-20240229': { alternative: 'claude-3-5-sonnet-20241022', savingsRatio: 0.8 },
+            'openai/gpt-5-pro': { alternative: 'openai/gpt-5-mini', savingsRatio: 0.8 }
         });
     });
 
     test('D01: Should flag expensive models if >50% usage', async () => {
-        configManager.getRawConfig.mockResolvedValue({ defaults: {} });
+        configManager.getRawConfig.mockResolvedValue({
+            defaults: {
+                model: { primary: 'openai/gpt-5-pro' }
+            }
+        });
 
         const mockStats = {
             totals: { input: 1000, output: 100, cacheRead: 50 },
             cost: {
                 total: 100,
                 byModel: {
-                    'claude-3-5-opus-20240229': 60,
-                    'gpt-4o-mini': 40
+                    'openai/gpt-5-pro': 60,
+                    'openai/gpt-5-mini': 40
+                }
+            },
+            total: {
+                models: {
+                    'openai/gpt-5-pro': { input: 1000, output: 100, cacheRead: 50, cost: 60 },
+                    'openai/gpt-5-mini': { input: 1000, output: 100, cacheRead: 50, cost: 40 }
                 }
             }
         };
@@ -61,8 +72,9 @@ describe('DiagnosticsEngine', () => {
         const action = result.actions.find(a => a.actionId === 'A01');
         expect(action).toBeDefined();
         expect(action.title).toContain('Downgrade');
-        expect(action.codeTag).toContain('model: "claude-3-5-sonnet');
-        expect(action._meta.alternative).toBe('claude-3-5-sonnet-20241022');
+        expect(action.codeTag).toContain('model: "openai/gpt-5-mini"');
+        expect(action._meta.alternative).toBe('openai/gpt-5-mini');
+        expect(action.configDiff.key).toBe('agents.defaults.model.primary');
     });
 
     test('D02: Should flag heartbeat if not 0m and HEARTBEAT.md has tasks', async () => {

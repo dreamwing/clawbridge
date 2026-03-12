@@ -1,0 +1,87 @@
+{
+  "updatedAt": "2026-03-12T10:00:00.000Z",
+  "timezone": "Asia/Shanghai",
+  "today": {
+    "input": 2200000,
+    "output": 260000,
+    "cacheRead": 180000,
+    "cacheWrite": 0,
+    "cost": 38.25,
+    "sessions": 3
+  },
+  "total": {
+    "input": 8500000,
+    "output": 1100000,
+    "cacheRead": 620000,
+    "cacheWrite": 0,
+    "cost": 147.8,
+    "models": {
+      "openai/gpt-5-pro": {
+        "input": 7200000,
+        "output": 980000,
+        "cacheRead": 520000,
+        "cacheWrite": 0,
+        "cost": 132.4
+      },
+      "openai/gpt-5-mini": {
+        "input": 1300000,
+        "output": 120000,
+        "cacheRead": 100000,
+        "cacheWrite": 0,
+        "cost": 15.4
+      }
+    }
+  },
+  "history": {
+    "2026-03-09": {
+      "input": 2300000,
+      "output": 280000,
+      "cacheRead": 200000,
+      "cacheWrite": 0,
+      "cost": 40.9,
+      "sessions": 2
+    },
+    "2026-03-10": {
+      "input": 2100000,
+      "output": 260000,
+      "cacheRead": 150000,
+      "cacheWrite": 0,
+      "cost": 36.1,
+      "sessions": 2
+    },
+    "2026-03-11": {
+      "input": 1900000,
+      "output": 300000,
+      "cacheRead": 90000,
+      "cacheWrite": 0,
+      "cost": 32.55,
+      "sessions": 3
+    },
+    "2026-03-12": {
+      "input": 2200000,
+      "output": 260000,
+      "cacheRead": 180000,
+      "cacheWrite": 0,
+      "cost": 38.25,
+      "sessions": 3
+    }
+  },
+  "topModels": [
+    {
+      "name": "openai/gpt-5-pro",
+      "input": 7200000,
+      "output": 980000,
+      "cacheRead": 520000,
+      "cacheWrite": 0,
+      "cost": 132.4
+    },
+    {
+      "name": "openai/gpt-5-mini",
+      "input": 1300000,
+      "output": 120000,
+      "cacheRead": 100000,
+      "cacheWrite": 0,
+      "cost": 15.4
+    }
+  ]
+}

@@ -62,6 +62,20 @@ class OptimizerService {
         }
     }
 
+    _resolveModelConfigWrite(defaults, nextModel) {
+        const currentModel = defaults?.model;
+        if (currentModel && typeof currentModel === 'object' && !Array.isArray(currentModel)) {
+            return {
+                key: 'agents.defaults.model.primary',
+                value: nextModel
+            };
+        }
+        return {
+            key: 'agents.defaults.model',
+            value: nextModel
+        };
+    }
+
     /**
      * Restore configuration from a backup file.
      * Reads the backup JSON and re-applies each config key.
@@ -72,21 +86,28 @@ class OptimizerService {
         const defaults = backupData.defaults || {};
 
         // Restore key config values from backup
+        const modelRestore = defaults.model !== undefined
+            ? (() => {
+                const target = this._resolveModelConfigWrite(
+                    defaults,
+                    typeof defaults.model === 'string' ? defaults.model : defaults.model?.primary
+                );
+                return [[target.key, target.value]];
+            })()
+            : [];
         const restoreKeys = [
-            ['agents.defaults.model', defaults.model],
+            ...modelRestore,
             ['agents.defaults.heartbeat.every', defaults.heartbeat?.every],
             ['agents.defaults.thinkingDefault', defaults.thinkingDefault],
             ['agents.defaults.compaction.mode', defaults.compaction?.mode],
             ['agents.defaults.compaction.reserveTokens', defaults.compaction?.reserveTokens],
             ['agents.defaults.contextPruning.mode', defaults.contextPruning?.mode]
-        ];
+        ].filter(([, value]) => value !== undefined);
 
         const restored = [];
         for (const [key, value] of restoreKeys) {
-            if (value !== undefined) {
-                await configManager.setConfig(key, String(value));
-                restored.push(key);
-            }
+            await configManager.setConfig(key, String(value));
+            restored.push(key);
         }
 
         // Restore file backup if present (e.g., SOUL.md from A09)
@@ -145,11 +166,13 @@ class OptimizerService {
             case 'A01': {
                 // Dynamic: use the alternative model detected by diagnostics
                 const alternative = (meta && meta.alternative) || 'claude-3-5-sonnet-20241022';
-                result = await configManager.setConfig('agents.defaults.model', alternative);
+                const agentsConfig = await configManager.getRawConfig();
+                const modelTarget = this._resolveModelConfigWrite(agentsConfig.defaults || {}, alternative);
+                result = await configManager.setConfig(modelTarget.key, modelTarget.value);
                 details = {
                     title: 'Downgraded Premium Model',
                     savings: dynamicSavings || 0,
-                    configChanged: `model: ${alternative}`
+                    configChanged: `${modelTarget.key}: ${alternative}`
                 };
                 break;
             }

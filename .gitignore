@@ -14,6 +14,7 @@ cloudflared
 
 # Data & Logs
 data/logs/
+data/backups/
 data/token_stats/
 data/last_id.txt
 dashboard.log
@@ -31,3 +32,8 @@ test_*.js
 # Test coverage reports
 coverage/
 .nyc_output/
+
+# Local cost-control acceptance artifacts
+tests/cost-control/local/.backup/
+tests/cost-control/local/.reports/
+tests/cost-control/local/.sandbox/
