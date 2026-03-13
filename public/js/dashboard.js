@@ -34,6 +34,23 @@
                 return res;
             }
 
+            function isUnsupportedMetric(data, key) {
+                return Array.isArray(data.unsupportedMonitoring) && data.unsupportedMonitoring.includes(key);
+            }
+
+            async function readErrorMessage(res, fallbackMessage) {
+                try {
+                    const data = await res.json();
+                    if (data && typeof data.error === 'string' && data.error.trim()) return data.error;
+                    if (data && typeof data.message === 'string' && data.message.trim()) return data.message;
+                } catch (e) { }
+                return fallbackMessage;
+            }
+
+            function setMetricValue(id, value, fallback = 'N/A') {
+                document.getElementById(id).innerText = value == null ? fallback : value;
+            }
+
             // --- TAB MANAGEMENT ---
             let currentTab = 'home';
             let cronInterval = null;
@@ -169,17 +186,22 @@
                     const res = await fetchAuth(API + '/status');
                     const data = await res.json();
 
-                    document.getElementById('cpu-val').innerText = data.cpu + '%';
-                    document.getElementById('mem-val').innerText = data.mem + '%';
+                    setMetricValue('cpu-val', isUnsupportedMetric(data, 'cpu') ? 'N/A' : (data.cpu == null ? '--%' : data.cpu + '%'));
+                    setMetricValue('mem-val', isUnsupportedMetric(data, 'mem') ? 'N/A' : (data.mem == null ? '--%' : data.mem + '%'));
                     if (data.disk) document.getElementById('disk-val').innerText = data.disk;
                     if (data.timezone) document.getElementById('server-tz').innerText = data.timezone;
+                    if (data.environment && typeof data.environment.isDocker === 'boolean') {
+                        document.getElementById('runtime-env').innerText = data.environment.isDocker ? 'Docker Mode' : 'Node.js (Systemd)';
+                    }
                     if (data.versions) {
                         document.getElementById('ver-core').innerText = data.versions.core;
                         document.getElementById('ver-num').innerText = 'v' + data.versions.dashboard;
                     }
 
                     // Update PID
-                    if (data.gatewayPid) {
+                    if (isUnsupportedMetric(data, 'gatewayPid')) {
+                        document.getElementById('gateway-pid').innerText = 'N/A in Docker Mode';
+                    } else if (data.gatewayPid) {
                         document.getElementById('gateway-pid').innerText = data.gatewayPid;
                     } else {
                         document.getElementById('gateway-pid').innerText = 'Stopped / Not Found';
@@ -187,7 +209,9 @@
 
                     // Update Scripts List
                     const scriptList = document.getElementById('running-scripts-list');
-                    if (data.scripts && data.scripts.length > 0) {
+                    if (isUnsupportedMetric(data, 'scripts')) {
+                        scriptList.innerHTML = '<div style="opacity:0.7; text-align:center;">Unavailable in Docker Mode</div>';
+                    } else if (data.scripts && data.scripts.length > 0) {
                         const items = data.scripts.map(s =>
                             `<div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">
                             <span>${s.name}</span>
@@ -406,18 +430,28 @@
 
             async function runJob(id) {
                 if (!confirm('Execute task?')) return;
-                await fetchAuth(API + '/run/' + id, { method: 'POST' });
+                const res = await fetchAuth(API + '/run/' + id, { method: 'POST' });
+                if (!res.ok) {
+                    alert(await readErrorMessage(res, 'Failed to run job.'));
+                    return;
+                }
                 setTimeout(fetchJobs, 2000);
             }
 
             async function killAll() {
                 if (!confirm('⚠️ STOP ALL SCRIPTS?')) return;
-                await fetchAuth(API + '/kill', { method: 'POST' });
+                const res = await fetchAuth(API + '/kill', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true }) });
+                if (!res.ok) {
+                    alert(await readErrorMessage(res, 'Failed to stop scripts.'));
+                }
             }
 
             async function restartGateway() {
                 if (!confirm('♻️ RESTART GATEWAY?')) return;
-                await fetchAuth(API + '/gateway/restart', { method: 'POST' });
+                const res = await fetchAuth(API + '/gateway/restart', { method: 'POST' });
+                if (!res.ok) {
+                    alert(await readErrorMessage(res, 'Failed to restart gateway.'));
+                }
             }
 
             async function refreshTokenStats() {
@@ -674,4 +708,3 @@
                 }
                 return 0;
             }
-
