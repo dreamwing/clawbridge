@@ -9,12 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.4] - 2026-03-13
 
-## [1.1.3] - 2026-03-10
-
-### Added
-- Docker image support: added `Dockerfile`, `.dockerignore`, and CI workflow for automatic image publishing to GitHub Container Registry (#24) (Thanks @ForceConstant for contribution and suggestions in Issue #24)
-- Docker usage instructions in README
-
 ### Fixed
 - short-circuit unsupported runtime paths
 - expose cron unavailability explicitly
@@ -22,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - align unsupported monitor fields
 - clarify unsupported dashboard states
 - implement IS_DOCKER detection and disable host executions
+
+## [1.1.3] - 2026-03-10
+
+### Added
+- Docker image support: added `Dockerfile`, `.dockerignore`, and CI workflow for automatic image publishing to GitHub Container Registry (#24) (Thanks @ForceConstant for contribution and suggestions in Issue #24)
+- Docker usage instructions in README
+
+### Fixed
 - propagate --token and other CLI args from install.sh to setup.sh (PR #26)
 
 
@@ -79,4 +81,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored installer (`setup.sh`) to remove magic link output in favor of secure login.
 - Refactored: split monolithic index.js (~600 lines) into modular src/ directory. (Thanks [@yaochao](https://github.com/yaochao) for suggesting #3)
 - Replaced `wget` with Node.js native `https` module for binary downloads. (Thanks [@yaochao](https://github.com/yaochao) for reporting #6)
-
