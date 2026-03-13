@@ -81,13 +81,13 @@ describe('monitor service in Docker mode', () => {
 
         checkSystemStatus(data => {
             expect(exec).toHaveBeenCalled();
-            expect(data.disk).toBe('42%');
+            expect(data.disk).toBeNull();
             expect(data.cpu).toBeNull();
             expect(data.mem).toBeNull();
             expect(data.gatewayPid).toBeNull();
-            expect(data.scripts).toEqual([]);
+            expect(data.scripts).toBeNull();
             expect(data.environment).toEqual({ isDocker: true });
-            expect(data.unsupportedMonitoring).toEqual(['cpu', 'mem', 'gatewayPid', 'scripts']);
+            expect(data.unsupportedMonitoring).toEqual(['cpu', 'mem', 'disk', 'gatewayPid', 'scripts']);
             done();
         });
     });

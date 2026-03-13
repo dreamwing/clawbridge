@@ -27,7 +27,7 @@ try {
 let cachedVersions = null;
 let cachedVersionsTs = 0;
 const VERSION_CACHE_TTL = 5 * 60 * 1000;
-const DOCKER_UNSUPPORTED_MONITORING = ['cpu', 'mem', 'gatewayPid', 'scripts'];
+const DOCKER_UNSUPPORTED_MONITORING = ['cpu', 'mem', 'disk', 'gatewayPid', 'scripts'];
 
 function getVersions() {
     if (cachedVersions && Date.now() - cachedVersionsTs < VERSION_CACHE_TTL) {
@@ -182,12 +182,12 @@ function checkSystemStatus(callback) {
                     task: taskText,
                     cpu: IS_DOCKER ? null : Math.round(totalCpu),
                     mem: IS_DOCKER ? null : Math.round((1 - os.freemem() / os.totalmem()) * 100),
-                    disk: diskUsage,
+                    disk: IS_DOCKER ? null : diskUsage,
                     timezone: process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
                     lastHeartbeat: new Date().toISOString(),
                     versions: versions,
                     gatewayPid: IS_DOCKER ? null : gatewayPid,
-                    scripts: IS_DOCKER ? [] : runningScripts,
+                    scripts: IS_DOCKER ? null : runningScripts,
                     environment: {
                         isDocker: IS_DOCKER,
                     },

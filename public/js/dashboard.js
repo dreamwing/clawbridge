@@ -188,7 +188,7 @@
 
                     setMetricValue('cpu-val', isUnsupportedMetric(data, 'cpu') ? 'N/A' : (data.cpu == null ? '--%' : data.cpu + '%'));
                     setMetricValue('mem-val', isUnsupportedMetric(data, 'mem') ? 'N/A' : (data.mem == null ? '--%' : data.mem + '%'));
-                    if (data.disk) document.getElementById('disk-val').innerText = data.disk;
+                    setMetricValue('disk-val', isUnsupportedMetric(data, 'disk') ? 'N/A' : (data.disk == null ? '--%' : data.disk));
                     if (data.timezone) document.getElementById('server-tz').innerText = data.timezone;
                     if (data.environment && typeof data.environment.isDocker === 'boolean') {
                         document.getElementById('runtime-env').innerText = data.environment.isDocker ? 'Docker Mode' : 'Node.js (Systemd)';
