@@ -26,7 +26,7 @@ const ID_FILE = path.join(APP_DIR, 'data/last_id.txt');
 const ANALYZE_SCRIPT = path.join(APP_DIR, 'scripts/analyze.js');
 
 // --- Constants & Environment Flags ---
-const IS_DOCKER = fs.existsSync('/.dockerenv') || process.env.IS_DOCKER === 'true';
+const IS_DOCKER = fs.existsSync('/.dockerenv') || ['true', '1', 'yes'].includes((process.env.IS_DOCKER || '').toLowerCase());
 const CACHE_TTL_MS = 60000; // 60s cache
 
 module.exports = {
