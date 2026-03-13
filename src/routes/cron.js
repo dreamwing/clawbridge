@@ -42,11 +42,11 @@ router.get('/api/cron', (req, res) => {
 
 router.post('/api/run/:id', (req, res) => {
     const id = req.params.id;
-    if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
-        return res.status(400).json({ error: 'Invalid job ID format' });
-    }
     if (IS_DOCKER) {
         return res.status(403).json({ error: 'Running cron jobs is not supported in Docker Mode. Please interact with the host CLI directly.' });
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+        return res.status(400).json({ error: 'Invalid job ID format' });
     }
     const openclawCmd = getOpenClawCommand();
     execFile(openclawCmd, ['cron', 'run', id], (err, stdout, stderr) => {

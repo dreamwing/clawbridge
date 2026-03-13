@@ -65,7 +65,7 @@ describe('Docker-mode route restrictions', () => {
         expect(exec).not.toHaveBeenCalled();
     });
 
-    test('POST /api/run/:id is blocked in Docker mode', () => {
+    test('POST /api/run/:id is blocked in Docker mode before ID validation', () => {
         jest.doMock('../src/config', () => ({
             HOME_DIR: '/tmp',
             STATE_DIR: '/tmp/.openclaw',
@@ -85,7 +85,7 @@ describe('Docker-mode route restrictions', () => {
 
         const router = require('../src/routes/cron');
         const res = invokeRouteHandler(router, 'post', '/api/run/:id', {
-            params: { id: 'daily-job' },
+            params: { id: 'bad!!id' },
         });
 
         expect(res.statusCode).toBe(403);

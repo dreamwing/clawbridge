@@ -45,9 +45,7 @@ describe('monitor service in Docker mode', () => {
     });
 
     test('checkSystemStatus marks host-only metrics as unsupported in Docker mode', done => {
-        const exec = jest.fn((cmd, callback) => {
-            callback(null, '===DISK===\n42%\n===GWPID===\n\n===PS===\n\n');
-        });
+        const exec = jest.fn();
 
         jest.doMock('child_process', () => ({
             exec,
@@ -80,8 +78,7 @@ describe('monitor service in Docker mode', () => {
         const { checkSystemStatus } = require('../src/services/monitor');
 
         checkSystemStatus(data => {
-            expect(exec).toHaveBeenCalled();
-            expect(exec.mock.calls[0][0]).not.toContain('df -h /');
+            expect(exec).not.toHaveBeenCalled();
             expect(data.disk).toBeNull();
             expect(data.cpu).toBeNull();
             expect(data.mem).toBeNull();
