@@ -66,11 +66,11 @@ router.post('/api/kill', (req, res) => {
 });
 
 router.post('/api/gateway/restart', (req, res) => {
-    if (!rateLimit('gateway_restart', 10000)) {
-        return res.status(429).json({ error: 'Please wait at least 10 seconds before retrying.' });
-    }
     if (IS_DOCKER) {
         return res.status(403).json({ error: 'Gateway process restarts are not supported inside Docker containers. To restart the gateway, please restart the Docker container.' });
+    }
+    if (!rateLimit('gateway_restart', 10000)) {
+        return res.status(429).json({ error: 'Please wait at least 10 seconds before retrying.' });
     }
     console.log(`[Gateway] Restart requested by ${req.ip} at ${new Date().toISOString()}`);
 
