@@ -5,7 +5,7 @@ const { exec, execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const { ID_FILE, APP_DIR } = require('../config');
+const { ID_FILE, APP_DIR, IS_DOCKER } = require('../config');
 const { getOpenClawCommand } = require('./openclaw');
 const { getActiveContext } = require('./context');
 const { logActivity, checkFileChanges } = require('./activity');
@@ -43,20 +43,25 @@ function getVersions() {
         console.warn('[Versions] Failed to read dashboard package.json:', e.message);
     }
 
-    try {
-        const cmd = `${getOpenClawCommand()} --version`;
-        core = execSync(cmd, { timeout: 5000 }).toString().trim();
-    } catch (e) {
+    if (IS_DOCKER) {
+        core = 'Managed by Docker';
+    } else {
         try {
-            const nodeBinDir = path.dirname(process.execPath);
-            const globalModulesPath = path.join(nodeBinDir, '../lib/node_modules/openclaw/package.json');
-            const pkg = JSON.parse(fs.readFileSync(globalModulesPath, 'utf8'));
-            core = `v${pkg.version}`;
-        } catch (e2) {
-            console.warn('[Versions] OpenClaw version detection failed:', e2.message);
-            core = 'Unknown';
+            const cmd = `${getOpenClawCommand()} --version`;
+            core = execSync(cmd, { timeout: 5000 }).toString().trim();
+        } catch (e) {
+            try {
+                const nodeBinDir = path.dirname(process.execPath);
+                const globalModulesPath = path.join(nodeBinDir, '../lib/node_modules/openclaw/package.json');
+                const pkg = JSON.parse(fs.readFileSync(globalModulesPath, 'utf8'));
+                core = `v${pkg.version}`;
+            } catch (e2) {
+                console.warn('[Versions] OpenClaw version detection failed:', e2.message);
+                core = 'Unknown';
+            }
         }
     }
+
     cachedVersions = { dashboard, core };
     cachedVersionsTs = Date.now();
     return cachedVersions;
@@ -68,7 +73,10 @@ function checkSystemStatus(callback) {
     const osType = os.type();
     let mergedCmd = '';
 
-    if (osType === 'Darwin') {
+    if (IS_DOCKER) {
+        // In Docker, we can't reliably see host processes or the gateway PID.
+        mergedCmd = `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; echo ""; echo "===PS==="; echo ""`;
+    } else if (osType === 'Darwin') {
         mergedCmd = `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f '[o]penclaw.*gateway' | head -n 1 || true; echo "===PS==="; ps -Ao pid,pcpu,comm,args -r | head -n 21`;
     } else {
         mergedCmd = `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f '[o]penclaw.*gateway' | head -n 1 || true; echo "===PS==="; ps -eo pid,pcpu,comm,args --sort=-pcpu | head -n 20`;

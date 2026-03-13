@@ -25,7 +25,8 @@ const TOKEN_FILE = path.join(APP_DIR, 'data/token_stats/latest.json');
 const ID_FILE = path.join(APP_DIR, 'data/last_id.txt');
 const ANALYZE_SCRIPT = path.join(APP_DIR, 'scripts/analyze.js');
 
-// --- Constants ---
+// --- Constants & Environment Flags ---
+const IS_DOCKER = fs.existsSync('/.dockerenv') || process.env.IS_DOCKER === 'true';
 const CACHE_TTL_MS = 60000; // 60s cache
 
 module.exports = {
@@ -40,4 +41,5 @@ module.exports = {
     ID_FILE,
     ANALYZE_SCRIPT,
     CACHE_TTL_MS,
+    IS_DOCKER,
 };
