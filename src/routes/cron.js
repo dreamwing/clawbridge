@@ -26,10 +26,10 @@ router.get('/api/cron', (req, res) => {
     }
 
     // 2. SLOW PATH: CLI Fallback (n/a in Docker)
-    if (IS_DOCKER) return res.json([]);
+    if (IS_DOCKER) return res.json({ dockerMode: true, jobs: [] });
 
     const cmd = `${getOpenClawCommand()} cron list --json`;
-    exec(cmd, { maxBuffer: 1024 * 1024 * 5 }, (err, stdout, stderr) => {
+    exec(cmd, { maxBuffer: 1024 * 1024 * 5 }, (err, stdout) => {
         try {
             const data = JSON.parse(stdout);
             if (data.jobs) return res.json(data.jobs);

@@ -363,11 +363,17 @@
             async function fetchJobs() {
                 try {
                     const res = await fetchAuth(API + '/cron');
-                    const jobs = await res.json();
+                    const data = await res.json();
+                    const jobs = Array.isArray(data) ? data : (Array.isArray(data.jobs) ? data.jobs : []);
                     jobs.sort((a, b) => (b.state?.lastRunAtMs || 0) - (a.state?.lastRunAtMs || 0));
 
                     const container = document.getElementById('job-list');
                     container.innerHTML = '';
+
+                    if (data && data.dockerMode === true) {
+                        container.innerHTML = '<div style="text-align:center; opacity:0.7; padding:20px;">Unavailable in Docker Mode</div>';
+                        return;
+                    }
 
                     if (jobs.length === 0) {
                         container.innerHTML = '<div style="text-align:center; opacity:0.5; padding:20px;">No jobs found</div>';

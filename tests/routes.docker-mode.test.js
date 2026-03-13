@@ -37,7 +37,7 @@ describe('Docker-mode route restrictions', () => {
         jest.clearAllMocks();
     });
 
-    test('GET /api/cron returns an empty list without CLI fallback in Docker mode', () => {
+    test('GET /api/cron returns a Docker-mode marker without CLI fallback', () => {
         const exec = jest.fn();
 
         jest.doMock('../src/config', () => ({
@@ -61,7 +61,7 @@ describe('Docker-mode route restrictions', () => {
         const res = invokeRouteHandler(router, 'get', '/api/cron');
 
         expect(res.statusCode).toBe(200);
-        expect(res.body).toEqual([]);
+        expect(res.body).toEqual({ dockerMode: true, jobs: [] });
         expect(exec).not.toHaveBeenCalled();
     });
 
