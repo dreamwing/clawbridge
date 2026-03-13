@@ -91,6 +91,20 @@ node tests/cost-control/local/run-all-cases.mjs
 - 对这些由验收脚本拉起的 ClawBridge 进程，会关闭启动时和定时 analyzer，避免 fixture 被覆盖。
 - 会从 `3399` 开始探测空闲端口，并把实际使用的 base URL 写进报告。
 
+## 当前已验证基线
+
+最近一次完整验证时间：2026 年 3 月 13 日
+
+- 报告文件：
+  - `tests/cost-control/local/.reports/cost-control-report.md`
+  - `tests/cost-control/local/.reports/cost-control-report.json`
+- 已验证结果：
+  - `case-a`：`A01`、`A05`、Undo 成功
+  - `case-b`：`A06`、`A09`、Undo 成功
+  - `case-c`：`A04`、Undo 成功，`A03` 作为 advisory 被正确检测
+
+后续重新运行本地验收时，可以把这份结果作为当前预期基线。
+
 ## 推荐流程
 
 1. 先运行 `assess`，查看你当前真实本地状态已经覆盖了哪些 action。

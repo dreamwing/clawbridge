@@ -91,6 +91,20 @@ Notes:
 - It disables startup and hourly analyzer runs for those harness-managed ClawBridge processes so fixtures are not overwritten.
 - It probes for a free port starting from `3399` and records the actual base URL in the report.
 
+## Verified Baseline
+
+Latest verified run: March 13, 2026
+
+- Report files:
+  - `tests/cost-control/local/.reports/cost-control-report.md`
+  - `tests/cost-control/local/.reports/cost-control-report.json`
+- Verified outcomes:
+  - `case-a`: `A01`, `A05`, and Undo succeed
+  - `case-b`: `A06`, `A09`, and Undo succeed
+  - `case-c`: `A04` and Undo succeed; `A03` is detected as advisory
+
+Use this as the current expected baseline when the local acceptance harness is rerun.
+
 ## Suggested flow
 
 1. Run `assess` to see what your real local state already covers.
