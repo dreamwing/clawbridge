@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.4] - 2026-03-13
+
 ## [1.1.3] - 2026-03-10
 
 ### Added
@@ -14,7 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docker usage instructions in README
 
 ### Fixed
+- short-circuit unsupported runtime paths
+- expose cron unavailability explicitly
+- tighten restricted endpoint handling
+- align unsupported monitor fields
+- clarify unsupported dashboard states
+- implement IS_DOCKER detection and disable host executions
 - propagate --token and other CLI args from install.sh to setup.sh (PR #26)
+
 
 
 ## [1.1.2] - 2026-03-01
