@@ -75,8 +75,8 @@ function checkSystemStatus(callback) {
     let mergedCmd = '';
 
     if (IS_DOCKER) {
-        // In Docker, we can't reliably see host processes or the gateway PID.
-        mergedCmd = `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; echo ""; echo "===PS==="; echo ""`;
+        // In Docker, host-scoped process and disk metrics are unsupported.
+        mergedCmd = `echo "===DISK==="; echo ""; echo "===GWPID==="; echo ""; echo "===PS==="; echo ""`;
     } else if (osType === 'Darwin') {
         mergedCmd = `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f '[o]penclaw.*gateway' | head -n 1 || true; echo "===PS==="; ps -Ao pid,pcpu,comm,args -r | head -n 21`;
     } else {

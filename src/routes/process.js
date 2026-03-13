@@ -9,11 +9,11 @@ const { getOpenClawCommand, WORKSPACE_DIR } = require('../services/openclaw');
 const { IS_DOCKER } = require('../config');
 
 router.post('/api/kill', (req, res) => {
-    if (req.body?.confirm !== true) {
-        return res.status(400).json({ error: 'Confirmation required. Send { "confirm": true } in request body.' });
-    }
     if (IS_DOCKER) {
         return res.status(403).json({ error: 'Process termination is not supported in Docker Container Mode. Please restart the container or run host commands directly.' });
+    }
+    if (req.body?.confirm !== true) {
+        return res.status(400).json({ error: 'Confirmation required. Send { "confirm": true } in request body.' });
     }
     if (!rateLimit('kill', 5000)) {
         return res.status(429).json({ error: 'Please wait before retrying.' });

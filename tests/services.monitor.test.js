@@ -81,6 +81,7 @@ describe('monitor service in Docker mode', () => {
 
         checkSystemStatus(data => {
             expect(exec).toHaveBeenCalled();
+            expect(exec.mock.calls[0][0]).not.toContain('df -h /');
             expect(data.disk).toBeNull();
             expect(data.cpu).toBeNull();
             expect(data.mem).toBeNull();

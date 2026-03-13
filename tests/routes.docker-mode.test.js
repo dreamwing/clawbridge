@@ -94,7 +94,7 @@ describe('Docker-mode route restrictions', () => {
         });
     });
 
-    test('POST /api/kill is blocked in Docker mode after confirmation passes', () => {
+    test('POST /api/kill is blocked in Docker mode before confirmation validation', () => {
         jest.doMock('../src/config', () => ({
             IS_DOCKER: true,
         }));
@@ -110,9 +110,7 @@ describe('Docker-mode route restrictions', () => {
         }));
 
         const router = require('../src/routes/process');
-        const res = invokeRouteHandler(router, 'post', '/api/kill', {
-            body: { confirm: true },
-        });
+        const res = invokeRouteHandler(router, 'post', '/api/kill');
 
         expect(res.statusCode).toBe(403);
         expect(res.body).toEqual({
