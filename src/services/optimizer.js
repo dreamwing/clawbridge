@@ -76,6 +76,35 @@ class OptimizerService {
         };
     }
 
+    async _listManagedSkillNames(managedSkillsDir) {
+        const allowedSkillNames = new Set();
+        const entries = await fs.readdir(managedSkillsDir, { withFileTypes: true });
+
+        for (const entry of entries) {
+            if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+
+            const fullPath = path.join(managedSkillsDir, entry.name);
+            let isDir = entry.isDirectory();
+            if (!isDir && entry.isSymbolicLink()) {
+                try {
+                    isDir = (await fs.stat(fullPath)).isDirectory();
+                } catch (_e) {
+                    continue;
+                }
+            }
+            if (!isDir) continue;
+
+            try {
+                await fs.access(path.join(fullPath, 'SKILL.md'));
+                allowedSkillNames.add(entry.name);
+            } catch (_e) {
+                // Ignore invalid skill folders.
+            }
+        }
+
+        return allowedSkillNames;
+    }
+
     /**
      * Restore configuration from a backup file.
      * Reads the backup JSON and re-applies each config key.
@@ -198,17 +227,7 @@ class OptimizerService {
                 }
 
                 const managedSkillsDir = path.join(resolveConfigDir(), 'skills');
-                const allowedSkillNames = new Set();
-                const entries = await fs.readdir(managedSkillsDir, { withFileTypes: true });
-                for (const entry of entries) {
-                    if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'node_modules') continue;
-                    try {
-                        await fs.access(path.join(managedSkillsDir, entry.name, 'SKILL.md'));
-                        allowedSkillNames.add(entry.name);
-                    } catch (_e) {
-                        // Ignore invalid skill folders.
-                    }
-                }
+                const allowedSkillNames = await this._listManagedSkillNames(managedSkillsDir);
 
                 const moved = [];
                 const movedSkillsData = [];

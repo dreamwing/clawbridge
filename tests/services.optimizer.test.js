@@ -21,6 +21,7 @@ jest.mock('fs', () => ({
         appendFile: jest.fn().mockResolvedValue(undefined),
         mkdir: jest.fn().mockResolvedValue(undefined),
         readdir: jest.fn().mockResolvedValue([]),
+        stat: jest.fn().mockResolvedValue({ isDirectory: () => true }),
         access: jest.fn().mockResolvedValue(undefined),
         rename: jest.fn().mockResolvedValue(undefined),
         readFile: jest.fn(),
@@ -32,6 +33,7 @@ describe('OptimizerService', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        fs.stat.mockResolvedValue({ isDirectory: () => true });
         configManager.setConfig.mockResolvedValue({ success: true });
         configManager.getRawConfig.mockResolvedValue({ defaults: {} });
     });
@@ -229,8 +231,8 @@ CORRUPTED LINE
 
     test('A04: removes only selected managed skills by name', async () => {
         fs.readdir.mockResolvedValue([
-            { name: 'idle-skill', isDirectory: () => true },
-            { name: 'quiet-skill', isDirectory: () => true }
+            { name: 'idle-skill', isDirectory: () => true, isSymbolicLink: () => false },
+            { name: 'quiet-skill', isDirectory: () => true, isSymbolicLink: () => false }
         ]);
 
         const result = await optimizerService.applyAction('A04', 12, {
@@ -241,6 +243,23 @@ CORRUPTED LINE
         expect(fs.rename).toHaveBeenCalledWith(
             expect.stringContaining('/tmp/mock-home/.openclaw/skills/idle-skill'),
             expect.stringContaining('/data/backups/skills/idle-skill_')
+        );
+    });
+
+    test('A04: allows symlinked managed skills selected by diagnostics', async () => {
+        fs.readdir.mockResolvedValue([
+            { name: 'linked-skill', isDirectory: () => false, isSymbolicLink: () => true }
+        ]);
+
+        const result = await optimizerService.applyAction('A04', 12, {
+            selectedSkillNames: ['linked-skill']
+        });
+
+        expect(result.success).toBe(true);
+        expect(fs.stat).toHaveBeenCalledWith('/tmp/mock-home/.openclaw/skills/linked-skill');
+        expect(fs.rename).toHaveBeenCalledWith(
+            expect.stringContaining('/tmp/mock-home/.openclaw/skills/linked-skill'),
+            expect.stringContaining('/data/backups/skills/linked-skill_')
         );
     });
 

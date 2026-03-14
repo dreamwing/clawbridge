@@ -418,8 +418,9 @@ class DiagnosticsEngine {
         // PRD formula: hitRate = cacheRead / (input + cacheRead)
         const cacheHitRate = (totalInput + totalCacheRead) > 0
             ? totalCacheRead / (totalInput + totalCacheRead) : 0;
+        const contextPruningMode = defaults.contextPruning?.mode || 'none';
 
-        if (cacheHitRate < thresholds.D06_cacheHitRateMin) {
+        if (contextPruningMode !== 'cache-ttl' && cacheHitRate < thresholds.D06_cacheHitRateMin) {
             const cacheableInput = totalInput * thresholds.D06_cacheableRatio;
             const cacheDiscount = 0.9; // cache reads are 90% cheaper
             const cachingSavingsAllTime = cacheableInput * inputCostPerToken * cacheDiscount;
@@ -439,7 +440,7 @@ class DiagnosticsEngine {
                     savingsStr: `-$${cachingSavings.toFixed(2)}/mo`,
                     codeTag: 'cachePolicy: "aggressive"',
                     calcDetail: `${(cacheableInput / 1000).toFixed(0)}K cacheable × $${(inputCostPerToken * 1000000).toFixed(2)}/M × 90% discount × ${monthlyMultiplier.toFixed(1)}x`,
-                    configDiff: { key: 'contextPruning.mode', from: 'none', to: 'cache-ttl' },
+                    configDiff: { key: 'contextPruning.mode', from: contextPruningMode, to: 'cache-ttl' },
                     level: 'high'
                 });
             }

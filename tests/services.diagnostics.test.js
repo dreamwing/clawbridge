@@ -164,6 +164,31 @@ describe('DiagnosticsEngine', () => {
         expect(action.savings).toBeGreaterThan(0);
     });
 
+    test('D06: Should not flag prompt caching when cache-ttl is already enabled', async () => {
+        configManager.getRawConfig.mockResolvedValue({
+            defaults: {
+                compaction: { mode: 'safeguard' },
+                contextPruning: { mode: 'cache-ttl' }
+            }
+        });
+
+        const mockStats = {
+            totals: { input: 1000000, output: 10000, cacheRead: 10000 },
+            cost: { total: 100 },
+            total: {
+                models: {
+                    'm1': { input: 1000000, output: 10000, cacheRead: 10000, cost: 100 }
+                }
+            }
+        };
+        fs.readFile.mockResolvedValue(JSON.stringify(mockStats));
+
+        const result = await diagnosticsEngine.runDiagnostics();
+
+        const action = result.actions.find(a => a.actionId === 'A06');
+        expect(action).toBeUndefined();
+    });
+
     test('D07: Should flag missing safeguard compaction', async () => {
         configManager.getRawConfig.mockResolvedValue({
             defaults: {} // No compaction configured
