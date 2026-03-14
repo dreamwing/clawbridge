@@ -14,7 +14,41 @@ class DiagnosticsEngine {
     constructor() {
         this.statsPath = path.join(__dirname, '../../data/token_stats/latest.json');
         this.thresholdsPath = path.join(__dirname, '../../data/diagnostics.config.json');
+        this.skipPath = path.join(__dirname, '../../data/optimizer.skip.json');
         this._thresholds = null;
+    }
+
+    /**
+     * Get list of skipped action IDs.
+     */
+    async getSkipList() {
+        try {
+            const data = await fs.readFile(this.skipPath, 'utf8');
+            return JSON.parse(data) || [];
+        } catch (_e) {
+            return [];
+        }
+    }
+
+    /**
+     * Add an action ID to the skip list.
+     */
+    async skipAction(actionId) {
+        const list = await this.getSkipList();
+        if (!list.includes(actionId)) {
+            list.push(actionId);
+            await fs.writeFile(this.skipPath, JSON.stringify(list, null, 2), 'utf8');
+            this.invalidateCache();
+        }
+        return { success: true, skipped: actionId };
+    }
+
+    /**
+     * Clear the skip list (optional reset).
+     */
+    async clearSkipList() {
+        await fs.writeFile(this.skipPath, '[]', 'utf8');
+        this.invalidateCache();
     }
 
     /**
@@ -91,6 +125,7 @@ class DiagnosticsEngine {
 
         // Load threshold config (custom or defaults)
         const thresholds = await this._getThresholds();
+        const skipList = await this.getSkipList();
 
         // 1. Get current config
         const agentsConfig = await configManager.getRawConfig();
@@ -526,16 +561,19 @@ class DiagnosticsEngine {
             }
         }
 
+        // Filter out skipped actions
+        const finalActions = results.filter(act => !skipList.includes(act.actionId));
+
         // Sort by savings descending (protection items last)
-        results.sort((a, b) => b.savings - a.savings);
+        finalActions.sort((a, b) => b.savings - a.savings);
 
         const currentMonthlyCost = totalCost * monthlyMultiplier;
         const result = {
-            totalMonthlySavings,
+            totalMonthlySavings: finalActions.reduce((sum, a) => sum + a.savings, 0),
             advisoryMonthlySavings,
             currentMonthlyCost,
             cacheHitRate,
-            actions: results
+            actions: finalActions
         };
 
         // Attach raw data for verbose API export (advanced users)

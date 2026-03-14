@@ -862,10 +862,13 @@ function renderOptimizerList() {
                         ${sideEffectHtml}
                         ${optionsHtml}
                         ${detailsHtml}
-                        <div class="opt-action-line" style="justify-content: flex-end;">
+                        <div class="opt-action-line" style="justify-content: flex-end; gap: 8px;">
                             ${act.type === 'advisory'
                 ? '<span class="btn-advisory">ℹ️ Manual Action</span>'
-                : `<button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>`
+                : `
+                                <button class="btn-mini btn-outline" onclick="handleSkip(this, '${act.actionId}')">Skip</button>
+                                <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>
+                                `
             }
                         </div>
                     </div>`;
@@ -1049,6 +1052,26 @@ function flipToDashboard() {
     setTimeout(() => { trigger.style.display = 'flex'; }, 800);
 }
 
+async function handleSkip(btn, actionId) {
+    if (!confirm('Ignore this recommendation? You can reset ignored items in Settings.')) return;
+    btn.disabled = true;
+    try {
+        const res = await fetchAuth(API + '/optimize/' + actionId + '/skip', { method: 'POST' });
+        if (res.ok) {
+            const item = btn.closest('.opt-item');
+            item.style.opacity = '0.5';
+            item.style.pointerEvents = 'none';
+            fetchDiagnostics(); // Refresh to remove it
+        } else {
+            btn.disabled = false;
+            showToast('Skip failed');
+        }
+    } catch (e) {
+        btn.disabled = false;
+        showToast('Network error');
+    }
+}
+
 async function handleOpt(btn, actionId) {
     const item = btn.closest('.opt-item');
     if (!btn.classList.contains('confirming')) {
@@ -1104,6 +1127,19 @@ async function handleOpt(btn, actionId) {
 // --- INIT ---
 if (window.location.hostname.endsWith('trycloudflare.com')) {
     document.getElementById('quick-tunnel-alert').style.display = 'block';
+}
+
+async function resetSkips() {
+    if (!confirm('Reset all ignored recommendations?')) return;
+    try {
+        const res = await fetchAuth(API + '/optimize/reset-skips', { method: 'POST' });
+        if (res.ok) {
+            showToast('Reset successful');
+            fetchDiagnostics();
+        }
+    } catch (e) {
+        showToast('Reset failed');
+    }
 }
 
 fetchHistory();

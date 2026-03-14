@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const optimizerService = require('../services/optimizer');
+const diagnosticsEngine = require('../services/diagnostics');
 
 router.post('/api/optimize/:action_id', async (req, res) => {
     const { action_id } = req.params;
@@ -21,6 +22,26 @@ router.post('/api/optimize/:action_id', async (req, res) => {
     } catch (err) {
         console.error(`Optimize error for ${action_id}:`, err);
         res.status(500).json({ error: 'Failed to apply optimization', details: err.message });
+    }
+});
+
+router.post('/api/optimize/:action_id/skip', async (req, res) => {
+    const { action_id } = req.params;
+    try {
+        const result = await diagnosticsEngine.skipAction(action_id);
+        res.json(result);
+    } catch (err) {
+        console.error(`Skip error for ${action_id}:`, err);
+        res.status(500).json({ error: 'Failed to skip action', details: err.message });
+    }
+});
+
+router.post('/api/optimize/reset-skips', async (req, res) => {
+    try {
+        await diagnosticsEngine.clearSkipList();
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to reset skips', details: err.message });
     }
 });
 
