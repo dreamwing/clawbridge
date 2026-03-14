@@ -1085,7 +1085,7 @@ async function handleOpt(btn, actionId) {
             } else {
                 btn.classList.remove('applying');
                 btn.disabled = false;
-                showToast('Optimization failed: ' + (await res.json().catch(() => ({}))).details || 'Unknown error');
+                showToast('Optimization failed: ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
             }
         } catch (e) {
             btn.classList.remove('applying');
