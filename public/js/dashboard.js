@@ -426,7 +426,7 @@ async function fetchJobs() {
             let pathHtml = '';
             if (scriptPath) {
                 pathHtml = `<div style="font-family:monospace; font-size:10px; color:var(--text-dim); margin-top:3px; word-break:break-all; opacity:0.7;">
-                            📄 ${scriptPath}
+                            📄 ${escapeHtml(scriptPath)}
                         </div>`;
             }
 

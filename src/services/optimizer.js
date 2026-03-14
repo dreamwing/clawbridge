@@ -187,6 +187,13 @@ class OptimizerService {
 
         // Backup config before any modification (PRD requirement)
         let backupPath = await this.backupConfig();
+        let preOptCostSnapshot = null;
+        try {
+            const diag = await diagnosticsEngine.runDiagnostics();
+            preOptCostSnapshot = diag?.currentMonthlyCost ?? null;
+        } catch (_e) {
+            // Non-blocking: optimization should still proceed without the history snapshot.
+        }
 
         let result = false;
         let details = {};
@@ -338,6 +345,7 @@ class OptimizerService {
                 savings: details.savings,
                 configChanged: details.configChanged,
                 backupPath,
+                preOptCostSnapshot,
                 undoable: !!backupPath
             });
 

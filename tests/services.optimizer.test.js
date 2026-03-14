@@ -5,7 +5,8 @@ const fs = require('fs').promises;
 
 jest.mock('../src/services/openclaw_config');
 jest.mock('../src/services/diagnostics', () => ({
-    invalidateCache: jest.fn()
+    invalidateCache: jest.fn(),
+    runDiagnostics: jest.fn()
 }));
 jest.mock('../src/services/openclaw', () => ({
     WORKSPACE_DIR: '/tmp/mock-workspace',
@@ -36,6 +37,7 @@ describe('OptimizerService', () => {
         fs.stat.mockResolvedValue({ isDirectory: () => true });
         configManager.setConfig.mockResolvedValue({ success: true });
         configManager.getRawConfig.mockResolvedValue({ defaults: {} });
+        diagnosticsEngine.runDiagnostics.mockResolvedValue({ currentMonthlyCost: 42.42 });
     });
 
     test('A02: Disable Background Polling', async () => {
@@ -48,6 +50,7 @@ describe('OptimizerService', () => {
         expect(fs.appendFile).toHaveBeenCalled();
         const loggedCall = fs.appendFile.mock.calls.find(c => c[0].includes('optimizations.jsonl'));
         expect(loggedCall[1]).toContain('"actionId":"A02"');
+        expect(loggedCall[1]).toContain('"preOptCostSnapshot":42.42');
 
         // Should invalidate diagnostics cache
         expect(diagnosticsEngine.invalidateCache).toHaveBeenCalled();
