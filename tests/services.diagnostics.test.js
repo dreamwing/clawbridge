@@ -313,6 +313,42 @@ describe('DiagnosticsEngine', () => {
         expect(action._meta.quietSkills[0].name).toBe('quiet-skill');
     });
 
+    test('D04: respects explicit zero idle threshold from config', async () => {
+        configManager.getRawConfig.mockResolvedValue({ defaults: {} });
+
+        const mockStats = {
+            totals: { input: 1000, output: 100, cacheRead: 0 },
+            cost: { total: 5 },
+            history: {
+                '2026-03-01': { input: 1000, cost: 5, sessions: 1 }
+            }
+        };
+
+        fs.readFile.mockImplementation(async (pathStr) => {
+            if (pathStr.includes('diagnostics.config.json')) {
+                return JSON.stringify({ D04_idleDaysThreshold: 0 });
+            }
+            if (pathStr.includes('latest.json')) {
+                return JSON.stringify(mockStats);
+            }
+            throw new Error('ENOENT');
+        });
+
+        fs.readdir.mockResolvedValue([
+            { name: 'recent-skill', isDirectory: () => true, isSymbolicLink: () => false }
+        ]);
+
+        const OneDay = 1000 * 60 * 60 * 24;
+        fs.stat.mockResolvedValue({ mtimeMs: Date.now() - OneDay });
+
+        const result = await diagnosticsEngine.runDiagnostics();
+
+        const action = result.actions.find(a => a.actionId === 'A04');
+        expect(action).toBeDefined();
+        expect(action._meta.idleSkills).toHaveLength(1);
+        expect(action._meta.idleSkills[0].name).toBe('recent-skill');
+    });
+
 
     test('Should return no actions if perfectly optimized', async () => {
         configManager.getRawConfig.mockResolvedValue({

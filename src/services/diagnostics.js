@@ -318,7 +318,7 @@ class DiagnosticsEngine {
                 skillFolders.push({ name: e.name, path: fullPath });
             }
 
-            const idleDaysThreshold = thresholds.D04_idleDaysThreshold || 7;
+            const idleDaysThreshold = thresholds.D04_idleDaysThreshold ?? 7;
             const quietDaysThreshold = 3;
             const now = Date.now();
 

@@ -11,6 +11,11 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+function safeUrl(url) {
+    const value = String(url || '').trim();
+    return /^(https?:\/\/|#|\/)/i.test(value) ? value : '#';
+}
+
 // --- AUTH ---
 const urlParams = new URLSearchParams(window.location.search);
 let API_KEY = urlParams.get('key');
@@ -119,11 +124,12 @@ async function fetchMemory(date) {
 
         // Simple Markdown Rendering
         let html = (data.content || '')
-            .replace(/^# (.*$)/gim, '<h3 style="margin-top:0;color:var(--accent)">$1</h3>')
-            .replace(/^## (.*$)/gim, '<h4 style="margin:10px 0 5px;color:var(--text)">$1</h4>')
-            .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
-            .replace(/^\- (.*$)/gim, '• $1')
-            .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" style="color:var(--accent)">$1</a>');
+            .replace(/^# (.*$)/gim, (_match, text) => `<h3 style="margin-top:0;color:var(--accent)">${escapeHtml(text)}</h3>`)
+            .replace(/^## (.*$)/gim, (_match, text) => `<h4 style="margin:10px 0 5px;color:var(--text)">${escapeHtml(text)}</h4>`)
+            .replace(/\*\*(.*)\*\*/gim, (_match, text) => `<b>${escapeHtml(text)}</b>`)
+            .replace(/^\- (.*$)/gim, (_match, text) => `• ${escapeHtml(text)}`)
+            .replace(/\[(.*?)\]\((.*?)\)/gim, (_match, label, url) =>
+                `<a href="${escapeHtml(safeUrl(url))}" target="_blank" rel="noopener" style="color:var(--accent)">${escapeHtml(label)}</a>`);
 
         document.getElementById('memory-content').innerHTML = html;
         document.getElementById('memory-content').style.opacity = '1';
