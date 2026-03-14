@@ -173,7 +173,7 @@ class DiagnosticsEngine {
         }
 
         // --- D02: Heartbeat Optimization ---
-        let hbEvery = defaults.heartbeat?.every;
+        // Robust check: Aggregate costs from ALL active agents in the workspace
         let heartbeatTasksText = '';
         try {
             const hbPath = path.join(WORKSPACE_DIR, 'HEARTBEAT.md');
@@ -181,27 +181,35 @@ class DiagnosticsEngine {
             heartbeatTasksText = fileContent.split('\n')
                 .filter(l => l.trim() && !l.trim().startsWith('#'))
                 .join('\n');
-        } catch (_e) {
-            // File doesn't exist
-        }
+        } catch (_e) {}
 
-        if (!hbEvery && heartbeatTasksText.length > 0) {
-            hbEvery = '5m'; // OpenClaw default
-        }
+        const taskTokens = Math.ceil(heartbeatTasksText.length / 4);
+        const tokensPerRun = 2000 + taskTokens; 
+        const hbCostPerToken = inputCostPerToken > 0 ? inputCostPerToken : (0.10 / 1000000);
+        
+        let totalMonthlyTokensHB = 0;
+        let activeHbAgents = [];
 
-        if (hbEvery && hbEvery !== '0m' && hbEvery !== '0' && heartbeatTasksText.length > 0) {
-            let intervalMinutes = 5;
-            if (hbEvery.endsWith('m')) intervalMinutes = parseInt(hbEvery) || 5;
-            else if (hbEvery.endsWith('h')) intervalMinutes = (parseInt(hbEvery) || 1) * 60;
+        // Correctly scan each agent for their specific or default heartbeat config
+        (agentsConfig.list || []).forEach(agent => {
+            const hb = agent.heartbeat?.every || defaults.heartbeat?.every;
+            if (hb && hb !== '0m' && hb !== '0' && heartbeatTasksText.length > 0) {
+                let mins = 5;
+                if (hb.endsWith('m')) mins = parseInt(hb) || 5;
+                else if (hb.endsWith('h')) mins = (parseInt(hb) || 1) * 60;
+                
+                const runs = (30 * 24 * 60) / Math.max(1, mins);
+                totalMonthlyTokensHB += runs * tokensPerRun;
+                activeHbAgents.push({ id: agent.id, every: hb, mins });
+            }
+        });
 
-            const taskTokens = Math.ceil(heartbeatTasksText.length / 4);
-            const tokensPerRun = 2000 + taskTokens; // base system prompt + task
-            const hbCostPerToken = inputCostPerToken > 0 ? inputCostPerToken : (0.10 / 1000000);
-
-            // Current cost at current interval
-            const currentRunsPerMonth = (30 * 24 * 60) / Math.max(1, intervalMinutes);
-            const currentMonthlyTokens = currentRunsPerMonth * tokensPerRun;
-            const currentMonthlyCostHB = currentMonthlyTokens * hbCostPerToken;
+        if (activeHbAgents.length > 0) {
+            const currentMonthlyCostHB = totalMonthlyTokensHB * hbCostPerToken;
+            const currentMonthlyTokens = totalMonthlyTokensHB;
+            const hbEvery = activeHbAgents[0].every; 
+            const intervalMinutes = activeHbAgents[0].mins;
+            const taskCount = heartbeatTasksText.split('\n').length;
 
             // Generate multi-interval options with per-option savings
             const intervalOptions = [
@@ -231,23 +239,23 @@ class DiagnosticsEngine {
                     };
                 });
 
-            const defaultOption = options[0];
-            const defaultSavings = defaultOption ? defaultOption.savings : currentMonthlyCostHB;
+            const maxSavingsOption = options.find(opt => opt.value === '0m') || options[options.length - 1];
+            const defaultSavings = maxSavingsOption ? maxSavingsOption.savings : currentMonthlyCostHB;
             totalMonthlySavings += defaultSavings;
 
-            const taskCount = heartbeatTasksText.split('\n').length;
+            const activeAgentsStr = activeHbAgents.map(a => `${a.id}: ${a.every}`).join(', ');
             results.push({
                 actionId: 'A02',
                 title: 'Adjust Heartbeat Interval',
                 plainTitle: 'Reduce background checking frequency',
                 helpText: '“心跳”是 AI 的后台自动刷新。就像手机后台同步邮件一样，每次刷新都会消耗少量 Token。降低频率可以让 AI 减少唤醒次数，从而通过延长“深度睡眠”来节省大量闲置成本。',
-                description: `Running every ${hbEvery} with ${taskCount} task${taskCount > 1 ? 's' : ''}, consuming ~${(currentMonthlyTokens / 1000000).toFixed(1)}M tokens/mo ($${currentMonthlyCostHB.toFixed(2)}/mo).`,
+                description: `Active on ${activeHbAgents.length} agent(s) (${activeAgentsStr}) with ${taskCount} task(s), consuming ~${(currentMonthlyTokens / 1000000).toFixed(1)}M tokens/mo ($${currentMonthlyCostHB.toFixed(2)}/mo).`,
                 sideEffect: '⚠ Longer intervals delay cross-agent message delivery.',
                 plainSideEffect: 'Your AI agent will check for updates less often. You may need to manually refresh for new messages.',
                 savings: defaultSavings,
                 savingsStr: `-$${defaultSavings.toFixed(2)}/mo`,
                 codeTag: 'heartbeat.every',
-                calcDetail: `${taskCount} task(s) × ${tokensPerRun} tok/run × ${currentRunsPerMonth.toFixed(0)} runs/mo × $${(hbCostPerToken * 1000000).toFixed(2)}/M`,
+                calcDetail: `${taskCount} task(s) × ${tokensPerRun} tok/run × aggregated runs/mo × $${(hbCostPerToken * 1000000).toFixed(2)}/M`,
                 configDiff: { key: 'heartbeat.every', from: hbEvery, to: 'your choice' },
                 level: 'medium',
                 options,
