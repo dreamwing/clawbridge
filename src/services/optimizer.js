@@ -130,8 +130,7 @@ class OptimizerService {
             ['agents.defaults.thinkingDefault', defaults.thinkingDefault],
             ['agents.defaults.compaction.mode', defaults.compaction?.mode],
             ['agents.defaults.compaction.reserveTokens', defaults.compaction?.reserveTokens],
-            ['agents.defaults.contextPruning.mode', defaults.contextPruning?.mode],
-            ['agents.defaults.budget.maxCostPerDay', defaults.budget?.maxCostPerDay]
+            ['agents.defaults.contextPruning.mode', defaults.contextPruning?.mode]
         ].filter(([, value]) => value !== undefined);
 
         const restored = [];
