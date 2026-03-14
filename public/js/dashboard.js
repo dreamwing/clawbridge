@@ -740,6 +740,8 @@ async function fetchDiagnostics() {
 
 function renderOptimizerList() {
     if (!diagnosticsData) return;
+    actionsApplied = 0;
+    totalActions = (diagnosticsData.actions || []).filter(a => a.type !== 'advisory').length;
 
     if (diagnosticsData.monthlySavings > 0) {
         document.getElementById('main-savings-amount').innerText = '$' + diagnosticsData.monthlySavings.toFixed(2);
@@ -809,7 +811,7 @@ function renderOptimizerList() {
         let optionsHtml = '';
         if (act.actionId === 'A02' && act.options && act.options.length > 0) {
             const optItems = act.options.map((opt, i) => {
-                const checked = (i === act.options.length - 1) ? ' checked' : '';
+                const checked = i === 0 ? ' checked' : '';
                 const isDisable = opt.value === '0m';
                 const labelClass = isDisable ? 'opt-radio-disable' : '';
                 return `<label class="opt-radio ${labelClass}">
@@ -881,6 +883,10 @@ function renderOptimizerList() {
             });
             const defaultRadio = itemEl.querySelector('input[name="hb-interval"]:checked');
             if (defaultRadio) {
+                const defaultSavings = parseFloat(defaultRadio.getAttribute('data-savings')) || 0;
+                itemEl.setAttribute('data-savings', defaultSavings);
+                const tag = itemEl.querySelector('#savings-tag-A02');
+                if (tag) tag.textContent = `-$${defaultSavings.toFixed(2)}/mo`;
                 const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
                 currentMeta.interval = defaultRadio.value;
                 itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));

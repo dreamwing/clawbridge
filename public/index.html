@@ -389,93 +389,94 @@
                                     style="color:#22d3ee; font-family:monospace;">--</span></div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- CARD SIDE 2: Optimizer Interface -->
-                    <div class="card-face card-back">
-                        <div class="back-header">
-                            <div class="optimizer-brand">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22"
-                                    height="22">
-                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                                </svg>
-                                Optimizer
-                            </div>
-                            <button class="btn-close-back" onclick="flipToDashboard()">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"
-                                    height="14">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
+                <!-- CARD SIDE 2: Optimizer Interface -->
+                <div class="card-face card-back">
+                    <div class="back-header">
+                        <div class="optimizer-brand">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22"
+                                height="22">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                            Optimizer
                         </div>
+                        <button class="btn-close-back" onclick="flipToDashboard()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"
+                                height="14">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
 
-                        <!-- Loader State -->
-                        <div class="scan-progress" id="scan-progress">
-                            <div class="scan-spinner"></div>
-                            <div class="progress-title">Analyzing Usage Patterns</div>
-                            <div class="progress-sub" id="scan-step-text">Reading 6 days of history...</div>
+                    <!-- Loader State -->
+                    <div class="scan-progress" id="scan-progress">
+                        <div class="scan-spinner"></div>
+                        <div class="progress-title">Analyzing Usage Patterns</div>
+                        <div class="progress-sub" id="scan-step-text">Reading 6 days of history...</div>
+                    </div>
+
+                    <!-- ACTIVE RESULTS VIEW -->
+                    <div class="scan-results" id="scan-results">
+                        <div class="savings-hero">
+                            <div class="savings-hero-label">Potential Monthly Savings</div>
+                            <div class="savings-hero-amount" id="main-savings-amount">--</div>
                         </div>
-
-                        <!-- ACTIVE RESULTS VIEW -->
-                        <div class="scan-results" id="scan-results">
-                            <div class="savings-hero">
-                                <div class="savings-hero-label">Potential Monthly Savings</div>
-                                <div class="savings-hero-amount" id="main-savings-amount">--</div>
+                        <div class="cost-comparison">
+                            <div class="cost-compare-item">
+                                <div class="cost-compare-label">Current</div>
+                                <div class="cost-compare-val current">--</div>
                             </div>
-                            <div class="cost-comparison">
-                                <div class="cost-compare-item">
-                                    <div class="cost-compare-label">Current</div>
-                                    <div class="cost-compare-val current">--</div>
-                                </div>
-                                <div class="cost-compare-arrow">→</div>
-                                <div class="cost-compare-item">
-                                    <div class="cost-compare-label">Optimized</div>
-                                    <div class="cost-compare-val optimized">--</div>
-                                </div>
-                                <div class="cost-compare-item cache-rate-item" style="display:none;">
-                                    <div class="cost-compare-label">Cache Hit</div>
-                                    <div class="cost-compare-val" id="optimizer-cache-hit-rate">—</div>
-                                </div>
+                            <div class="cost-compare-arrow">→</div>
+                            <div class="cost-compare-item">
+                                <div class="cost-compare-label">Optimized</div>
+                                <div class="cost-compare-val optimized">--</div>
                             </div>
-                            <div class="result-title">Cost-Saving Actions Found</div>
-                            <div class="opt-list" id="opt-list">
-                                <!-- Dynamically populated by renderOptimizerList() -->
+                            <div class="cost-compare-item cache-rate-item" style="display:none;">
+                                <div class="cost-compare-label">Cache Hit</div>
+                                <div class="cost-compare-val" id="optimizer-cache-hit-rate">—</div>
                             </div>
                         </div>
+                        <div class="result-title">Cost-Saving Actions Found</div>
+                        <div class="opt-list" id="opt-list">
+                            <!-- Dynamically populated by renderOptimizerList() -->
+                        </div>
+                    </div>
 
-                        <!-- SUCCESS STATE VIEW -->
-                        <div class="success-state" id="success-state">
-                            <div class="success-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="40"
-                                    height="40">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                            </div>
-                            <div class="success-title">Fully Optimized</div>
-                            <div class="success-desc">Great job! Your token consumption is now running at maximum
-                                efficiency.</div>
-                            <div class="history-section">
-                                <div class="history-title">Recent Optimizations</div>
-                                <div class="timeline" id="timeline-list">
-                                    <!-- Timeline items will be injected here -->
-                                    <div class="timeline-item">
-                                        <div class="timeline-dot"></div>
-                                        <div class="timeline-time">JUST NOW</div>
-                                        <div class="timeline-content">Applied 4 cost-saving policies
-                                            <span>-$35.02/mo</span>
-                                        </div>
+                    <!-- SUCCESS STATE VIEW -->
+                    <div class="success-state" id="success-state">
+                        <div class="success-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="40"
+                                height="40">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="success-title">Fully Optimized</div>
+                        <div class="success-desc">Great job! Your token consumption is now running at maximum
+                            efficiency.</div>
+                        <div class="history-section">
+                            <div class="history-title">Recent Optimizations</div>
+                            <div class="timeline" id="timeline-list">
+                                <!-- Timeline items will be injected here -->
+                                <div class="timeline-item">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-time">JUST NOW</div>
+                                    <div class="timeline-content">Applied 4 cost-saving policies
+                                        <span>-$35.02/mo</span>
                                     </div>
-                                    <div class="timeline-item">
-                                        <div class="timeline-dot" style="border-color: var(--text-dim);"></div>
-                                        <div class="timeline-time">2 DAYS AGO</div>
-                                        <div class="timeline-content">Switched to Gemini 3.5 Sonnet</div>
-                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-dot" style="border-color: var(--text-dim);"></div>
+                                    <div class="timeline-time">2 DAYS AGO</div>
+                                    <div class="timeline-content">Switched to Gemini 3.5 Sonnet</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
                 <!-- VIEW: SETTINGS -->
                 <div id="view-settings" class="view-container">

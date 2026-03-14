@@ -106,6 +106,9 @@ describe('DiagnosticsEngine', () => {
         const disableOpt = action.options.find(o => o.value === '0m');
         expect(disableOpt).toBeDefined();
         expect(disableOpt.savings).toBeGreaterThan(0);
+        expect(action.savings).toBe(action.options[0].savings);
+        expect(result.totalMonthlySavings).toBe(action.options[0].savings);
+        expect(action.savings).toBeLessThan(disableOpt.savings);
         expect(action._meta.type).toBe('heartbeat-interval');
     });
 

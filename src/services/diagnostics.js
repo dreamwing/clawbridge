@@ -231,9 +231,9 @@ class DiagnosticsEngine {
                     };
                 });
 
-            // Default savings = full disable (max savings)
-            const maxSavings = currentMonthlyCostHB;
-            totalMonthlySavings += maxSavings;
+            const defaultOption = options[0];
+            const defaultSavings = defaultOption ? defaultOption.savings : currentMonthlyCostHB;
+            totalMonthlySavings += defaultSavings;
 
             const taskCount = heartbeatTasksText.split('\n').length;
             results.push({
@@ -244,8 +244,8 @@ class DiagnosticsEngine {
                 description: `Running every ${hbEvery} with ${taskCount} task${taskCount > 1 ? 's' : ''}, consuming ~${(currentMonthlyTokens / 1000000).toFixed(1)}M tokens/mo ($${currentMonthlyCostHB.toFixed(2)}/mo).`,
                 sideEffect: '⚠ Longer intervals delay cross-agent message delivery.',
                 plainSideEffect: 'Your AI agent will check for updates less often. You may need to manually refresh for new messages.',
-                savings: maxSavings,
-                savingsStr: `-$${maxSavings.toFixed(2)}/mo`,
+                savings: defaultSavings,
+                savingsStr: `-$${defaultSavings.toFixed(2)}/mo`,
                 codeTag: 'heartbeat.every',
                 calcDetail: `${taskCount} task(s) × ${tokensPerRun} tok/run × ${currentRunsPerMonth.toFixed(0)} runs/mo × $${(hbCostPerToken * 1000000).toFixed(2)}/M`,
                 configDiff: { key: 'heartbeat.every', from: hbEvery, to: 'your choice' },
