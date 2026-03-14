@@ -316,7 +316,9 @@ describe('DiagnosticsEngine', () => {
             defaults: {
                 heartbeat: { every: '0m' },
                 thinkingDefault: 'minimal',
-                compaction: { mode: 'safeguard' }
+                compaction: { mode: 'safeguard' },
+                budget: { maxCostPerDay: 5 },
+                contextPruning: { mode: 'cache-ttl' }
             }
         });
 

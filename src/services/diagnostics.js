@@ -25,6 +25,7 @@ class DiagnosticsEngine {
         if (this._thresholds) return this._thresholds;
         const defaults = {
             D01_modelCostRatio: 0.5,        // trigger if single model > 50% of total cost
+            D04_idleDaysThreshold: 7,       // trigger if a skill has been idle for over 7 days
             D06_cacheHitRateMin: 0.10,       // trigger if cache hit rate < 10%
             D06_cacheableRatio: 0.80,        // assume 80% of input is cacheable
             D09_outputRatioThreshold: 0.10,  // trigger if output/input > 10%
@@ -464,6 +465,28 @@ class DiagnosticsEngine {
                 level: 'safety'
             });
         }
+
+        /*
+                // --- D08: Daily Budget Limit ---
+                const hasBudget = defaults.budget && (defaults.budget.maxCostPerDay || defaults.budget.maxTokensPerDay);
+                if (!hasBudget) {
+                    results.push({
+                        actionId: 'A11',
+                        title: 'Set Daily Budget Limit',
+                        plainTitle: 'Protect your wallet against runaway AI tasks',
+                        helpText: '强烈建议所有用户都设置日预算上限。哪怕你不差钱，一个每日$5$的上限也能在Agent进入循环推理时保护你的钱包。',
+                        description: 'No daily budget limits are currently configured. A typical safeguard is $5.00/day.',
+                        sideEffect: '⚠ Operations will be blocked once the limit is reached.',
+                        plainSideEffect: 'The AI will temporarily stop working if it spends more than $5 in a single day.',
+                        savings: 0,
+                        savingsStr: '🛡️ Protection',
+                        codeTag: 'maxCostPerDay: 5.00',
+                        configDiff: { key: 'budget.maxCostPerDay', from: 'none', to: '5.00' },
+                        level: 'safety',
+                        type: 'advisory'
+                    });
+                }
+        */
 
         // --- D09: Output Verbosity ---
         // Precise: compare output/input ratio. Industry average is ~5-15%.
