@@ -104,6 +104,26 @@ describe('OptimizerService', () => {
         expect(logCall).toBeDefined();
     });
 
+    test('A09: does not append duplicate concise marker', async () => {
+        fs.readFile.mockImplementation((pathStr) => {
+            if (pathStr.includes('SOUL.md')) {
+                return Promise.resolve('System prompt notes.\n\nBe concise.\n');
+            }
+            return Promise.resolve('{}');
+        });
+
+        const result = await optimizerService.applyAction('A09');
+
+        expect(result.success).toBe(true);
+        expect(fs.appendFile).not.toHaveBeenCalledWith(
+            expect.stringContaining('SOUL.md'),
+            expect.stringContaining('Be concise'),
+            'utf8'
+        );
+        const logCall = fs.appendFile.mock.calls.find(call => call[0].includes('optimizations.jsonl'));
+        expect(logCall).toBeDefined();
+    });
+
     test('A07: Enable Compaction Safeguard sets two config keys', async () => {
         const result = await optimizerService.applyAction('A07');
 

@@ -302,9 +302,10 @@ class OptimizerService {
                 break;
             case 'A09': {
                 const soulPath = path.join(WORKSPACE_DIR, 'SOUL.md');
+                const CONCISE_MARKER = 'Be concise.';
                 try {
                     // Backup SOUL.md before modifying
-                    const originalContent = await fs.readFile(soulPath, 'utf8');
+                    const originalContent = (await fs.readFile(soulPath, 'utf8')) || '';
                     const ts = new Date().toISOString().replace(/[:.]/g, '-');
                     const soulBackupPath = path.join(this.backupDir, `soul_backup_${ts}.md`);
                     await fs.mkdir(this.backupDir, { recursive: true });
@@ -313,8 +314,9 @@ class OptimizerService {
                     // We must regenerate the backup JSON to inject _fileBackupPath for the Undo system
                     backupPath = await this.backupConfig({ _fileBackupPath: soulBackupPath });
 
-                    // Append concise instruction
-                    await fs.appendFile(soulPath, '\n\nBe concise.\n', 'utf8');
+                    if (!originalContent.includes(CONCISE_MARKER)) {
+                        await fs.appendFile(soulPath, '\n\nBe concise.\n', 'utf8');
+                    }
                     result = { success: true };
                 } catch (e) {
                     console.error('Failed to modify SOUL.md', e);
