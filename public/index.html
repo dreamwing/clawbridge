@@ -306,7 +306,7 @@
                                 style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
                                 <span style="font-size:11px; color:var(--text-dim);">Cache Hit</span>
                                 <span style="font-size:12px; font-weight:600; color:var(--success);"
-                                    id="cache-hit-rate">--%</span>
+                                    id="token-cache-hit-rate">--%</span>
                             </div>
                         </div>
                     </div>
@@ -367,23 +367,26 @@
                     <div id="daily-detail"
                         style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:15px; margin-top:20px; border:1px solid var(--border);">
                         <div
-                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                            <span style="font-size:14px; font-weight:bold; color:var(--text)" id="detail-date">--</span>
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:14px; font-weight:bold; color:var(--text)"
+                                    id="detail-date">--</span>
+                                <span style="font-size:12px; font-weight:bold; display:none;"
+                                    id="detail-change"></span>
+                            </div>
                             <span style="font-size:16px; font-weight:bold; color:var(--success)"
                                 id="detail-cost">--</span>
                         </div>
-                        <div style="display:flex; gap:15px; font-size:12px; color:var(--text-dim);">
-                            <span>In: <span id="detail-input" style="color:var(--text)">--</span></span>
-                            <span>Out: <span id="detail-output" style="color:var(--text)">--</span></span>
-                            =======
-                            <div
-                                style="background:rgba(34,211,238,0.1); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
-                                <span style="font-size:11px; color:var(--text-dim);">Cache Hit</span>
-                                <span style="font-size:12px; font-weight:600; color:#22d3ee;"
-                                    id="cache-hit-rate">--</span>
-                                >>>>>>> 3f45e78 (feat(tokens): optimize analysis report with WebSocket events, state
-                                tracking, and enhanced analytics)
-                            </div>
+                        <div
+                            style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; color:var(--text-dim);">
+                            <div>In: <span id="detail-input"
+                                    style="color:var(--text); font-family:monospace;">--</span></div>
+                            <div>Out: <span id="detail-output"
+                                    style="color:var(--text); font-family:monospace;">--</span></div>
+                            <div>Cache R: <span id="detail-cache-read"
+                                    style="color:#22d3ee; font-family:monospace;">--</span></div>
+                            <div>Cache W: <span id="detail-cache-write"
+                                    style="color:#22d3ee; font-family:monospace;">--</span></div>
                         </div>
                     </div>
 
@@ -431,7 +434,7 @@
                                 </div>
                                 <div class="cost-compare-item cache-rate-item" style="display:none;">
                                     <div class="cost-compare-label">Cache Hit</div>
-                                    <div class="cost-compare-val" id="cache-hit-rate">—</div>
+                                    <div class="cost-compare-val" id="optimizer-cache-hit-rate">—</div>
                                 </div>
                             </div>
                             <div class="result-title">Cost-Saving Actions Found</div>
@@ -452,10 +455,9 @@
                             <div class="success-title">Fully Optimized</div>
                             <div class="success-desc">Great job! Your token consumption is now running at maximum
                                 efficiency.</div>
-
-                            <<<<<<< HEAD <div class="history-section">
+                            <div class="history-section">
                                 <div class="history-title">Recent Optimizations</div>
-                                <div class="timeline" id="timline-list">
+                                <div class="timeline" id="timeline-list">
                                     <!-- Timeline items will be injected here -->
                                     <div class="timeline-item">
                                         <div class="timeline-dot"></div>
@@ -470,35 +472,6 @@
                                         <div class="timeline-content">Switched to Gemini 3.5 Sonnet</div>
                                     </div>
                                 </div>
-                        </div>
-                        =======
-                        <div id="daily-detail"
-                            style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:15px; margin-top:20px; border:1px solid var(--border);">
-                            <div
-                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <span style="font-size:14px; font-weight:bold; color:var(--text)"
-                                        id="detail-date">--</span>
-                                    <span style="font-size:12px; font-weight:bold; display:none;"
-                                        id="detail-change"></span>
-                                </div>
-                                <span style="font-size:16px; font-weight:bold; color:var(--success)"
-                                    id="detail-cost">--</span>
-                            </div>
-                            <div
-                                style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; color:var(--text-dim);">
-                                <div>In: <span id="detail-input"
-                                        style="color:var(--text); font-family:monospace;">--</span>
-                                </div>
-                                <div>Out: <span id="detail-output"
-                                        style="color:var(--text); font-family:monospace;">--</span>
-                                </div>
-                                <div>Cache R: <span id="detail-cache-read"
-                                        style="color:#22d3ee; font-family:monospace;">--</span></div>
-                                <div>Cache W: <span id="detail-cache-write"
-                                        style="color:#22d3ee; font-family:monospace;">--</span></div>
-                                >>>>>>> 3f45e78 (feat(tokens): optimize analysis report with WebSocket events, state
-                                tracking, and enhanced analytics)
                             </div>
                         </div>
                     </div>

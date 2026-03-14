@@ -509,7 +509,7 @@ async function fetchTokens() {
         const cacheHitRate = (totalInput + totalCacheRead) > 0
             ? ((totalCacheRead / (totalInput + totalCacheRead)) * 100).toFixed(1)
             : '0.0';
-        const cacheHitEl = document.getElementById('cache-hit-rate');
+        const cacheHitEl = document.getElementById('token-cache-hit-rate');
         if (cacheHitEl) cacheHitEl.innerText = cacheHitRate + '%';
 
         if (data.total) {
@@ -743,7 +743,7 @@ function renderOptimizerList() {
     }
 
     // Display cache hit rate in the optimizer header
-    const cacheEl = document.getElementById('cache-hit-rate');
+    const cacheEl = document.getElementById('optimizer-cache-hit-rate');
     if (cacheEl && diagnosticsData.cacheHitRate !== undefined) {
         const rate = (diagnosticsData.cacheHitRate * 100).toFixed(1);
         const color = diagnosticsData.cacheHitRate >= 0.5 ? 'var(--accent-green)' : (diagnosticsData.cacheHitRate >= 0.1 ? 'rgba(245, 158, 11, 0.9)' : '#ef4444');
@@ -887,7 +887,7 @@ async function renderHistoryList() {
         const res = await fetchAuth(API + '/optimizations/history');
         const history = await res.json();
 
-        const list = document.getElementById('timline-list');
+        const list = document.getElementById('timeline-list');
         if (!list) return;
         list.innerHTML = '';
 
@@ -954,8 +954,6 @@ async function handleUndo(backupPath) {
             const result = await res.json();
             showToast(`✓ Restored ${result.restoredKeys.length} settings from ${result.backupFile}`);
             await renderHistoryList();
-            // Refresh diagnostics
-            diagnosticsEngine_cache = null; // Assuming this is a global cache variable
             await fetchDiagnostics();
         } else {
             showToast('Undo failed: ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));

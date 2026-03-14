@@ -9,8 +9,7 @@
     "test:coverage": "jest --forceExit --coverage",
     "lint": "eslint src/ index.js",
     "lint:fix": "eslint src/ index.js --fix",
-    "format": "prettier --write src/ index.js",
-    "push": "git push && ./.github/scripts/ci-watch.sh"
+    "format": "prettier --write src/ index.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
