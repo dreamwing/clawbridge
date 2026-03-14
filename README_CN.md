@@ -71,6 +71,20 @@ curl -sL https://clawbridge.app/install.sh | bash
     *   或者强制开启临时公网隧道：`./install.sh --force-cf`
 3.  安装成功后，回到 Cloudflare 隧道的 **Public Hostname**（或 **Routes**）页面，点击 **Add a public hostname** 将您自己的域名绑定到 `localhost:3000` 即可实现永久的域名访问。
 
+### 4. Docker 部署 (容器化)
+您也可以通过 Docker 运行 ClawBridge。镜像每次正式发布时会自动被推送至 [GitHub Container Registry](https://github.com/dreamwing/clawbridge/pkgs/container/clawbridge)。
+```bash
+docker pull ghcr.io/dreamwing/clawbridge:latest
+docker run -d --name clawbridge \
+  -p 3000:3000 \
+  -e ACCESS_KEY=您的安全密钥 \
+  -e OPENCLAW_STATE_DIR=/openclaw \
+  -e OPENCLAW_WORKSPACE=/openclaw/workspace \
+  -v ~/.openclaw:/openclaw:ro \
+  -v ./data:/app/data \
+  ghcr.io/dreamwing/clawbridge:latest
+```
+
 ## 📱 移动端 App (PWA)
 1.  在 Safari (iOS) 或 Chrome (Android) 中打开 Dashboard。
 2.  点击 "分享" -> "添加到主屏幕"。
@@ -88,6 +102,7 @@ curl -sL https://clawbridge.app/install.sh | bash
 - [@斯图超哥](https://x.com/StewartLi666) 提供关于 Linux 兼容性、IP 检测稳定性以及快速隧道刷新逻辑的反馈 (#12)。
 - [@zjy4fun](https://github.com/zjy4fun) 感谢其在 修复工作区检测问题 (PR #22) 中的贡献与建议。
 - [@chrisuhg](https://github.com/chrisuhg) 感谢其在 解决安装与授权重定向死循环 (Issue #19) 中的贡献与建议。
+- [@ForceConstant](https://github.com/ForceConstant) 感谢其在 功能请求：版本化的 docker 镜像 (#24) 中的贡献与建议 (Issue #24)。
 
 ---
 *MIT License. Built for the OpenClaw Community.*

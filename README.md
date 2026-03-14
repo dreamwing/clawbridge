@@ -74,6 +74,20 @@ Want a fixed URL like `dash.yoursite.com`?
     *   Or force a new Quick Tunnel: `./install.sh --force-cf`
 3.  After the installation is successful, go back to the Cloudflare Tunnel's **Public Hostname** (or **Routes**) page and click **Add a public hostname** to bind your own domain to `localhost:3000` for permanent access.
 
+### 4. Docker (Containerized)
+You can run ClawBridge as a Docker container. The images are automatically published to the [GitHub Container Registry (ghcr.io)](https://github.com/dreamwing/clawbridge/pkgs/container/clawbridge).
+```bash
+docker pull ghcr.io/dreamwing/clawbridge:latest
+docker run -d --name clawbridge \
+  -p 3000:3000 \
+  -e ACCESS_KEY=your_secret_key \
+  -e OPENCLAW_STATE_DIR=/openclaw \
+  -e OPENCLAW_WORKSPACE=/openclaw/workspace \
+  -v ~/.openclaw:/openclaw:ro \
+  -v ./data:/app/data \
+  ghcr.io/dreamwing/clawbridge:latest
+```
+
 ## 📱 Mobile App (PWA)
 1.  Open the dashboard in Safari (iOS) or Chrome (Android).
 2.  Tap "Share" -> "Add to Home Screen".
@@ -91,6 +105,7 @@ Special thanks to our community for helping improve ClawBridge:
 - [@斯图超哥](https://x.com/StewartLi666) for feedback on Linux compatibility, IP detection stability, and Quick Tunnel refresh logic (#12).
 - [@zjy4fun](https://github.com/zjy4fun) for valuable contributions in workspace detection fix (PR #22).
 - [@chrisuhg](https://github.com/chrisuhg) for valuable contributions in resolving installation and auth loop issues (Issue #19).
+- [@ForceConstant](https://github.com/ForceConstant) for valuable contributions in Feature Request: versioned docker images (#24) (Issue #24).
 
 ---
 *MIT License. Built for the OpenClaw Community.*

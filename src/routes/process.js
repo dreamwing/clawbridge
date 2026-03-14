@@ -6,8 +6,12 @@ const { exec } = require('child_process');
 const path = require('path');
 const { rateLimit } = require('../utils/rateLimit');
 const { getOpenClawCommand, WORKSPACE_DIR } = require('../services/openclaw');
+const { IS_DOCKER } = require('../config');
 
 router.post('/api/kill', (req, res) => {
+    if (IS_DOCKER) {
+        return res.status(403).json({ error: 'Process termination is not supported in Docker Container Mode. Please restart the container or run host commands directly.' });
+    }
     if (req.body?.confirm !== true) {
         return res.status(400).json({ error: 'Confirmation required. Send { "confirm": true } in request body.' });
     }
@@ -62,6 +66,9 @@ router.post('/api/kill', (req, res) => {
 });
 
 router.post('/api/gateway/restart', (req, res) => {
+    if (IS_DOCKER) {
+        return res.status(403).json({ error: 'Gateway process restarts are not supported inside Docker containers. To restart the gateway, please restart the Docker container.' });
+    }
     if (!rateLimit('gateway_restart', 10000)) {
         return res.status(429).json({ error: 'Please wait at least 10 seconds before retrying.' });
     }

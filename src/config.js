@@ -3,6 +3,7 @@
  * Resolves all env vars, paths, and constants at startup.
  */
 const path = require('path');
+const fs = require('fs');
 
 // --- Environment ---
 const PORT = process.env.PORT || 3000;
@@ -26,7 +27,8 @@ const TOKEN_FILE = path.join(APP_DIR, 'data/token_stats/latest.json');
 const ID_FILE = path.join(APP_DIR, 'data/last_id.txt');
 const ANALYZE_SCRIPT = path.join(APP_DIR, 'scripts/analyze.js');
 
-// --- Constants ---
+// --- Constants & Environment Flags ---
+const IS_DOCKER = fs.existsSync('/.dockerenv') || ['true', '1', 'yes'].includes((process.env.IS_DOCKER || '').toLowerCase());
 const CACHE_TTL_MS = 60000; // 60s cache
 
 module.exports = {
@@ -43,4 +45,5 @@ module.exports = {
     CACHE_TTL_MS,
     resolveHomeDir,
     resolveConfigDir,
+    IS_DOCKER,
 };

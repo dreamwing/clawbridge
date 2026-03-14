@@ -5,7 +5,7 @@ const router = require('express').Router();
 const { exec, execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const { HOME_DIR, STATE_DIR } = require('../config');
+const { HOME_DIR, STATE_DIR, IS_DOCKER } = require('../config');
 const { getOpenClawCommand } = require('../services/openclaw');
 
 router.get('/api/cron', (req, res) => {
@@ -25,9 +25,11 @@ router.get('/api/cron', (req, res) => {
         // Silent fail, fallthrough to CLI
     }
 
-    // 2. SLOW PATH: CLI Fallback
+    // 2. SLOW PATH: CLI Fallback (n/a in Docker)
+    if (IS_DOCKER) return res.json({ dockerMode: true, jobs: [] });
+
     const cmd = `${getOpenClawCommand()} cron list --json`;
-    exec(cmd, { maxBuffer: 1024 * 1024 * 5 }, (err, stdout, _stderr) => {
+    exec(cmd, { maxBuffer: 1024 * 1024 * 5 }, (err, stdout) => {
         try {
             const data = JSON.parse(stdout);
             if (data.jobs) return res.json(data.jobs);
@@ -40,6 +42,9 @@ router.get('/api/cron', (req, res) => {
 
 router.post('/api/run/:id', (req, res) => {
     const id = req.params.id;
+    if (IS_DOCKER) {
+        return res.status(403).json({ error: 'Running cron jobs is not supported in Docker Mode. Please interact with the host CLI directly.' });
+    }
     if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
         return res.status(400).json({ error: 'Invalid job ID format' });
     }
