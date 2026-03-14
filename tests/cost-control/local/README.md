@@ -11,9 +11,9 @@ The workflow has two layers:
 1. `assess`
    Purpose: inspect the user's real local `~/.openclaw` and current token stats, then report which Cost Control scenarios are already naturally testable.
 2. `sandbox`
-   Purpose: copy the real `~/.openclaw` into `tests/cost-control/local/.sandbox/openclaw`, then apply fixtures only to that sandbox copy.
+   Purpose: create a clean sandbox under `tests/cost-control/local/.sandbox/openclaw`, then apply only the fixture state needed for each case.
 
-This avoids changing the user's real OpenClaw state during acceptance testing.
+This avoids changing the user's real OpenClaw state during acceptance testing, and keeps runs reproducible instead of inheriting the operator's local OpenClaw config.
 
 ## What the helper touches
 
@@ -76,7 +76,7 @@ node tests/cost-control/local/run-all-cases.mjs
 What it does:
 
 1. Backs up `data/token_stats/latest.json`
-2. Creates or refreshes the sandbox OpenClaw copy
+2. Creates or refreshes a clean sandbox OpenClaw state
 3. Applies `case-a`, `case-b`, `case-c` in order
 4. Starts ClawBridge against the sandbox for each case
 5. Calls the local Cost Control APIs

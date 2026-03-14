@@ -11,9 +11,9 @@
 1. `assess`
    作用：检查用户真实本地 `~/.openclaw` 和当前 token stats，判断哪些 Cost Control 场景已经可以直接测试。
 2. `sandbox`
-   作用：把真实 `~/.openclaw` 复制到 `tests/cost-control/local/.sandbox/openclaw`，然后只对这个 sandbox 副本应用 fixture。
+   作用：在 `tests/cost-control/local/.sandbox/openclaw` 下创建一份干净的 sandbox，然后只注入每个 case 所需的 fixture 状态。
 
-这样可以避免在本地验收时修改真实 OpenClaw 的运行状态。
+这样既可以避免在本地验收时修改真实 OpenClaw 的运行状态，也能避免把操作者本机的真实配置带进验收结果。
 
 ## 工具会改动哪些内容
 
@@ -76,7 +76,7 @@ node tests/cost-control/local/run-all-cases.mjs
 这个脚本会自动：
 
 1. 备份 `data/token_stats/latest.json`
-2. 创建或刷新 sandbox OpenClaw 副本
+2. 创建或刷新一份干净的 sandbox OpenClaw 状态
 3. 依次应用 `case-a`、`case-b`、`case-c`
 4. 每个 case 单独启动一次指向 sandbox 的 ClawBridge
 5. 调用本地 Cost Control API

@@ -74,7 +74,9 @@ sandbox_init() {
   ensure_dirs
   rm -rf "$SANDBOX_OPENCLAW_DIR"
   mkdir -p "$SANDBOX_OPENCLAW_DIR" "$SANDBOX_WORKSPACE_DIR" "$SANDBOX_SKILLS_DIR"
-  copy_if_exists "$REAL_OPENCLAW_JSON" "$SANDBOX_OPENCLAW_JSON"
+  # Start from an empty sandbox config so local acceptance stays reproducible
+  # and is not polluted by the operator's real ~/.openclaw settings.
+  echo "{}" > "$SANDBOX_OPENCLAW_JSON"
   copy_if_exists "$REAL_HEARTBEAT_FILE" "$SANDBOX_HEARTBEAT_FILE"
   copy_if_exists "$REAL_SOUL_FILE" "$SANDBOX_SOUL_FILE"
   copy_if_exists "$REAL_WORKSPACE_DIR/AGENTS.md" "$SANDBOX_WORKSPACE_DIR/AGENTS.md"
