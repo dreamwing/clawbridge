@@ -441,8 +441,12 @@ async function fetchJobs() {
                                 <span class="job-next">${escapeHtml(nextText)}</span>
                             </div>
                         </div>
-                        <button class="run-icon" onclick="runJob('${escapeHtml(job.id)}')" aria-label="Run job">▶</button>
+                        <button class="run-icon" data-job-id="${escapeHtml(job.id)}" aria-label="Run job">▶</button>
                     `;
+            const runBtn = div.querySelector('.run-icon');
+            if (runBtn) {
+                runBtn.addEventListener('click', () => runJob(job.id));
+            }
             container.appendChild(div);
         });
     } catch (e) { console.warn('[Missions] Fetch failed:', e.message); }
@@ -766,6 +770,9 @@ function confirmUndoSkillSelection() {
 async function fetchDiagnostics() {
     try {
         const res = await fetchAuth(API + '/diagnostics?nocache=' + Date.now());
+        if (!res.ok) {
+            throw new Error(await readErrorMessage(res, 'Failed to load diagnostics'));
+        }
         diagnosticsData = await res.json();
         // Normalize field name (backend sends totalMonthlySavings)
         diagnosticsData.monthlySavings = diagnosticsData.totalMonthlySavings || 0;
@@ -805,6 +812,7 @@ async function fetchDiagnostics() {
         refreshFlippedOptimizerView();
     } catch (e) {
         console.error('Failed to load diagnostics', e);
+        showToast(e.message || 'Failed to load diagnostics');
     }
 }
 

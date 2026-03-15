@@ -270,15 +270,18 @@ class OptimizerService {
 
                 const moved = [];
                 const movedSkillsData = [];
+                const failed = [];
 
                 for (const rawName of selectedSkillNames) {
                     const skillName = typeof rawName === 'string' ? rawName.trim() : '';
                     if (!skillName || skillName !== path.basename(skillName) || skillName.includes(path.sep)) {
                         console.warn(`Skipping invalid skill name: ${rawName}`);
+                        failed.push(String(rawName));
                         continue;
                     }
                     if (!allowedSkillNames.has(skillName)) {
                         console.warn(`Skipping unknown skill: ${skillName}`);
+                        failed.push(skillName);
                         continue;
                     }
 
@@ -286,6 +289,7 @@ class OptimizerService {
                     const managedRoot = path.resolve(managedSkillsDir) + path.sep;
                     if (!resolved.startsWith(managedRoot)) {
                         console.warn(`Skipping suspicious resolved path: ${resolved}`);
+                        failed.push(skillName);
                         continue;
                     }
 
@@ -296,11 +300,30 @@ class OptimizerService {
                         movedSkillsData.push({ original: resolved, backup: destPath });
                     } catch (e) {
                         console.warn(`Failed to move skill ${skillName}:`, e.message);
+                        failed.push(skillName);
                     }
                 }
 
                 if (moved.length === 0) {
                     throw new Error('Failed to move any skills');
+                }
+
+                if (failed.length > 0) {
+                    const rollbackFailures = [];
+                    for (const skill of movedSkillsData.reverse()) {
+                        try {
+                            await fs.rename(skill.backup, skill.original);
+                        } catch (rollbackError) {
+                            rollbackFailures.push(path.basename(skill.original));
+                            console.warn(`Failed to roll back skill ${skill.original}:`, rollbackError.message);
+                        }
+                    }
+
+                    const failedList = failed.join(', ');
+                    if (rollbackFailures.length > 0) {
+                        throw new Error(`Failed to move selected skills: ${failedList}. Rollback also failed for: ${rollbackFailures.join(', ')}`);
+                    }
+                    throw new Error(`Failed to move selected skills: ${failedList}`);
                 }
 
                 // Inject the moved skills into the backup JSON for Undo support

@@ -341,6 +341,34 @@ CORRUPTED LINE
         );
     });
 
+    test('A04: rolls back and throws if any selected skill fails to move', async () => {
+        fs.readdir.mockResolvedValue([
+            { name: 'idle-skill', isDirectory: () => true, isSymbolicLink: () => false },
+            { name: 'quiet-skill', isDirectory: () => true, isSymbolicLink: () => false }
+        ]);
+
+        fs.rename
+            .mockResolvedValueOnce()
+            .mockRejectedValueOnce(new Error('EPERM'))
+            .mockResolvedValueOnce();
+
+        await expect(optimizerService.applyAction('A04', 12, {
+            selectedSkillNames: ['idle-skill', 'quiet-skill']
+        })).rejects.toThrow('Failed to move selected skills: quiet-skill');
+
+        expect(fs.rename).toHaveBeenNthCalledWith(
+            1,
+            expect.stringContaining('/tmp/mock-home/.openclaw/skills/idle-skill'),
+            expect.stringContaining('/data/backups/skills/idle-skill_')
+        );
+        expect(fs.rename).toHaveBeenNthCalledWith(
+            3,
+            expect.stringContaining('/data/backups/skills/idle-skill_'),
+            expect.stringContaining('/tmp/mock-home/.openclaw/skills/idle-skill')
+        );
+        expect(fs.rename).toHaveBeenCalledTimes(3);
+    });
+
     test('restoreBackup throws error if no backup path provided', async () => {
         await expect(optimizerService.restoreBackup())
             .rejects
