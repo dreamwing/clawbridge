@@ -159,6 +159,31 @@ describe('OptimizerService', () => {
         expect(configManager.setConfig).toHaveBeenCalledWith('agents.defaults.compaction.reserveTokens', '50000');
     });
 
+    test('A07: rolls back compaction mode if reserveTokens update fails', async () => {
+        configManager.getRawConfig.mockResolvedValue({
+            defaults: {
+                compaction: {
+                    mode: 'default',
+                    reserveTokens: 25000
+                }
+            }
+        });
+        configManager.setConfig
+            .mockResolvedValueOnce({ success: true })
+            .mockRejectedValueOnce(new Error('reserve failed'))
+            .mockResolvedValueOnce({ success: true })
+            .mockResolvedValueOnce({ success: true });
+
+        await expect(optimizerService.applyAction('A07'))
+            .rejects
+            .toThrow('reserve failed');
+
+        expect(configManager.setConfig).toHaveBeenNthCalledWith(1, 'agents.defaults.compaction.mode', 'safeguard');
+        expect(configManager.setConfig).toHaveBeenNthCalledWith(2, 'agents.defaults.compaction.reserveTokens', '50000');
+        expect(configManager.setConfig).toHaveBeenNthCalledWith(3, 'agents.defaults.compaction.mode', 'default');
+        expect(configManager.setConfig).toHaveBeenNthCalledWith(4, 'agents.defaults.compaction.reserveTokens', '25000');
+    });
+
     test('Should throw on unknown actionId', async () => {
         await expect(optimizerService.applyAction('A99'))
             .rejects

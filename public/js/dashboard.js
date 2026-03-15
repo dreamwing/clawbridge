@@ -167,7 +167,12 @@ function connectWS() {
     ws.onopen = () => console.log('WS Connected');
     ws.onclose = () => setTimeout(connectWS, 3000);
     ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+        let data;
+        try {
+            data = JSON.parse(event.data);
+        } catch (_e) {
+            return;
+        }
         if (data.type === 'heartbeat') {
             document.getElementById('heartbeat').innerText = new Date(data.ts).toLocaleTimeString();
         }
@@ -495,6 +500,8 @@ async function refreshTokenStats() {
     btn.style.opacity = '0.7';
 
     try {
+        const waitForAnalysis = new Promise(resolve => { _analysisResolve = resolve; });
+
         // 1. Trigger analysis
         const triggerRes = await fetchAuth(API + '/tokens/refresh', { method: 'POST' });
 
@@ -505,7 +512,7 @@ async function refreshTokenStats() {
 
         // 2. Wait for WS completion event OR timeout at 30s
         const result = await Promise.race([
-            new Promise(resolve => { _analysisResolve = resolve; }),
+            waitForAnalysis,
             new Promise(resolve => setTimeout(() => resolve('timeout'), 30000)),
         ]);
 

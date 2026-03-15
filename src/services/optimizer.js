@@ -354,15 +354,30 @@ class OptimizerService {
                     configChanged: 'contextPruning.mode: cache-ttl'
                 };
                 break;
-            case 'A07':
-                result = await configManager.setConfig('agents.defaults.compaction.mode', 'safeguard');
-                await configManager.setConfig('agents.defaults.compaction.reserveTokens', '50000');
+            case 'A07': {
+                const agentsConfig = await configManager.getRawConfig();
+                const previousMode = agentsConfig?.defaults?.compaction?.mode;
+                const previousReserveTokens = agentsConfig?.defaults?.compaction?.reserveTokens;
+                const modeResult = await configManager.setConfig('agents.defaults.compaction.mode', 'safeguard');
+                try {
+                    await configManager.setConfig('agents.defaults.compaction.reserveTokens', '50000');
+                } catch (err) {
+                    if (previousMode !== undefined) {
+                        await configManager.setConfig('agents.defaults.compaction.mode', String(previousMode));
+                    }
+                    if (previousReserveTokens !== undefined) {
+                        await configManager.setConfig('agents.defaults.compaction.reserveTokens', String(previousReserveTokens));
+                    }
+                    throw err;
+                }
+                result = modeResult;
                 details = {
                     title: 'Enable Compaction Safeguard',
                     savings: 0,
-                    configChanged: 'compaction.mode: safeguard'
+                    configChanged: 'compaction.mode: safeguard, reserveTokens: 50000'
                 };
                 break;
+            }
             case 'A09': {
                 const soulPath = path.join(WORKSPACE_DIR, 'SOUL.md');
                 const CONCISE_MARKER = 'Be concise.';
