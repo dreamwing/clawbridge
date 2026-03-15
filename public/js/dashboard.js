@@ -802,12 +802,26 @@ async function fetchDiagnostics() {
         }
 
         // Re-render current view if visible
-        if (container.classList.contains('flipped')) {
-            if (isFullyOptimized) renderHistoryList();
-            else renderOptimizerList();
-        }
+        refreshFlippedOptimizerView();
     } catch (e) {
         console.error('Failed to load diagnostics', e);
+    }
+}
+
+function refreshFlippedOptimizerView() {
+    if (!container.classList.contains('flipped')) return;
+
+    clearOptimizerProgressTimer();
+    progress.style.display = 'none';
+
+    if (isFullyOptimized) {
+        results.style.display = 'none';
+        success.style.display = 'flex';
+        renderHistoryList();
+    } else {
+        success.style.display = 'none';
+        results.style.display = 'flex';
+        renderOptimizerList();
     }
 }
 
@@ -1089,76 +1103,91 @@ async function renderHistoryList() {
     try {
         const res = await fetchAuth(API + '/optimizations/history');
         const history = await res.json();
-
-        const list = document.getElementById('timeline-list');
-        if (!list) return;
-        list.innerHTML = '';
-
-        if (history.length === 0) {
-            list.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No recent optimizations found.</div>';
-        } else {
-            history.forEach((hist, i) => {
-                const date = new Date(hist.timestamp);
-                const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                let title = hist.title || ('Applied: ' + hist.actionId);
-                if (hist.actionId === 'A01') title = 'Switched to a more efficient Model';
-                if (hist.actionId === 'A02') title = 'Adjusted Heartbeat Interval';
-                if (hist.actionId === 'A03') title = 'Reduced Session Resets';
-                if (hist.actionId === 'A04') title = 'Reviewed Installed Skills';
-                if (hist.actionId === 'A05') title = 'Reduced AI Thinking Allowance';
-                if (hist.actionId === 'A06') title = 'Enabled Prompt Caching';
-                if (hist.actionId === 'A07') title = 'Enabled Compaction Safeguard';
-                if (hist.actionId === 'A09') title = 'Reduced Output Verbosity';
-                if (hist.actionId === 'UNDO') title = '↩️ Rolled back to previous config';
-
-                const savingsTag = hist.savings > 0 ? ` — saved $${Number(hist.savings).toFixed(2)}/mo` : '';
-
-                // Add undo button to the most recent non-UNDO entry that has a backup
-                let undoHtml = '';
-                if (i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO') {
-                    const undoLabel = hist.actionId === 'A04' ? 'Restore Skills' : 'Undo';
-                    undoHtml = `<button class="btn-undo" data-backup-path="${encodeURIComponent(hist.backupPath)}">${undoLabel}</button>`;
-                }
-
-                // 7-day effect tracking
-                let effectHtml = '';
-                const daysSince = (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24);
-                if (daysSince >= 7 && hist.preOptCostSnapshot && hist.actionId !== 'UNDO' && diagnosticsData) {
-                    const actualCost = diagnosticsData.currentMonthlyCost || 0;
-                    const actualSaving = hist.preOptCostSnapshot - actualCost;
-                    const effectClass = actualSaving >= hist.savings * 0.8 ? 'effect-good' : 'effect-partial';
-                    effectHtml = `<span class="effect-tag ${effectClass}">7d: $${actualSaving.toFixed(2)}</span>`;
-                }
-
-                const detailsHtml = hist.configChanged ? `<div class="timeline-details hidden">${escapeHtml(hist.configChanged)}</div>` : '';
-                const clickHandler = hist.configChanged ? 'style="cursor:pointer;" onclick="this.querySelector(\'.timeline-details\').classList.toggle(\'hidden\')"' : '';
-
-                const div = document.createElement('div');
-                div.className = 'timeline-item';
-                const dotColor = hist.actionId === 'UNDO' ? 'rgba(245, 158, 11, 0.8)' : (i === 0 ? 'var(--accent-green)' : 'var(--text-dim)');
-                div.innerHTML = `
-                                <div class="timeline-dot" style="border-color: ${dotColor};"></div>
-                                <div class="timeline-time">${timeStr}</div>
-                                <div class="timeline-content" ${clickHandler}>
-                                    ${escapeHtml(title)}${savingsTag} ${effectHtml} ${undoHtml}
-                                    ${detailsHtml}
-                                </div>
-                            `;
-                const undoBtn = div.querySelector('.btn-undo');
-                if (undoBtn) {
-                    undoBtn.addEventListener('click', (event) => {
-                        event.stopPropagation();
-                        handleUndo(decodeURIComponent(undoBtn.dataset.backupPath || ''));
-                    });
-                }
-                list.appendChild(div);
-            });
-        }
+        renderHistoryTimeline(document.getElementById('timeline-list'), history);
+        renderHistoryTimeline(document.getElementById('active-timeline-list'), history);
     } catch (_e) { }
 }
 
-async function handleUndo(backupPath) {
+function renderHistoryTimeline(list, history) {
+    if (!list) return;
+    list.innerHTML = '';
+
+    if (history.length === 0) {
+        list.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No recent optimizations found.</div>';
+        return;
+    }
+
+    history.forEach((hist, i) => {
+        const date = new Date(hist.timestamp);
+        const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        let title = hist.title || ('Applied: ' + hist.actionId);
+        if (hist.actionId === 'A01') title = 'Switched to a more efficient Model';
+        if (hist.actionId === 'A02') title = 'Adjusted Heartbeat Interval';
+        if (hist.actionId === 'A03') title = 'Reduced Session Resets';
+        if (hist.actionId === 'A04') title = 'Reviewed Installed Skills';
+        if (hist.actionId === 'A05') title = 'Reduced AI Thinking Allowance';
+        if (hist.actionId === 'A06') title = 'Enabled Prompt Caching';
+        if (hist.actionId === 'A07') title = 'Enabled Compaction Safeguard';
+        if (hist.actionId === 'A09') title = 'Reduced Output Verbosity';
+        if (hist.actionId === 'UNDO') title = '↩️ Rolled back to previous config';
+
+        const savingsTag = hist.savings > 0 ? ` — saved $${Number(hist.savings).toFixed(2)}/mo` : '';
+
+        let undoHtml = '';
+        if (i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO') {
+            const undoLabel = hist.actionId === 'A04' ? 'Restore Skills' : 'Undo';
+            undoHtml = `<button class="btn-undo" data-backup-path="${encodeURIComponent(hist.backupPath)}">${undoLabel}</button>`;
+        }
+
+        let effectHtml = '';
+        const daysSince = (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSince >= 7 && hist.preOptCostSnapshot && hist.actionId !== 'UNDO' && diagnosticsData) {
+            const actualCost = diagnosticsData.currentMonthlyCost || 0;
+            const actualSaving = hist.preOptCostSnapshot - actualCost;
+            const effectClass = actualSaving >= hist.savings * 0.8 ? 'effect-good' : 'effect-partial';
+            effectHtml = `<span class="effect-tag ${effectClass}">7d: $${actualSaving.toFixed(2)}</span>`;
+        }
+
+        const detailsHtml = hist.configChanged ? `<div class="timeline-details hidden">${escapeHtml(hist.configChanged)}</div>` : '';
+        const clickHandler = hist.configChanged ? 'style="cursor:pointer;" onclick="this.querySelector(\'.timeline-details\').classList.toggle(\'hidden\')"' : '';
+
+        const div = document.createElement('div');
+        div.className = 'timeline-item';
+        const dotColor = hist.actionId === 'UNDO' ? 'rgba(245, 158, 11, 0.8)' : (i === 0 ? 'var(--accent-green)' : 'var(--text-dim)');
+        div.innerHTML = `
+                        <div class="timeline-dot" style="border-color: ${dotColor};"></div>
+                        <div class="timeline-time">${timeStr}</div>
+                        <div class="timeline-content" ${clickHandler}>
+                            ${escapeHtml(title)}${savingsTag} ${effectHtml} ${undoHtml}
+                            ${detailsHtml}
+                        </div>
+                    `;
+        const undoBtn = div.querySelector('.btn-undo');
+        if (undoBtn) {
+            undoBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                handleUndo(undoBtn, decodeURIComponent(undoBtn.dataset.backupPath || ''));
+            });
+        }
+        list.appendChild(div);
+    });
+}
+
+function setUndoButtonState(button, pending) {
+    if (!button) return;
+    if (pending) {
+        button.disabled = true;
+        if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
+        button.textContent = 'Undoing...';
+    } else {
+        button.disabled = false;
+        if (button.dataset.originalLabel) button.textContent = button.dataset.originalLabel;
+    }
+}
+
+async function handleUndo(triggerBtn, backupPath) {
+    setUndoButtonState(triggerBtn, true);
     try {
         let selectedSkillNames;
         const previewRes = await fetchAuth(API + '/optimizations/undo-preview', {
@@ -1170,16 +1199,22 @@ async function handleUndo(backupPath) {
 
         if (preview && Array.isArray(preview.restorableSkills) && preview.restorableSkills.length > 0) {
             const response = await openUndoSkillModal(preview.restorableSkills);
-            if (response === null) return;
+            if (response === null) {
+                setUndoButtonState(triggerBtn, false);
+                return;
+            }
             if (response.length === 0) {
                 showToast('Select at least one skill to restore');
+                setUndoButtonState(triggerBtn, false);
                 return;
             }
             if (response.length !== preview.restorableSkills.length) selectedSkillNames = response;
         } else if (!confirm('Undo this optimization? Your config will be restored from the backup.')) {
+            setUndoButtonState(triggerBtn, false);
             return;
         }
 
+        showToast('Undo in progress...');
         const res = await fetchAuth(API + '/optimizations/undo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1196,6 +1231,8 @@ async function handleUndo(backupPath) {
         }
     } catch (e) {
         showToast('Undo failed: ' + e.message);
+    } finally {
+        setUndoButtonState(triggerBtn, false);
     }
 }
 
@@ -1303,6 +1340,7 @@ async function handleOpt(btn, actionId) {
             if (res.ok) {
                 btn.classList.remove('applying');
                 item.classList.add('done');
+                const appliedSkippedRecommendation = item.classList.contains('is-skipped');
                 if (!item.classList.contains('is-skipped')) {
                     actionsApplied++;
                 }
@@ -1312,6 +1350,8 @@ async function handleOpt(btn, actionId) {
                 if (Number.isFinite(cur)) {
                     mainAmount.textContent = '$' + Math.max(0, cur - savingsVal).toFixed(2);
                 }
+
+                showToast(appliedSkippedRecommendation ? 'Skipped recommendation applied' : 'Optimization applied');
 
                 if (actionsApplied >= totalActions) {
                     setTimeout(showSuccess, 1000);

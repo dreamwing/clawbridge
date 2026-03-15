@@ -1082,6 +1082,18 @@
             border-left: 3px dashed var(--border);
             opacity: 1 !important;
             background: rgba(255, 255, 255, 0.02);
+            text-align: left;
+        }
+
+        .opt-item.is-skipped .opt-header,
+        .opt-item.is-skipped .opt-desc,
+        .opt-item.is-skipped .opt-sideeffect,
+        .opt-item.is-skipped .opt-action-line,
+        .opt-item.is-skipped .opt-details,
+        .opt-item.is-skipped .opt-help-box,
+        .opt-item.is-skipped .opt-interval-selector,
+        .opt-item.is-skipped .skill-audit-list {
+            text-align: left;
         }
 
         .opt-header {
@@ -1324,6 +1336,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        #skipped-list,
+        #success-skipped-list,
+        #success-skipped-section,
+        .section-header-small {
+            text-align: left;
         }
 
         .code-tag {
