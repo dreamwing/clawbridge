@@ -1072,6 +1072,11 @@
             color: var(--text-dim);
         }
 
+        .opt-item.is-skipped {
+            border-left-style: dashed;
+            opacity: 0.9;
+        }
+
         .opt-header {
             display: flex;
             justify-content: space-between;

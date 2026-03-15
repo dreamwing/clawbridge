@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="app-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260315-06">
 </head>
 
 <body>
@@ -460,19 +460,12 @@
                             <div class="history-title">Recent Optimizations</div>
                             <div class="timeline" id="timeline-list">
                                 <!-- Timeline items will be injected here -->
-                                <div class="timeline-item">
-                                    <div class="timeline-dot"></div>
-                                    <div class="timeline-time">JUST NOW</div>
-                                    <div class="timeline-content">Applied 4 cost-saving policies
-                                        <span>-$35.02/mo</span>
-                                    </div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-dot" style="border-color: var(--text-dim);"></div>
-                                    <div class="timeline-time">2 DAYS AGO</div>
-                                    <div class="timeline-content">Switched to Gemini 3.5 Sonnet</div>
-                                </div>
                             </div>
+                        </div>
+
+                        <div id="success-skipped-section" class="hidden" style="width:100%; margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                            <div class="result-title">Skipped Recommendations</div>
+                            <div id="success-skipped-list" class="opt-list"></div>
                         </div>
                     </div>
                 </div>
@@ -587,7 +580,7 @@
                     </a>
                 </nav>
 
-                <script src="js/dashboard.js" defer></script>
+                <script src="js/dashboard.js?v=20260315-06" defer></script>
 </body>
 
 </html>

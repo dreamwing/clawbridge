@@ -704,7 +704,7 @@ let diagnosticsData = null;
 
 async function fetchDiagnostics() {
     try {
-        const res = await fetchAuth(API + '/diagnostics?t=' + Date.now());
+        const res = await fetchAuth(API + '/diagnostics?nocache=' + Date.now());
         diagnosticsData = await res.json();
         // Normalize field name (backend sends totalMonthlySavings)
         diagnosticsData.monthlySavings = diagnosticsData.totalMonthlySavings || 0;
@@ -738,6 +738,12 @@ async function fetchDiagnostics() {
             trigger.classList.add('all-done');
             triggerText.innerHTML = '<strong>System Optimized.</strong> Token usage is highly efficient.';
             triggerBtn.textContent = 'History';
+        }
+
+        // Re-render current view if visible
+        if (container.classList.contains('flipped')) {
+            if (isFullyOptimized) renderHistoryList();
+            else renderOptimizerList();
         }
     } catch (e) {
         console.error('Failed to load diagnostics', e);
@@ -854,6 +860,24 @@ function renderActionItem(act, isSkipped = false) {
         });
     });
 
+    // Wire up A04 skill checkboxes
+    if (act.actionId === 'A04' && act._meta) {
+        const skillCheckboxes = itemEl.querySelectorAll('.skill-checkbox');
+        const applyBtn = itemEl.querySelector('.btn-mini');
+        if (applyBtn) {
+            applyBtn.removeAttribute('onclick'); // Override default handleOpt
+            applyBtn.addEventListener('click', () => {
+                const selected = [];
+                skillCheckboxes.forEach(cb => { if (cb.checked) selected.push(cb.dataset.skillName); });
+                if (selected.length === 0) { showToast('Please select at least one skill to remove'); return; }
+                const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
+                currentMeta.selectedSkillNames = selected;
+                itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
+                handleOpt(applyBtn, 'A04');
+            });
+        }
+    }
+
     return itemEl;
 }
 
@@ -893,11 +917,11 @@ function renderOptimizerList() {
         const skippedWrapper = document.createElement('div');
         skippedWrapper.style.marginTop = '30px';
         skippedWrapper.innerHTML = `
-            <div class="section-header-small" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <div class="section-header-small" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; border: 1px dashed var(--border);" onclick="this.nextElementSibling.classList.toggle('hidden')">
                 <span>Skipped Recommendations (${skipped.length})</span>
-                <span style="font-size:10px; opacity:0.6;">▼ View</span>
+                <span style="font-size:10px; opacity:0.6; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">Toggle View</span>
             </div>
-            <div id="skipped-list" class="opt-list hidden" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; opacity: 0.8;"></div>
+            <div id="skipped-list" class="opt-list hidden" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; opacity: 0.9;"></div>
         `;
         list.appendChild(skippedWrapper);
         const skippedListContainer = skippedWrapper.querySelector('#skipped-list');
@@ -916,40 +940,27 @@ function renderOptimizerList() {
     }
 }
 
-        // Wire up A04 skill checkboxes: select all idle by default, Apply sends selectedSkills
-        if (act.actionId === 'A04' && act._meta) {
-            const skillCheckboxes = itemEl.querySelectorAll('.skill-checkbox');
-            const applyBtn = itemEl.querySelector('.btn-mini');
-            if (applyBtn) {
-                const origOnclick = applyBtn.getAttribute('onclick');
-                applyBtn.removeAttribute('onclick');
-                applyBtn.addEventListener('click', () => {
-                    // Collect selected skills
-                    const selected = [];
-                    skillCheckboxes.forEach(cb => {
-                        if (cb.checked) {
-                            selected.push(cb.dataset.skillName);
-                        }
-                    });
-                    if (selected.length === 0) {
-                        showToast('Please select at least one skill to remove');
-                        return;
-                    }
-                    // Update meta with selection
-                    const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
-                    currentMeta.selectedSkillNames = selected;
-                    itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
-                    // Call original handler
-                    handleOpt(applyBtn, 'A04');
-                });
-            }
-        }
-
-        list.appendChild(itemEl);
-    });
-}
-
 async function renderHistoryList() {
+    // 1. Render Skipped Recommendations in Success View
+    const successSkippedSection = document.getElementById('success-skipped-section');
+    const successSkippedList = document.getElementById('success-skipped-list');
+    const skipped = (diagnosticsData && diagnosticsData.skippedActions) || [];
+
+    if (successSkippedSection && successSkippedList) {
+        if (skipped.length > 0) {
+            console.log('[Optimizer] Rendering', skipped.length, 'skipped actions in Success view');
+            successSkippedSection.classList.remove('hidden');
+            successSkippedList.innerHTML = '';
+            skipped.forEach(act => {
+                successSkippedList.appendChild(renderActionItem(act, true));
+            });
+        } else {
+            console.log('[Optimizer] No skipped actions to render in Success view');
+            successSkippedSection.classList.add('hidden');
+        }
+    }
+
+    // 2. Render Optimization History
     try {
         const res = await fetchAuth(API + '/optimizations/history');
         const history = await res.json();
@@ -960,69 +971,50 @@ async function renderHistoryList() {
 
         if (history.length === 0) {
             list.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No recent optimizations found.</div>';
-            return;
-        }
+        } else {
+            history.forEach((hist, i) => {
+                const date = new Date(hist.timestamp);
+                const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        history.forEach((hist, i) => {
-            const date = new Date(hist.timestamp);
-            const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                let title = hist.title || ('Applied: ' + hist.actionId);
+                if (hist.actionId === 'A01') title = 'Switched to a more efficient Model';
+                if (hist.actionId === 'A02') title = 'Adjusted Heartbeat Interval';
+                if (hist.actionId === 'A03') title = 'Reduced Session Resets';
+                if (hist.actionId === 'A04') title = 'Reviewed Installed Skills';
+                if (hist.actionId === 'A05') title = 'Reduced AI Thinking Allowance';
+                if (hist.actionId === 'A06') title = 'Enabled Prompt Caching';
+                if (hist.actionId === 'A07') title = 'Enabled Compaction Safeguard';
+                if (hist.actionId === 'A09') title = 'Reduced Output Verbosity';
+                if (hist.actionId === 'UNDO') title = '↩️ Rolled back to previous config';
 
-            let title = hist.title || ('Applied: ' + hist.actionId);
-            if (hist.actionId === 'A01') title = 'Switched to a more efficient Model';
-            if (hist.actionId === 'A02') title = 'Adjusted Heartbeat Interval';
-            if (hist.actionId === 'A03') title = 'Reduced Session Resets';
-            if (hist.actionId === 'A04') title = 'Reviewed Installed Skills';
-            if (hist.actionId === 'A05') title = 'Reduced AI Thinking Allowance';
-            if (hist.actionId === 'A06') title = 'Enabled Prompt Caching';
-            if (hist.actionId === 'A07') title = 'Enabled Compaction Safeguard';
-            if (hist.actionId === 'A09') title = 'Reduced Output Verbosity';
-            if (hist.actionId === 'UNDO') title = '↩️ Rolled back to previous config';
+                const savingsTag = hist.savings > 0 ? ` — saved $${Number(hist.savings).toFixed(2)}/mo` : '';
 
-            const savingsTag = hist.savings > 0 ? ` — saved $${Number(hist.savings).toFixed(2)}/mo` : '';
+                // Add undo button to the most recent non-UNDO entry that has a backup
+                let undoHtml = '';
+                if (i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO') {
+                    undoHtml = `<button class="btn-undo" onclick="handleUndo('${escapeHtml(hist.backupPath)}')">Undo</button>`;
+                }
 
-            // Add undo button to the most recent non-UNDO entry that has a backup
-            let undoHtml = '';
-            if (i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO') {
-                undoHtml = `<button class="btn-undo" onclick="handleUndo('${escapeHtml(hist.backupPath)}')">Undo</button>`;
-            }
+                // 7-day effect tracking
+                let effectHtml = '';
+                const daysSince = (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24);
+                if (daysSince >= 7 && hist.preOptCostSnapshot && hist.actionId !== 'UNDO' && diagnosticsData) {
+                    const actualCost = diagnosticsData.currentMonthlyCost || 0;
+                    const actualSaving = hist.preOptCostSnapshot - actualCost;
+                    const effectClass = actualSaving >= hist.savings * 0.8 ? 'effect-good' : 'effect-partial';
+                    effectHtml = `<span class="effect-tag ${effectClass}">7d: $${actualSaving.toFixed(2)}</span>`;
+                }
 
-            // 7-day effect tracking
-            let effectHtml = '';
-            const daysSince = (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24);
-            if (daysSince >= 7 && hist.preOptCostSnapshot && hist.actionId !== 'UNDO' && diagnosticsData) {
-                const actualCost = diagnosticsData.currentMonthlyCost || 0;
-                const actualSaving = hist.preOptCostSnapshot - actualCost;
-                const effectClass = actualSaving >= hist.savings * 0.8 ? 'effect-good' : 'effect-partial';
-                effectHtml = `<span class="effect-tag ${effectClass}">7d: $${actualSaving.toFixed(2)}</span>`;
-            }
-
-            const div = document.createElement('div');
-            div.className = 'timeline-item';
-            const dotColor = hist.actionId === 'UNDO' ? 'rgba(245, 158, 11, 0.8)' : (i === 0 ? 'var(--accent-green)' : 'var(--text-dim)');
-            div.innerHTML = `
-                            <div class="timeline-dot" style="border-color: ${dotColor};"></div>
-                            <div class="timeline-time">${timeStr}</div>
-                            <div class="timeline-content">${escapeHtml(title)}${savingsTag} ${effectHtml} ${undoHtml}</div>
-                        `;
-            list.appendChild(div);
-        });
-
-        // Add Skipped Recommendations to the bottom
-        const skipped = diagnosticsData.skippedActions || [];
-        if (skipped.length > 0) {
-            const skippedHeader = document.createElement('div');
-            skippedHeader.className = 'result-title';
-            skippedHeader.style.marginTop = '32px';
-            skippedHeader.innerText = 'Skipped Recommendations';
-            list.appendChild(skippedHeader);
-
-            const skippedList = document.createElement('div');
-            skippedList.className = 'opt-list';
-            skippedList.style.opacity = '0.8';
-            skipped.forEach(act => {
-                skippedList.appendChild(renderActionItem(act, true));
+                const div = document.createElement('div');
+                div.className = 'timeline-item';
+                const dotColor = hist.actionId === 'UNDO' ? 'rgba(245, 158, 11, 0.8)' : (i === 0 ? 'var(--accent-green)' : 'var(--text-dim)');
+                div.innerHTML = `
+                                <div class="timeline-dot" style="border-color: ${dotColor};"></div>
+                                <div class="timeline-time">${timeStr}</div>
+                                <div class="timeline-content">${escapeHtml(title)}${savingsTag} ${effectHtml} ${undoHtml}</div>
+                            `;
+                list.appendChild(div);
             });
-            list.appendChild(skippedList);
         }
     } catch (_e) { }
 }
