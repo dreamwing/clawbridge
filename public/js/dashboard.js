@@ -1247,10 +1247,11 @@ async function handleSkip(btn, actionId) {
             const item = btn.closest('.opt-item');
             item.style.opacity = '0.5';
             item.style.pointerEvents = 'none';
-            fetchDiagnostics(); // Refresh to remove it
+            await fetchDiagnostics();
+            showToast('Recommendation skipped');
         } else {
             btn.disabled = false;
-            showToast('Skip failed');
+            showToast(await readErrorMessage(res, 'Skip failed'));
         }
     } catch (e) {
         btn.disabled = false;
@@ -1262,8 +1263,10 @@ async function handleUnskip(actionId) {
     try {
         const res = await fetchAuth(API + '/optimize/' + actionId + '/unskip', { method: 'POST' });
         if (res.ok) {
+            await fetchDiagnostics();
             showToast('Recommendation restored');
-            fetchDiagnostics();
+        } else {
+            showToast(await readErrorMessage(res, 'Restore failed'));
         }
     } catch (e) {
         showToast('Restore failed');
