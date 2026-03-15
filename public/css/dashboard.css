@@ -1536,6 +1536,12 @@
             word-break: break-all;
         }
 
+        .timeline-note {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
         .btn-undo {
             display: inline-block;
             margin-left: 8px;

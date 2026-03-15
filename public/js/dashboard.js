@@ -1142,10 +1142,18 @@ function renderHistoryTimeline(list, history) {
 
         const savingsTag = hist.savings > 0 ? ` — saved $${Number(hist.savings).toFixed(2)}/mo` : '';
 
+        const canShowUndo = i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO';
+        const isUndoBlockedByNewerChanges = i > 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO';
+
         let undoHtml = '';
-        if (i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO') {
+        if (canShowUndo) {
             const undoLabel = hist.actionId === 'A04' ? 'Restore Skills' : 'Undo';
             undoHtml = `<button class="btn-undo" data-backup-path="${encodeURIComponent(hist.backupPath)}">${undoLabel}</button>`;
+        }
+
+        let undoNoticeHtml = '';
+        if (isUndoBlockedByNewerChanges) {
+            undoNoticeHtml = '<div class="timeline-note">Undo unavailable after newer changes.</div>';
         }
 
         let effectHtml = '';
@@ -1169,6 +1177,7 @@ function renderHistoryTimeline(list, history) {
                         <div class="timeline-content" ${clickHandler}>
                             ${escapeHtml(title)}${savingsTag} ${effectHtml} ${undoHtml}
                             ${detailsHtml}
+                            ${undoNoticeHtml}
                         </div>
                     `;
         const undoBtn = div.querySelector('.btn-undo');
