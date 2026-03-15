@@ -44,6 +44,17 @@ class DiagnosticsEngine {
     }
 
     /**
+     * Remove an action ID from the skip list.
+     */
+    async unskipAction(actionId) {
+        let list = await this.getSkipList();
+        list = list.filter(id => id !== actionId);
+        await fs.writeFile(this.skipPath, JSON.stringify(list, null, 2), 'utf8');
+        this.invalidateCache();
+        return { success: true, unskipped: actionId };
+    }
+
+    /**
      * Clear the skip list (optional reset).
      */
     async clearSkipList() {
@@ -563,9 +574,11 @@ class DiagnosticsEngine {
 
         // Filter out skipped actions
         const finalActions = results.filter(act => !skipList.includes(act.actionId));
+        const skippedActions = results.filter(act => skipList.includes(act.actionId));
 
         // Sort by savings descending (protection items last)
         finalActions.sort((a, b) => b.savings - a.savings);
+        skippedActions.sort((a, b) => b.savings - a.savings);
 
         const currentMonthlyCost = totalCost * monthlyMultiplier;
         const result = {
@@ -573,7 +586,8 @@ class DiagnosticsEngine {
             advisoryMonthlySavings,
             currentMonthlyCost,
             cacheHitRate,
-            actions: finalActions
+            actions: finalActions,
+            skippedActions: skippedActions
         };
 
         // Attach raw data for verbose API export (advanced users)

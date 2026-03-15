@@ -36,6 +36,17 @@ router.post('/api/optimize/:action_id/skip', async (req, res) => {
     }
 });
 
+router.post('/api/optimize/:action_id/unskip', async (req, res) => {
+    const { action_id } = req.params;
+    try {
+        const result = await diagnosticsEngine.unskipAction(action_id);
+        res.json(result);
+    } catch (err) {
+        console.error(`Unskip error for ${action_id}:`, err);
+        res.status(500).json({ error: 'Failed to unskip action', details: err.message });
+    }
+});
+
 router.post('/api/optimize/reset-skips', async (req, res) => {
     try {
         await diagnosticsEngine.clearSkipList();

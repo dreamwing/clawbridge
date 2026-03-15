@@ -744,13 +744,127 @@ async function fetchDiagnostics() {
     }
 }
 
+function renderSkillAuditList(meta) {
+    let html = '<div class="skill-audit-list">';
+    if (meta.idleSkills && meta.idleSkills.length > 0) {
+        html += '<div class="skill-group"><span class="skill-group-label idle">Suggest Removal (' + meta.idleSkills.length + ')</span>';
+        meta.idleSkills.forEach(s => {
+            html += `<label class="skill-badge idle"><input type="checkbox" class="skill-checkbox" checked data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small></label>`;
+        });
+        html += '</div>';
+    }
+    if (meta.quietSkills && meta.quietSkills.length > 0) {
+        html += '<div class="skill-group"><span class="skill-group-label quiet">Review Usage (' + meta.quietSkills.length + ')</span>';
+        meta.quietSkills.forEach(s => {
+            html += `<label class="skill-badge quiet"><input type="checkbox" class="skill-checkbox" data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small></label>`;
+        });
+        html += '</div>';
+    }
+    html += '</div>';
+    return html;
+}
+
+function renderActionItem(act, isSkipped = false) {
+    const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}/mo` : '🛡️ Protection';
+    const savingsClass = act.savings > 10 ? 'high-savings' : (act.savings > 0 ? 'medium-savings' : 'safety');
+
+    // L2: Side effect in plain language
+    let sideEffectHtml = '';
+    if (act.plainSideEffect || act.sideEffect) {
+        sideEffectHtml = `<div class="opt-sideeffect">${escapeHtml(act.plainSideEffect || act.sideEffect)}</div>`;
+    }
+
+    // L1: Use plainTitle (beginner-friendly), fallback to title
+    const displayTitle = act.plainTitle || act.title;
+    const metaAttr = act._meta ? ' data-meta=\'' + JSON.stringify(act._meta).replace(/'/g, '&#39;') + '\'' : '';
+
+    // A02 with multi-interval options
+    let optionsHtml = '';
+    if (act.actionId === 'A02' && act.options && act.options.length > 0) {
+        const optItems = act.options.map((opt, i) => {
+            const checked = i === 0 ? ' checked' : '';
+            const isDisable = opt.value === '0m';
+            const labelClass = isDisable ? 'opt-radio-disable' : '';
+            return `<label class="opt-radio ${labelClass}">
+                <input type="radio" name="${isSkipped ? 'skip-' : ''}hb-interval-${act.actionId}" value="${opt.value}" data-savings="${opt.savings}"${checked}>
+                <span class="opt-radio-label">${escapeHtml(opt.label)}</span>
+                <span class="opt-radio-savings">${opt.savingsStr}</span>
+            </label>`;
+        }).join('');
+        optionsHtml = `<div class="opt-interval-selector" style="margin:8px 0;display:flex;flex-direction:column;gap:4px;">${optItems}</div>`;
+    }
+
+    // L3: Collapsible technical details
+    let detailsHtml = '';
+    const detailParts = [];
+    if (act.configDiff) {
+        const d = act.configDiff;
+        detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(d.from)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(d.to)}</span></div>`);
+    }
+    if (act.calcDetail) {
+        detailParts.push(`<div class="opt-calc">\ud83d\udcd0 ${escapeHtml(act.calcDetail)}</div>`);
+    }
+    if (act.codeTag) {
+        detailParts.push(`<div class="opt-codetag"><code>${escapeHtml(act.codeTag)}</code></div>`);
+    }
+    if (detailParts.length > 0) {
+        detailsHtml = `<details class="opt-details"><summary>Technical Details</summary><div class="opt-details-body">${detailParts.join('')}</div></details>`;
+    }
+
+    const tooltipHtml = act.helpText ? `<span class="opt-help" onclick="toggleHelp(this, event)">?</span>` : '';
+    const helpBoxHtml = act.helpText ? `<div class="opt-help-box">${escapeHtml(act.helpText)}</div>` : '';
+    const tagInteractive = act.savings === 0 ? ' interactive' : '';
+    const tagOnclick = act.savings === 0 ? ' onclick="toggleHelp(this, event)"' : '';
+
+    const actionButtons = isSkipped 
+        ? `<button class="btn-skip" onclick="handleUnskip('${act.actionId}')">Restore</button>
+           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')">Apply Anyway</button>`
+        : `<button class="btn-skip" onclick="handleSkip(this, '${act.actionId}')">Skip</button>
+           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>`;
+
+    const itemHtml = `
+                <div class="opt-item ${savingsClass} ${isSkipped ? 'is-skipped' : ''}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
+                    <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)} ${tooltipHtml}</span><span class="opt-savings-tag${tagInteractive}" id="savings-tag-${act.actionId}"${tagOnclick}>${savingsStr}</span></div>
+                    <div class="opt-desc">${escapeHtml(act.description || '')}</div>
+                    ${act._meta && act._meta.type === 'skill-audit' ? renderSkillAuditList(act._meta) : ''}
+                    ${helpBoxHtml}
+                    ${sideEffectHtml}
+                    ${optionsHtml}
+                    ${detailsHtml}
+                    <div class="opt-action-line" style="justify-content: flex-end; gap: 8px;">
+                        ${act.type === 'advisory' ? '<span class="btn-advisory">ℹ️ Manual Action</span>' : actionButtons}
+                    </div>
+                </div>`;
+
+    const temp = document.createElement('div');
+    temp.innerHTML = itemHtml;
+    const itemEl = temp.firstElementChild;
+
+    // Wire up radio change
+    const radioName = `${isSkipped ? 'skip-' : ''}hb-interval-${act.actionId}`;
+    itemEl.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => {
+        radio.addEventListener('change', () => {
+            const selectedSavings = parseFloat(radio.getAttribute('data-savings')) || 0;
+            itemEl.setAttribute('data-savings', selectedSavings);
+            const tag = itemEl.querySelector(`#savings-tag-${act.actionId}`);
+            if (tag) tag.textContent = `-$${selectedSavings.toFixed(2)}/mo`;
+            const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
+            currentMeta.interval = radio.value;
+            itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
+        });
+    });
+
+    return itemEl;
+}
+
 function renderOptimizerList() {
     if (!diagnosticsData) return;
     actionsApplied = 0;
-    totalActions = (diagnosticsData.actions || []).filter(a => a.type !== 'advisory').length;
+    totalActions = (diagnosticsData.actions || []).filter(act => act.type !== 'advisory').length;
 
-    if (diagnosticsData.monthlySavings > 0) {
-        document.getElementById('main-savings-amount').innerText = '$' + diagnosticsData.monthlySavings.toFixed(2);
+    // Update Header
+    if (diagnosticsData.totalMonthlySavings > 0) {
+        document.getElementById('main-savings-amount').innerText = '$' + diagnosticsData.totalMonthlySavings.toFixed(2);
         document.getElementById('main-savings-amount').style.fontSize = '56px';
     } else {
         document.getElementById('main-savings-amount').innerText = '🛡️ Preventative';
@@ -758,7 +872,7 @@ function renderOptimizerList() {
     }
 
     const currentCost = diagnosticsData.currentMonthlyCost || 0;
-    const optimizedCost = Math.max(0, currentCost - diagnosticsData.monthlySavings);
+    const optimizedCost = Math.max(0, currentCost - diagnosticsData.totalMonthlySavings);
 
     const currentEl = document.querySelector('.cost-compare-val.current');
     const optimizedEl = document.querySelector('.cost-compare-val.optimized');
@@ -768,27 +882,31 @@ function renderOptimizerList() {
     const list = document.getElementById('opt-list');
     list.innerHTML = '';
 
-    function renderSkillAuditList(meta) {
-        let html = '<div class="skill-audit-list">';
-        if (meta.idleSkills && meta.idleSkills.length > 0) {
-            html += '<div class="skill-group"><span class="skill-group-label idle">Suggest Removal (' + meta.idleSkills.length + ')</span>';
-            meta.idleSkills.forEach(s => {
-                html += `<label class="skill-badge idle"><input type="checkbox" class="skill-checkbox" checked data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small></label>`;
-            });
-            html += '</div>';
-        }
-        if (meta.quietSkills && meta.quietSkills.length > 0) {
-            html += '<div class="skill-group"><span class="skill-group-label quiet">Review Usage (' + meta.quietSkills.length + ')</span>';
-            meta.quietSkills.forEach(s => {
-                html += `<label class="skill-badge quiet"><input type="checkbox" class="skill-checkbox" data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small></label>`;
-            });
-            html += '</div>';
-        }
-        html += '</div>';
-        return html;
+    // Render Active Actions
+    (diagnosticsData.actions || []).forEach(act => {
+        list.appendChild(renderActionItem(act, false));
+    });
+
+    // Render Skipped Actions (if any)
+    const skipped = diagnosticsData.skippedActions || [];
+    if (skipped.length > 0) {
+        const skippedWrapper = document.createElement('div');
+        skippedWrapper.style.marginTop = '30px';
+        skippedWrapper.innerHTML = `
+            <div class="section-header-small" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <span>Skipped Recommendations (${skipped.length})</span>
+                <span style="font-size:10px; opacity:0.6;">▼ View</span>
+            </div>
+            <div id="skipped-list" class="opt-list hidden" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; opacity: 0.8;"></div>
+        `;
+        list.appendChild(skippedWrapper);
+        const skippedListContainer = skippedWrapper.querySelector('#skipped-list');
+        skipped.forEach(act => {
+            skippedListContainer.appendChild(renderActionItem(act, true));
+        });
     }
 
-    // Display cache hit rate in the optimizer header
+    // Display cache hit rate
     const cacheEl = document.getElementById('optimizer-cache-hit-rate');
     if (cacheEl && diagnosticsData.cacheHitRate !== undefined) {
         const rate = (diagnosticsData.cacheHitRate * 100).toFixed(1);
@@ -796,111 +914,7 @@ function renderOptimizerList() {
         cacheEl.innerHTML = `<span style="color:${color}">${rate}%</span>`;
         cacheEl.parentElement.style.display = '';
     }
-
-    const actions = diagnosticsData.actions || [];
-    actions.forEach(act => {
-        const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}/mo` : '🛡️ Protection';
-        const savingsClass = act.savings > 10 ? 'high-savings' : (act.savings > 0 ? 'medium-savings' : 'safety');
-
-        // L2: Side effect in plain language
-        let sideEffectHtml = '';
-        if (act.plainSideEffect || act.sideEffect) {
-            sideEffectHtml = `<div class="opt-sideeffect">${escapeHtml(act.plainSideEffect || act.sideEffect)}</div>`;
-        }
-
-        // L1: Use plainTitle (beginner-friendly), fallback to title
-        const displayTitle = act.plainTitle || act.title;
-
-        const metaAttr = act._meta ? ' data-meta=\'' + JSON.stringify(act._meta).replace(/'/g, '&#39;') + '\'' : '';
-
-        // A02 with multi-interval options
-        let optionsHtml = '';
-        if (act.actionId === 'A02' && act.options && act.options.length > 0) {
-            const optItems = act.options.map((opt, i) => {
-                const checked = i === 0 ? ' checked' : '';
-                const isDisable = opt.value === '0m';
-                const labelClass = isDisable ? 'opt-radio-disable' : '';
-                return `<label class="opt-radio ${labelClass}">
-                    <input type="radio" name="hb-interval" value="${opt.value}" data-savings="${opt.savings}"${checked}>
-                    <span class="opt-radio-label">${escapeHtml(opt.label)}</span>
-                    <span class="opt-radio-savings">${opt.savingsStr}</span>
-                </label>`;
-            }).join('');
-            optionsHtml = `<div class="opt-interval-selector" style="margin:8px 0;display:flex;flex-direction:column;gap:4px;">${optItems}</div>`;
-        }
-
-        // L3: Collapsible technical details
-        let detailsHtml = '';
-        const detailParts = [];
-        if (act.configDiff) {
-            const d = act.configDiff;
-            detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(d.from)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(d.to)}</span></div>`);
-        }
-        if (act.calcDetail) {
-            detailParts.push(`<div class="opt-calc">\ud83d\udcd0 ${escapeHtml(act.calcDetail)}</div>`);
-        }
-        if (act.codeTag) {
-            detailParts.push(`<div class="opt-codetag"><code>${escapeHtml(act.codeTag)}</code></div>`);
-        }
-        if (detailParts.length > 0) {
-            detailsHtml = `<details class="opt-details"><summary>Technical Details</summary><div class="opt-details-body">${detailParts.join('')}</div></details>`;
-        }
-
-        // Tooltip ? icon for helpText
-        const tooltipHtml = act.helpText ? `<span class="opt-help" onclick="toggleHelp(this, event)">?</span>` : '';
-        const helpBoxHtml = act.helpText ? `<div class="opt-help-box">${escapeHtml(act.helpText)}</div>` : '';
-
-        const tagInteractive = act.savings === 0 ? ' interactive' : '';
-        const tagOnclick = act.savings === 0 ? ' onclick="toggleHelp(this, event)"' : '';
-
-        const itemHtml = `
-                    <div class="opt-item ${savingsClass}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
-                        <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)} ${tooltipHtml}</span><span class="opt-savings-tag${tagInteractive}" id="savings-tag-${act.actionId}"${tagOnclick}>${savingsStr}</span></div>
-                        <div class="opt-desc">${escapeHtml(act.description || '')}</div>
-                        ${act._meta && act._meta.type === 'skill-audit' ? renderSkillAuditList(act._meta) : ''}
-                        ${helpBoxHtml}
-                        ${sideEffectHtml}
-                        ${optionsHtml}
-                        ${detailsHtml}
-                        <div class="opt-action-line" style="justify-content: flex-end; gap: 8px;">
-                            ${act.type === 'advisory'
-                ? '<span class="btn-advisory">ℹ️ Manual Action</span>'
-                : `
-                                <button class="btn-mini btn-outline" onclick="handleSkip(this, '${act.actionId}')">Skip</button>
-                                <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>
-                                `
-            }
-                        </div>
-                    </div>`;
-
-        const temp = document.createElement('div');
-        temp.innerHTML = itemHtml;
-        const itemEl = temp.firstElementChild;
-
-        // Wire up radio change for A02
-        if (act.actionId === 'A02' && act.options) {
-            itemEl.querySelectorAll('input[name="hb-interval"]').forEach(radio => {
-                radio.addEventListener('change', () => {
-                    const selectedSavings = parseFloat(radio.getAttribute('data-savings')) || 0;
-                    itemEl.setAttribute('data-savings', selectedSavings);
-                    const tag = itemEl.querySelector('#savings-tag-A02');
-                    if (tag) tag.textContent = `-$${selectedSavings.toFixed(2)}/mo`;
-                    const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
-                    currentMeta.interval = radio.value;
-                    itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
-                });
-            });
-            const defaultRadio = itemEl.querySelector('input[name="hb-interval"]:checked');
-            if (defaultRadio) {
-                const defaultSavings = parseFloat(defaultRadio.getAttribute('data-savings')) || 0;
-                itemEl.setAttribute('data-savings', defaultSavings);
-                const tag = itemEl.querySelector('#savings-tag-A02');
-                if (tag) tag.textContent = `-$${defaultSavings.toFixed(2)}/mo`;
-                const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
-                currentMeta.interval = defaultRadio.value;
-                itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
-            }
-        }
+}
 
         // Wire up A04 skill checkboxes: select all idle by default, Apply sends selectedSkills
         if (act.actionId === 'A04' && act._meta) {
@@ -992,6 +1006,24 @@ async function renderHistoryList() {
                         `;
             list.appendChild(div);
         });
+
+        // Add Skipped Recommendations to the bottom
+        const skipped = diagnosticsData.skippedActions || [];
+        if (skipped.length > 0) {
+            const skippedHeader = document.createElement('div');
+            skippedHeader.className = 'result-title';
+            skippedHeader.style.marginTop = '32px';
+            skippedHeader.innerText = 'Skipped Recommendations';
+            list.appendChild(skippedHeader);
+
+            const skippedList = document.createElement('div');
+            skippedList.className = 'opt-list';
+            skippedList.style.opacity = '0.8';
+            skipped.forEach(act => {
+                skippedList.appendChild(renderActionItem(act, true));
+            });
+            list.appendChild(skippedList);
+        }
     } catch (_e) { }
 }
 
@@ -1069,6 +1101,18 @@ async function handleSkip(btn, actionId) {
     } catch (e) {
         btn.disabled = false;
         showToast('Network error');
+    }
+}
+
+async function handleUnskip(actionId) {
+    try {
+        const res = await fetchAuth(API + '/optimize/' + actionId + '/unskip', { method: 'POST' });
+        if (res.ok) {
+            showToast('Recommendation restored');
+            fetchDiagnostics();
+        }
+    } catch (e) {
+        showToast('Restore failed');
     }
 }
 

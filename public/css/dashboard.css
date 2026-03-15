@@ -1335,6 +1335,23 @@
             transition: all 0.2s;
         }
 
+        .btn-skip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-dim);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-skip:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+
         .btn-mini.confirming {
             background: var(--opt-glow);
             color: white;
@@ -1368,6 +1385,10 @@
 
         .opt-item.done .done-label {
             display: inline;
+        }
+
+        .hidden {
+            display: none !important;
         }
 
         /* ========== SUCCESS STATE (Back of card when everything is done) ========== */
