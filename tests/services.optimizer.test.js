@@ -94,10 +94,12 @@ describe('OptimizerService', () => {
     });
 
     test('A09: Reduce Output Verbosity', async () => {
+        const backupSpy = jest.spyOn(optimizerService, 'backupConfig');
         const result = await optimizerService.applyAction('A09');
 
         expect(result.success).toBe(true);
         expect(configManager.setConfig).not.toHaveBeenCalled();
+        expect(backupSpy).toHaveBeenCalledTimes(1);
 
         const soulCall = fs.appendFile.mock.calls.find(call => call[0].includes('SOUL.md'));
         expect(soulCall).toBeDefined();
@@ -105,6 +107,7 @@ describe('OptimizerService', () => {
 
         const logCall = fs.appendFile.mock.calls.find(call => call[0].includes('optimizations.jsonl'));
         expect(logCall).toBeDefined();
+        backupSpy.mockRestore();
     });
 
     test('A09: does not append duplicate concise marker', async () => {
@@ -308,6 +311,7 @@ CORRUPTED LINE
     });
 
     test('A04: removes only selected managed skills by name', async () => {
+        const backupSpy = jest.spyOn(optimizerService, 'backupConfig');
         fs.readdir.mockResolvedValue([
             { name: 'idle-skill', isDirectory: () => true, isSymbolicLink: () => false },
             { name: 'quiet-skill', isDirectory: () => true, isSymbolicLink: () => false }
@@ -318,10 +322,12 @@ CORRUPTED LINE
         });
 
         expect(result.success).toBe(true);
+        expect(backupSpy).toHaveBeenCalledTimes(1);
         expect(fs.rename).toHaveBeenCalledWith(
             expect.stringContaining('/tmp/mock-home/.openclaw/skills/idle-skill'),
             expect.stringContaining('/data/backups/skills/idle-skill_')
         );
+        backupSpy.mockRestore();
     });
 
     test('A04: allows symlinked managed skills selected by diagnostics', async () => {

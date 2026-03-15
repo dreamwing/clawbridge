@@ -537,6 +537,9 @@ async function fetchTokens() {
     try {
         // Use API, not static file
         const res = await fetchAuth(API + '/tokens');
+        if (!res.ok) {
+            throw new Error(await readErrorMessage(res, 'Failed to load token stats'));
+        }
         const data = await res.json();
         document.getElementById('token-card').style.display = 'block';
 
@@ -1092,7 +1095,6 @@ async function renderHistoryList() {
         const skipped = (diagnosticsData && diagnosticsData.skippedActions) || [];
 
         if (successSkippedSection && successSkippedList) {
-            console.log('[Optimizer] Success View - Skipped Actions:', skipped.length);
             if (skipped.length > 0) {
                 successSkippedSection.classList.remove('hidden');
                 successSkippedList.innerHTML = '';
@@ -1110,10 +1112,17 @@ async function renderHistoryList() {
     // 2. Render Optimization History
     try {
         const res = await fetchAuth(API + '/optimizations/history');
+        if (!res.ok) {
+            throw new Error(await readErrorMessage(res, 'Failed to load optimization history'));
+        }
         const history = await res.json();
         renderHistoryTimeline(document.getElementById('timeline-list'), history);
         renderHistoryTimeline(document.getElementById('active-timeline-list'), history);
-    } catch (_e) { }
+    } catch (e) {
+        console.warn('[Optimizer] History load failed:', e.message);
+        renderHistoryTimeline(document.getElementById('timeline-list'), []);
+        renderHistoryTimeline(document.getElementById('active-timeline-list'), []);
+    }
 }
 
 function renderHistoryTimeline(list, history) {

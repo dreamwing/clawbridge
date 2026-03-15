@@ -218,7 +218,8 @@ class OptimizerService {
         }
 
         // Backup config before any modification (PRD requirement)
-        let backupPath = await this.backupConfig();
+        // A04/A09 generate specialized backups later to avoid orphan snapshots.
+        let backupPath = ['A04', 'A09'].includes(actionId) ? null : await this.backupConfig();
         let preOptCostSnapshot = null;
         try {
             const diag = await diagnosticsEngine.runDiagnostics();

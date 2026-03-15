@@ -178,6 +178,49 @@ describe('DiagnosticsEngine', () => {
         expect(result.skippedActions).toEqual([]);
     });
 
+    test('Skipped advisory actions do not count toward advisoryMonthlySavings', async () => {
+        configManager.getRawConfig.mockResolvedValue({
+            defaults: {
+                compaction: { mode: 'safeguard' },
+                thinkingDefault: 'minimal',
+                contextPruning: { mode: 'cache-ttl' }
+            }
+        });
+
+        const mockStats = {
+            totals: { input: 100000, output: 100, cacheRead: 0 },
+            cost: {
+                total: 50,
+                byModel: {
+                    'claude-3-5-sonnet-20241022': 50
+                }
+            },
+            total: {
+                models: {
+                    'claude-3-5-sonnet-20241022': { input: 100000, output: 0, cost: 50 }
+                }
+            },
+            activeDays: 2,
+            history: {
+                '2026-03-01': { input: 50000, cost: 25, sessions: 10 },
+                '2026-03-02': { input: 50000, cost: 25, sessions: 12 }
+            }
+        };
+
+        fs.readFile.mockImplementation((pathStr) => {
+            if (pathStr.includes('optimizer.skip.json')) {
+                return Promise.resolve(JSON.stringify(['A03']));
+            }
+            return Promise.resolve(JSON.stringify(mockStats));
+        });
+
+        const result = await diagnosticsEngine.runDiagnostics();
+
+        expect(result.actions.find(a => a.actionId === 'A03')).toBeUndefined();
+        expect(result.skippedActions.find(a => a.actionId === 'A03')).toBeDefined();
+        expect(result.advisoryMonthlySavings).toBe(0);
+    });
+
     test('D05: Should flag high thinkingDefault', async () => {
         configManager.getRawConfig.mockResolvedValue({
             defaults: {

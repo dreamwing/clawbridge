@@ -156,7 +156,6 @@ class DiagnosticsEngine {
         }
 
         const results = [];
-        let advisoryMonthlySavings = 0;
 
         // Load threshold config (custom or defaults)
         const thresholds = await this._getThresholds();
@@ -352,7 +351,6 @@ class DiagnosticsEngine {
                 const contextWasteSavings = wastedContextTokens * inputCostPerToken * monthlyMultiplier * 0.5; // 50% reduction if users continue sessions
 
                 if (contextWasteSavings > 0.1) {
-                    advisoryMonthlySavings += contextWasteSavings;
                     results.push({
                         actionId: 'A03',
                         title: 'Reduce Session Resets',
@@ -615,7 +613,9 @@ class DiagnosticsEngine {
             totalMonthlySavings: finalActions
                 .filter(action => action.type !== 'advisory')
                 .reduce((sum, a) => sum + a.savings, 0),
-            advisoryMonthlySavings,
+            advisoryMonthlySavings: finalActions
+                .filter(action => action.type === 'advisory')
+                .reduce((sum, a) => sum + a.savings, 0),
             currentMonthlyCost,
             cacheHitRate,
             actions: finalActions,
@@ -648,6 +648,7 @@ class DiagnosticsEngine {
         _diagCache = null;
         _diagCacheTs = 0;
         this._thresholds = null;
+        pricingService.invalidateCache();
     }
 }
 
