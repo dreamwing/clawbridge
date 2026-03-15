@@ -4,6 +4,7 @@
  */
 const { exec } = require('child_process');
 const { ANALYZE_SCRIPT } = require('../config');
+const ANALYZER_TIMEOUT_MS = 5 * 60 * 1000;
 
 // --- Internal State ---
 let _state = {
@@ -56,7 +57,7 @@ function runAnalyzer() {
     _state.lastTriggeredAt = new Date().toISOString();
 
     const nodePath = process.execPath;
-    exec(`"${nodePath}" "${ANALYZE_SCRIPT}"`, (err, stdout, stderr) => {
+    exec(`"${nodePath}" "${ANALYZE_SCRIPT}"`, { timeout: ANALYZER_TIMEOUT_MS }, (err, stdout, stderr) => {
         _state.running = false;
 
         if (err) {

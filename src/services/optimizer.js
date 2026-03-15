@@ -105,14 +105,33 @@ class OptimizerService {
         return allowedSkillNames;
     }
 
+    async inspectBackup(backupPath) {
+        if (!backupPath) throw new Error('No backup path provided');
+        const backupData = JSON.parse(await fs.readFile(backupPath, 'utf8'));
+        const movedSkills = Array.isArray(backupData._movedSkills)
+            ? backupData._movedSkills.map(skill => path.basename(skill.original))
+            : [];
+        return {
+            backupFile: path.basename(backupPath),
+            restorableSkills: movedSkills,
+            hasFileBackup: Boolean(backupData._fileBackupPath)
+        };
+    }
+
     /**
      * Restore configuration from a backup file.
      * Reads the backup JSON and re-applies each config key.
      */
-    async restoreBackup(backupPath) {
+    async restoreBackup(backupPath, options = {}) {
         if (!backupPath) throw new Error('No backup path provided');
         const backupData = JSON.parse(await fs.readFile(backupPath, 'utf8'));
         const defaults = backupData.defaults || {};
+        const selectedSkillNames = Array.isArray(options.selectedSkillNames)
+            ? options.selectedSkillNames
+                .filter(name => typeof name === 'string')
+                .map(name => name.trim())
+                .filter(Boolean)
+            : null;
 
         // Restore key config values from backup
         const modelRestore = defaults.model !== undefined
@@ -148,21 +167,28 @@ class OptimizerService {
                 await fs.writeFile(soulPath, fileContent, 'utf8');
                 fileRestored = 'SOUL.md';
             } catch (e) {
-                console.warn('File restore failed:', e.message);
+                throw new Error(`File restore failed: ${e.message}`);
             }
         }
 
         // Restore moved skills if present (A04)
         let skillsRestored = 0;
+        const failedSkillRestores = [];
         if (backupData._movedSkills && Array.isArray(backupData._movedSkills)) {
-            for (const skill of backupData._movedSkills) {
+            const skillsToRestore = selectedSkillNames
+                ? backupData._movedSkills.filter(skill => selectedSkillNames.includes(path.basename(skill.original)))
+                : backupData._movedSkills;
+            for (const skill of skillsToRestore) {
                 try {
                     await fs.rename(skill.backup, skill.original);
                     skillsRestored++;
                 } catch (e) {
-                    console.warn(`Failed to restore skill ${skill.original}:`, e.message);
+                    failedSkillRestores.push(`${skill.original}: ${e.message}`);
                 }
             }
+        }
+        if (failedSkillRestores.length > 0) {
+            throw new Error(`Failed to restore ${failedSkillRestores.length} skill(s): ${failedSkillRestores.join('; ')}`);
         }
 
         // Log the undo action
@@ -175,7 +201,13 @@ class OptimizerService {
         });
 
         diagnosticsEngine.invalidateCache();
-        return { success: true, restoredKeys: restored, fileRestored, backupFile: path.basename(backupPath) };
+        return {
+            success: true,
+            restoredKeys: restored,
+            fileRestored,
+            backupFile: path.basename(backupPath),
+            skillsRestored
+        };
     }
 
     async applyAction(actionId, dynamicSavings, meta) {

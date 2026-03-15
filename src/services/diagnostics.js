@@ -8,6 +8,7 @@ const path = require('path');
 // Cache for diagnostic results (60s TTL)
 let _diagCache = null;
 let _diagCacheTs = 0;
+let _skipWriteQueue = Promise.resolve();
 const DIAG_CACHE_TTL = 60000;
 
 class DiagnosticsEngine {
@@ -35,12 +36,10 @@ class DiagnosticsEngine {
      * Add an action ID to the skip list.
      */
     async skipAction(actionId) {
-        const list = await this.getSkipList();
-        if (!list.includes(actionId)) {
-            list.push(actionId);
-            await fs.writeFile(this.skipPath, JSON.stringify(list, null, 2), 'utf8');
-            this.invalidateCache();
-        }
+        await this._queueSkipListMutation((list) => {
+            if (!list.includes(actionId)) list.push(actionId);
+            return list;
+        });
         return { success: true, skipped: actionId };
     }
 
@@ -48,10 +47,7 @@ class DiagnosticsEngine {
      * Remove an action ID from the skip list.
      */
     async unskipAction(actionId) {
-        let list = await this.getSkipList();
-        list = list.filter(id => id !== actionId);
-        await fs.writeFile(this.skipPath, JSON.stringify(list, null, 2), 'utf8');
-        this.invalidateCache();
+        await this._queueSkipListMutation((list) => list.filter(id => id !== actionId));
         return { success: true, unskipped: actionId };
     }
 
@@ -59,8 +55,36 @@ class DiagnosticsEngine {
      * Clear the skip list (optional reset).
      */
     async clearSkipList() {
-        await fs.writeFile(this.skipPath, '[]', 'utf8');
-        this.invalidateCache();
+        await this._queueSkipListMutation(() => []);
+    }
+
+    async _queueSkipListMutation(mutator) {
+        const operation = _skipWriteQueue.then(async () => {
+            const list = await this.getSkipList();
+            const nextList = mutator([...list]);
+            await fs.writeFile(this.skipPath, JSON.stringify(nextList, null, 2), 'utf8');
+            this.invalidateCache();
+        });
+        _skipWriteQueue = operation.catch(() => { });
+        await operation;
+    }
+
+    async _getSkillLastUsedMs(folderPath) {
+        const candidatePaths = [folderPath, path.join(folderPath, 'SKILL.md')];
+        let latest = 0;
+
+        for (const candidate of candidatePaths) {
+            try {
+                const stat = await fs.stat(candidate);
+                const atimeMs = Number.isFinite(stat.atimeMs) ? stat.atimeMs : 0;
+                const mtimeMs = Number.isFinite(stat.mtimeMs) ? stat.mtimeMs : 0;
+                latest = Math.max(latest, atimeMs, mtimeMs);
+            } catch (_e) {
+                // Ignore missing candidate paths.
+            }
+        }
+
+        return latest || Date.now();
     }
 
     /**
@@ -240,11 +264,12 @@ class DiagnosticsEngine {
         // Correctly scan each agent for their specific or default heartbeat config
         const heartbeatAgents = Array.isArray(agentsConfig.list) && agentsConfig.list.length > 0
             ? agentsConfig.list
-            : [{ id: 'default', heartbeat: defaults.heartbeat }];
+            : [{ id: 'default' }];
 
         heartbeatAgents.forEach(agent => {
-            const hb = agent.heartbeat?.every || defaults.heartbeat?.every;
-            if (hb && hb !== '0m' && hb !== '0' && heartbeatTasksText.length > 0) {
+            const hasOverride = agent.heartbeat?.every != null;
+            const hb = hasOverride ? agent.heartbeat?.every : defaults.heartbeat?.every;
+            if (!hasOverride && hb && hb !== '0m' && hb !== '0' && heartbeatTasksText.length > 0) {
                 let mins = 5;
                 if (hb.endsWith('m')) mins = parseInt(hb) || 5;
                 else if (hb.endsWith('h')) mins = (parseInt(hb) || 1) * 60;
@@ -387,8 +412,8 @@ class DiagnosticsEngine {
             for (const folder of skillFolders) {
                 try {
                     const folderPath = folder.path;
-                    const stat = await fs.stat(folderPath);
-                    const daysSince = (now - stat.mtimeMs) / (1000 * 60 * 60 * 24);
+                    const lastUsedMs = await this._getSkillLastUsedMs(folderPath);
+                    const daysSince = (now - lastUsedMs) / (1000 * 60 * 60 * 24);
 
                     if (daysSince > idleDaysThreshold) {
                         idleSkills.push({ name: folder.name, daysSince: Math.floor(daysSince) });
@@ -401,11 +426,14 @@ class DiagnosticsEngine {
             }
 
             if (idleSkills.length > 0 || quietSkills.length > 0) {
-                const totalIdleCount = idleSkills.length + quietSkills.length;
+                const totalFlaggedCount = idleSkills.length + quietSkills.length;
+                const defaultSelectedCount = idleSkills.length;
                 // Each Skill adds ~750 tokens to system prompt per session
                 const totalSessions = historyDays.reduce((sum, day) => sum + (day.sessions || day.count || 1), 0);
-                const idleTokenWaste = totalIdleCount * 750;
-                const skillWasteSavings = idleTokenWaste * totalSessions * inputCostPerToken * monthlyMultiplier;
+                const headlineTokenWaste = defaultSelectedCount * 750;
+                const headlineSavings = headlineTokenWaste * totalSessions * inputCostPerToken * monthlyMultiplier;
+                const potentialTokenWaste = totalFlaggedCount * 750;
+                const potentialSavings = potentialTokenWaste * totalSessions * inputCostPerToken * monthlyMultiplier;
 
                 // Build description with specific skill names
                 const idleNames = idleSkills.map(s => `${s.name} (${s.daysSince}d)`).join(', ');
@@ -414,26 +442,30 @@ class DiagnosticsEngine {
                 if (idleSkills.length > 0) descParts.push(`Idle >7d: ${idleNames}`);
                 if (quietSkills.length > 0) descParts.push(`Quiet >3d: ${quietNames}`);
 
-                totalMonthlySavings += skillWasteSavings;
+                totalMonthlySavings += headlineSavings;
                 results.push({
                     actionId: 'A04',
-                    title: `Review ${totalIdleCount} Unused Skills`,
-                    plainTitle: "Remove skills you haven't used recently",
-                    helpText: 'Extended Skills are like "plugins" for the AI. Even if you don\'t use them in a specific chat, the AI loads them into its active context, increasing the "base cost" of every message. Removing unused skills allows the AI to operate faster and at a lower cost.',
+                    title: `Audit ${totalFlaggedCount} Possibly Inactive Skills`,
+                    plainTitle: 'Audit possibly inactive skills',
+                    helpText: 'This is a heuristic audit based on file activity, not a true skill usage log. Checked skills will be removed, unchecked skills will be kept. Use it to review which installed skills still look worth keeping loaded.',
                     description: descParts.join('. ') + '.',
                     sideEffect: '⚠ Removed Skills will no longer be available until re-installed.',
                     plainSideEffect: 'The AI will lose specific abilities for any Skills you remove. You can always re-install them later.',
-                    savings: skillWasteSavings,
-                    savingsStr: skillWasteSavings > 0 ? `-$${skillWasteSavings.toFixed(2)}/mo` : '🛡️ Review',
+                    savings: headlineSavings,
+                    savingsStr: headlineSavings > 0 ? `-$${headlineSavings.toFixed(2)}/mo` : '🛡️ Review',
                     codeTag: `${idleSkills.length} idle, ${quietSkills.length} quiet`,
-                    calcDetail: `${totalIdleCount} unused × 750 tok/session × ${totalSessions} sessions × $${(inputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
-                    configDiff: { key: 'skills', from: `${skillFolders.length} installed`, to: `remove ${totalIdleCount} unused` },
-                    level: totalIdleCount > 0 ? 'medium' : 'low',
+                    calcDetail: `${defaultSelectedCount} pre-selected × 750 tok/session × ${totalSessions} sessions × $${(inputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'skills', from: `${skillFolders.length} installed`, to: `audit ${totalFlaggedCount}, remove ${defaultSelectedCount} selected` },
+                    level: totalFlaggedCount > 0 ? 'medium' : 'low',
                     _meta: {
                         type: 'skill-audit',
                         idleSkills,
                         quietSkills,
-                        totalInstalled: skillFolders.length
+                        totalInstalled: skillFolders.length,
+                        potentialSavings,
+                        defaultSelectedCount,
+                        totalFlaggedCount,
+                        perSkillSavings: totalFlaggedCount > 0 ? (potentialSavings / totalFlaggedCount) : 0
                     }
                 });
             }

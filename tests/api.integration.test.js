@@ -49,7 +49,10 @@ jest.mock('../src/services/diagnostics', () => {
                 }
             ]
         }),
-        invalidateCache: jest.fn()
+        invalidateCache: jest.fn(),
+        clearSkipList: jest.fn().mockResolvedValue(undefined),
+        skipAction: jest.fn().mockResolvedValue({ success: true }),
+        unskipAction: jest.fn().mockResolvedValue({ success: true })
     };
 });
 
@@ -142,11 +145,38 @@ describe('Cost Control API Integration Tests', () => {
         expect(response.body.error).toBeDefined();
     });
 
+    test('POST /api/optimize rejects invalid A01 meta', async () => {
+        const response = await request(app)
+            .post('/api/optimize/A01')
+            .send({ meta: { alternative: '--evil' } });
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toMatch(/meta\.alternative/);
+    });
+
+    test('POST /api/optimize/reset-skips is not shadowed by :action_id', async () => {
+        const response = await request(app)
+            .post('/api/optimize/reset-skips')
+            .send({});
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+    });
+
     test('GET /api/optimizations/history returns array', async () => {
         const response = await request(app).get('/api/optimizations/history');
         expect(response.status).toBe(200);
         expect(Array.isArray(response.body)).toBe(true);
         expect(response.body.length).toBe(1);
         expect(response.body[0].actionId).toBe('A02');
+    });
+
+    test('POST /api/optimizations/undo-preview validates backupPath', async () => {
+        const response = await request(app)
+            .post('/api/optimizations/undo-preview')
+            .send({});
+
+        expect(response.status).toBe(400);
+        expect(response.body.error).toMatch(/backupPath is required/);
     });
 });

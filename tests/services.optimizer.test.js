@@ -252,6 +252,40 @@ CORRUPTED LINE
         expect(configManager.setConfig).toHaveBeenCalledWith('agents.defaults.heartbeat.every', '12h');
     });
 
+    test('inspectBackup exposes restorable skill names', async () => {
+        fs.readFile.mockResolvedValue(JSON.stringify({
+            defaults: {},
+            _movedSkills: [
+                { backup: '/tmp/skill-a.bak', original: '/tmp/skills/skill-a' },
+                { backup: '/tmp/skill-b.bak', original: '/tmp/skills/skill-b' }
+            ]
+        }));
+
+        const result = await optimizerService.inspectBackup('/fake/backup/path.json');
+
+        expect(result.restorableSkills).toEqual(['skill-a', 'skill-b']);
+        expect(result.backupFile).toBe('path.json');
+    });
+
+    test('restoreBackup can selectively restore moved skills', async () => {
+        fs.readFile.mockResolvedValue(JSON.stringify({
+            defaults: {},
+            _movedSkills: [
+                { backup: '/tmp/skill-a.bak', original: '/tmp/skills/skill-a' },
+                { backup: '/tmp/skill-b.bak', original: '/tmp/skills/skill-b' }
+            ]
+        }));
+
+        const result = await optimizerService.restoreBackup('/fake/backup/path.json', {
+            selectedSkillNames: ['skill-b']
+        });
+
+        expect(result.success).toBe(true);
+        expect(result.skillsRestored).toBe(1);
+        expect(fs.rename).toHaveBeenCalledTimes(1);
+        expect(fs.rename).toHaveBeenCalledWith('/tmp/skill-b.bak', '/tmp/skills/skill-b');
+    });
+
     test('A04: removes only selected managed skills by name', async () => {
         fs.readdir.mockResolvedValue([
             { name: 'idle-skill', isDirectory: () => true, isSymbolicLink: () => false },
@@ -290,5 +324,19 @@ CORRUPTED LINE
         await expect(optimizerService.restoreBackup())
             .rejects
             .toThrow('No backup path provided');
+    });
+
+    test('restoreBackup fails when a managed skill cannot be restored', async () => {
+        fs.readFile.mockResolvedValue(JSON.stringify({
+            defaults: {},
+            _movedSkills: [
+                { backup: '/tmp/skill-backup', original: '/tmp/original-skill' }
+            ]
+        }));
+        fs.rename.mockRejectedValue(new Error('EPERM'));
+
+        await expect(optimizerService.restoreBackup('/fake/backup/path.json'))
+            .rejects
+            .toThrow('Failed to restore 1 skill');
     });
 });

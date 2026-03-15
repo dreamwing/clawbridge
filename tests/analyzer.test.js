@@ -1,10 +1,11 @@
 'use strict';
 
 const { runAnalyzer, getAnalyzerState, setWss } = require('../src/services/analyzer');
+const { exec } = require('child_process');
 
 jest.mock('child_process', () => {
     return {
-        exec: jest.fn((cmd, cb) => {
+        exec: jest.fn((cmd, options, cb) => {
             // Simulate a long-running process
             setTimeout(() => {
                 cb(null, 'Success', '');
@@ -31,6 +32,11 @@ describe('Analyzer Service', () => {
         const result = runAnalyzer();
         expect(result.triggered).toBe(true);
         expect(result.running).toBe(true);
+        expect(exec).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({ timeout: 300000 }),
+            expect.any(Function)
+        );
 
         const state = getAnalyzerState();
         expect(state.running).toBe(true);

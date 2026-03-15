@@ -699,6 +699,67 @@ let actionsApplied = 0;
 let totalActions = 0;
 let isFullyOptimized = false;
 let diagnosticsData = null;
+let optimizerProgressTimer = null;
+let undoSkillResolver = null;
+
+function clearOptimizerProgressTimer() {
+    if (optimizerProgressTimer) {
+        clearInterval(optimizerProgressTimer);
+        optimizerProgressTimer = null;
+    }
+}
+
+function openUndoSkillModal(skills) {
+    return new Promise((resolve) => {
+        undoSkillResolver = resolve;
+        const modal = document.getElementById('undo-skill-modal');
+        const list = document.getElementById('undo-skill-list');
+        list.innerHTML = '';
+
+        skills.forEach((name) => {
+            const label = document.createElement('label');
+            label.className = 'undo-skill-item';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'undo-skill-checkbox';
+            checkbox.value = name;
+            checkbox.checked = true;
+
+            const text = document.createElement('span');
+            text.className = 'undo-skill-name';
+            text.textContent = name;
+
+            label.appendChild(checkbox);
+            label.appendChild(text);
+            list.appendChild(label);
+        });
+
+        modal.classList.add('active');
+    });
+}
+
+function setUndoSkillSelection(checked) {
+    document.querySelectorAll('.undo-skill-checkbox').forEach((checkbox) => {
+        checkbox.checked = checked;
+    });
+}
+
+function closeUndoSkillModal(result) {
+    const modal = document.getElementById('undo-skill-modal');
+    modal.classList.remove('active');
+    if (undoSkillResolver) {
+        const resolve = undoSkillResolver;
+        undoSkillResolver = null;
+        resolve(result);
+    }
+}
+
+function confirmUndoSkillSelection() {
+    const selected = Array.from(document.querySelectorAll('.undo-skill-checkbox'))
+        .filter((checkbox) => checkbox.checked)
+        .map((checkbox) => checkbox.value);
+    closeUndoSkillModal(selected);
+}
 
 
 
@@ -752,22 +813,56 @@ async function fetchDiagnostics() {
 
 function renderSkillAuditList(meta) {
     let html = '<div class="skill-audit-list">';
+    const defaultCount = meta.defaultSelectedCount || 0;
+    html += `<div class="skill-audit-summary">
+        <span class="skill-audit-summary-text">Checked = remove. Unchecked = keep. ${defaultCount > 0 ? `${defaultCount} suggested for removal by default.` : 'Nothing is pre-selected by default.'}</span>
+        <div class="skill-audit-actions">
+            <button type="button" class="skill-audit-action" data-skill-action="keep-all">Keep All</button>
+            <button type="button" class="skill-audit-action" data-skill-action="remove-flagged">Remove All</button>
+        </div>
+    </div>`;
     if (meta.idleSkills && meta.idleSkills.length > 0) {
-        html += '<div class="skill-group"><span class="skill-group-label idle">Suggest Removal (' + meta.idleSkills.length + ')</span>';
+        html += '<div class="skill-group"><span class="skill-group-label idle">Suggested Remove (' + meta.idleSkills.length + ')</span>';
         meta.idleSkills.forEach(s => {
-            html += `<label class="skill-badge idle"><input type="checkbox" class="skill-checkbox" checked data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small></label>`;
+            html += `<label class="skill-badge idle"><input type="checkbox" class="skill-checkbox" checked data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">Remove</span></label>`;
         });
         html += '</div>';
     }
     if (meta.quietSkills && meta.quietSkills.length > 0) {
-        html += '<div class="skill-group"><span class="skill-group-label quiet">Review Usage (' + meta.quietSkills.length + ')</span>';
+        html += '<div class="skill-group"><span class="skill-group-label quiet">Review Manually (' + meta.quietSkills.length + ')</span>';
         meta.quietSkills.forEach(s => {
-            html += `<label class="skill-badge quiet"><input type="checkbox" class="skill-checkbox" data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small></label>`;
+            html += `<label class="skill-badge quiet"><input type="checkbox" class="skill-checkbox" data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">Keep</span></label>`;
         });
         html += '</div>';
     }
     html += '</div>';
     return html;
+}
+
+function updateSkillAuditSelection(itemEl) {
+    const skillCheckboxes = itemEl.querySelectorAll('.skill-checkbox');
+    let selectedCount = 0;
+    skillCheckboxes.forEach(cb => {
+        if (cb.checked) selectedCount++;
+        const choice = cb.closest('.skill-badge')?.querySelector('.skill-choice');
+        if (choice) choice.textContent = cb.checked ? 'Remove' : 'Keep';
+    });
+
+    const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
+    const selectedSkillNames = [];
+    skillCheckboxes.forEach(cb => {
+        if (cb.checked) selectedSkillNames.push(cb.dataset.skillName);
+    });
+    currentMeta.selectedSkillNames = selectedSkillNames;
+    itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
+
+    const perSkillSavings = Number(currentMeta.perSkillSavings) || 0;
+    const selectedSavings = selectedCount * perSkillSavings;
+    itemEl.setAttribute('data-savings', selectedSavings);
+    const tag = itemEl.querySelector(`#savings-tag-${itemEl.getAttribute('data-action')}`);
+    if (tag) {
+        tag.textContent = selectedSavings > 0 ? `-$${selectedSavings.toFixed(2)}/mo` : '🛡️ Review';
+    }
 }
 
 function renderActionItem(act, isSkipped = false) {
@@ -792,6 +887,7 @@ function renderActionItem(act, isSkipped = false) {
         const initialOption = act.options[0];
         if (initialOption) {
             initialMeta.interval = initialOption.value;
+            act = { ...act, savings: initialOption.savings };
         }
         const optItems = act.options.map((opt, i) => {
             const checked = i === 0 ? ' checked' : '';
@@ -873,6 +969,24 @@ function renderActionItem(act, isSkipped = false) {
     if (act.actionId === 'A04' && act._meta) {
         const skillCheckboxes = itemEl.querySelectorAll('.skill-checkbox');
         const applyBtn = itemEl.querySelector('.btn-mini');
+        const keepAllBtn = itemEl.querySelector('[data-skill-action="keep-all"]');
+        const removeAllBtn = itemEl.querySelector('[data-skill-action="remove-flagged"]');
+
+        skillCheckboxes.forEach(cb => {
+            cb.addEventListener('change', () => updateSkillAuditSelection(itemEl));
+        });
+        if (keepAllBtn) {
+            keepAllBtn.addEventListener('click', () => {
+                skillCheckboxes.forEach(cb => { cb.checked = false; });
+                updateSkillAuditSelection(itemEl);
+            });
+        }
+        if (removeAllBtn) {
+            removeAllBtn.addEventListener('click', () => {
+                skillCheckboxes.forEach(cb => { cb.checked = true; });
+                updateSkillAuditSelection(itemEl);
+            });
+        }
         if (applyBtn) {
             applyBtn.removeAttribute('onclick'); // Override default handleOpt
             applyBtn.addEventListener('click', () => {
@@ -885,6 +999,7 @@ function renderActionItem(act, isSkipped = false) {
                 handleOpt(applyBtn, 'A04');
             });
         }
+        updateSkillAuditSelection(itemEl);
     }
 
     return itemEl;
@@ -1002,7 +1117,8 @@ async function renderHistoryList() {
                 // Add undo button to the most recent non-UNDO entry that has a backup
                 let undoHtml = '';
                 if (i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO') {
-                    undoHtml = `<button class="btn-undo" onclick="handleUndo('${escapeHtml(hist.backupPath)}')">Undo</button>`;
+                    const undoLabel = hist.actionId === 'A04' ? 'Restore Skills' : 'Undo';
+                    undoHtml = `<button class="btn-undo" data-backup-path="${encodeURIComponent(hist.backupPath)}">${undoLabel}</button>`;
                 }
 
                 // 7-day effect tracking
@@ -1029,6 +1145,13 @@ async function renderHistoryList() {
                                     ${detailsHtml}
                                 </div>
                             `;
+                const undoBtn = div.querySelector('.btn-undo');
+                if (undoBtn) {
+                    undoBtn.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        handleUndo(decodeURIComponent(undoBtn.dataset.backupPath || ''));
+                    });
+                }
                 list.appendChild(div);
             });
         }
@@ -1036,16 +1159,36 @@ async function renderHistoryList() {
 }
 
 async function handleUndo(backupPath) {
-    if (!confirm('Undo this optimization? Your config will be restored from the backup.')) return;
     try {
-        const res = await fetchAuth(API + '/optimizations/undo', {
+        let selectedSkillNames;
+        const previewRes = await fetchAuth(API + '/optimizations/undo-preview', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ backupPath })
         });
+        const preview = previewRes.ok ? await previewRes.json() : null;
+
+        if (preview && Array.isArray(preview.restorableSkills) && preview.restorableSkills.length > 0) {
+            const response = await openUndoSkillModal(preview.restorableSkills);
+            if (response === null) return;
+            if (response.length === 0) {
+                showToast('Select at least one skill to restore');
+                return;
+            }
+            if (response.length !== preview.restorableSkills.length) selectedSkillNames = response;
+        } else if (!confirm('Undo this optimization? Your config will be restored from the backup.')) {
+            return;
+        }
+
+        const res = await fetchAuth(API + '/optimizations/undo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ backupPath, selectedSkillNames })
+        });
         if (res.ok) {
             const result = await res.json();
-            showToast(`✓ Restored ${result.restoredKeys.length} settings from ${result.backupFile}`);
+            const skillSuffix = result.skillsRestored ? ` and ${result.skillsRestored} skill${result.skillsRestored > 1 ? 's' : ''}` : '';
+            showToast(`✓ Restored ${result.restoredKeys.length} settings${skillSuffix} from ${result.backupFile}`);
             await renderHistoryList();
             await fetchDiagnostics();
         } else {
@@ -1070,11 +1213,12 @@ function flipToOptimizer() {
         const steps = ["Reading history...", "Calculating tokens...", "Checking models...", "Cross-referencing config...", "Finalizing measures..."];
         let i = 0;
         stepEl.textContent = steps[0];
-        const interval = setInterval(() => {
+        clearOptimizerProgressTimer();
+        optimizerProgressTimer = setInterval(() => {
             i++;
             if (i < steps.length) { stepEl.textContent = steps[i]; }
             else {
-                clearInterval(interval);
+                clearOptimizerProgressTimer();
                 progress.style.display = 'none';
                 results.style.display = 'flex';
             }
@@ -1088,7 +1232,9 @@ function flipToOptimizer() {
 }
 
 function flipToDashboard() {
+    clearOptimizerProgressTimer();
     container.classList.remove('flipped');
+    fetchDiagnostics();
     setTimeout(() => { trigger.style.display = 'flex'; }, 800);
 }
 
@@ -1154,11 +1300,15 @@ async function handleOpt(btn, actionId) {
             if (res.ok) {
                 btn.classList.remove('applying');
                 item.classList.add('done');
-                actionsApplied++;
+                if (!item.classList.contains('is-skipped')) {
+                    actionsApplied++;
+                }
 
                 const mainAmount = document.getElementById('main-savings-amount');
-                let cur = parseFloat(mainAmount.textContent.replace('$', ''));
-                mainAmount.textContent = '$' + Math.max(0, cur - savingsVal).toFixed(2);
+                const cur = parseFloat(String(mainAmount.textContent).replace(/[^0-9.-]/g, ''));
+                if (Number.isFinite(cur)) {
+                    mainAmount.textContent = '$' + Math.max(0, cur - savingsVal).toFixed(2);
+                }
 
                 if (actionsApplied >= totalActions) {
                     setTimeout(showSuccess, 1000);

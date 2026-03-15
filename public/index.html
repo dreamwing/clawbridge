@@ -172,6 +172,27 @@
             </div>
         </div>
 
+        <div id="undo-skill-modal" class="modal-overlay" onclick="if(event.target===this) closeUndoSkillModal(null)">
+            <div class="modal-content" style="max-width:460px;">
+                <div class="modal-header">
+                    <span class="modal-title">Restore Removed Skills</span>
+                    <button class="modal-close" onclick="closeUndoSkillModal(null)">×</button>
+                </div>
+                <div class="undo-skill-copy">
+                    Choose which skills to restore from this backup. Leave them all checked to restore everything.
+                </div>
+                <div class="undo-skill-actions">
+                    <button class="skill-audit-action" onclick="setUndoSkillSelection(true)">Select All</button>
+                    <button class="skill-audit-action" onclick="setUndoSkillSelection(false)">Clear All</button>
+                </div>
+                <div id="undo-skill-list" class="undo-skill-list"></div>
+                <div class="undo-skill-footer">
+                    <button class="btn" style="background:rgba(255,255,255,0.08); color:var(--text);" onclick="closeUndoSkillModal(null)">Cancel</button>
+                    <button class="btn" style="background:var(--accent);" onclick="confirmUndoSkillSelection()">Restore Selected</button>
+                </div>
+            </div>
+        </div>
+
         <!-- VIEW: HOME (Status + Logs) -->
         <div id="view-home" class="view-container active">
             <div class="card">

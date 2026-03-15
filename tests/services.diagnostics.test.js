@@ -19,7 +19,8 @@ jest.mock('fs', () => ({
         readFile: jest.fn(),
         readdir: jest.fn(),
         stat: jest.fn(),
-        access: jest.fn()
+        access: jest.fn(),
+        writeFile: jest.fn().mockResolvedValue(undefined)
     }
 }));
 
@@ -110,6 +111,34 @@ describe('DiagnosticsEngine', () => {
         expect(result.totalMonthlySavings).toBe(action.options[0].savings);
         expect(action.savings).toBeLessThan(disableOpt.savings);
         expect(action._meta.type).toBe('heartbeat-interval');
+    });
+
+    test('D02: excludes agents with per-agent heartbeat overrides from default savings', async () => {
+        configManager.getRawConfig.mockResolvedValue({
+            defaults: { heartbeat: { every: '15m' } },
+            list: [
+                { id: 'default-agent' },
+                { id: 'custom-agent', heartbeat: { every: '5m' } }
+            ]
+        });
+
+        const mockStats = {
+            totals: { input: 100000, output: 10000, cacheRead: 50000 },
+            cost: { total: 10 }
+        };
+        fs.readFile.mockImplementation((pathStr) => {
+            if (pathStr.includes('HEARTBEAT.md')) {
+                return Promise.resolve('Check inbox');
+            }
+            return Promise.resolve(JSON.stringify(mockStats));
+        });
+
+        const result = await diagnosticsEngine.runDiagnostics();
+        const action = result.actions.find(a => a.actionId === 'A02');
+
+        expect(action).toBeDefined();
+        expect(action.description).toContain('default-agent');
+        expect(action.description).not.toContain('custom-agent');
     });
 
     test('Should ignore malformed skip list content', async () => {
@@ -315,6 +344,11 @@ describe('DiagnosticsEngine', () => {
         const mockStats = {
             totals: { input: 1000, output: 100, cacheRead: 0 },
             cost: { total: 5 },
+            total: {
+                models: {
+                    'openai/gpt-5-mini': { input: 1000, output: 100, cacheRead: 0, cost: 5 }
+                }
+            },
             history: {
                 '2026-03-01': { input: 1000, cost: 5, sessions: 1 }
             }
@@ -343,11 +377,14 @@ describe('DiagnosticsEngine', () => {
 
         const action = result.actions.find(a => a.actionId === 'A04');
         expect(action).toBeDefined();
-        expect(action.title).toContain('Review');
+        expect(action.title).toContain('Audit');
+        expect(action.plainTitle).toBe('Audit possibly inactive skills');
         expect(action._meta.idleSkills).toHaveLength(1);
         expect(action._meta.quietSkills).toHaveLength(1);
         expect(action._meta.idleSkills[0].name).toBe('idle-skill');
         expect(action._meta.quietSkills[0].name).toBe('quiet-skill');
+        expect(action.savings).toBeGreaterThan(0);
+        expect(action._meta.potentialSavings).toBeGreaterThan(action.savings);
     });
 
     test('D04: respects explicit zero idle threshold from config', async () => {

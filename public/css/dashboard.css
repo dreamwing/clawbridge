@@ -1556,6 +1556,35 @@
             margin: 6px 0 4px;
         }
 
+        .skill-audit-summary {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .skill-audit-summary-text {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+
+        .skill-audit-actions {
+            display: inline-flex;
+            gap: 6px;
+        }
+
+        .skill-audit-action {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
         .skill-group {
             display: flex;
             flex-wrap: wrap;
@@ -1605,6 +1634,13 @@
             font-size: 9px;
         }
 
+        .skill-choice {
+            margin-left: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            opacity: 0.85;
+        }
+
         .skill-badge label,
         label.skill-badge {
             cursor: pointer;
@@ -1629,4 +1665,55 @@
             margin-left: 6px;
             font-size: 11px;
             color: var(--text-dim);
+        }
+
+        .undo-skill-copy {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+
+        .undo-skill-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .undo-skill-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-bottom: 14px;
+        }
+
+        .undo-skill-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .undo-skill-item input {
+            accent-color: var(--accent);
+            margin: 0;
+        }
+
+        .undo-skill-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .undo-skill-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
         }

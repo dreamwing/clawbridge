@@ -11,6 +11,12 @@ const CONFIG_GET_TIMEOUT_MS = 1500;
 const OPENCLAW_BIN = 'openclaw';
 
 class OpenClawConfig {
+    _validateConfigArg(name, value, pattern) {
+        if (typeof value !== 'string' || !pattern.test(value)) {
+            throw new Error(`Invalid ${name}`);
+        }
+    }
+
     /**
      * Reads raw openclaw.json file manually as a fallback, because running 
      * `openclaw config get --json` can be slow or have permission locks.
@@ -43,7 +49,9 @@ class OpenClawConfig {
      */
     async setConfig(key, value) {
         try {
-            const { stdout } = await execFileAsync(OPENCLAW_BIN, ['config', 'set', key, value]);
+            this._validateConfigArg('config key', key, /^[A-Za-z0-9._-]+$/);
+            this._validateConfigArg('config value', value, /^(?!-)[A-Za-z0-9_./:@-]+$/);
+            const { stdout } = await execFileAsync(OPENCLAW_BIN, ['config', 'set', '--', key, value]);
             return { success: true, message: stdout.trim() };
         } catch (err) {
             console.error(`Failed to set config ${key} to ${value}:`, err);

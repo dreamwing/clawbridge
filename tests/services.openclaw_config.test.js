@@ -44,4 +44,24 @@ describe('OpenClawConfig', () => {
         expect(result.defaults.model.primary).toBe('openai/gpt-5-pro');
         expect(fs.readFile).toHaveBeenCalledWith('/tmp/.openclaw/openclaw.json', 'utf-8');
     });
+
+    test('setConfig passes end-of-options separator to CLI', async () => {
+        mockExecFileAsync.mockResolvedValue({ stdout: 'ok\n' });
+        const configManager = require('../src/services/openclaw_config');
+
+        const result = await configManager.setConfig('agents.defaults.model', 'openai/gpt-5');
+
+        expect(result.success).toBe(true);
+        expect(mockExecFileAsync).toHaveBeenCalledWith(
+            'openclaw',
+            ['config', 'set', '--', 'agents.defaults.model', 'openai/gpt-5']
+        );
+    });
+
+    test('setConfig rejects invalid values that look like flags', async () => {
+        const configManager = require('../src/services/openclaw_config');
+
+        await expect(configManager.setConfig('agents.defaults.model', '--danger')).rejects.toThrow('Config update failed');
+        expect(mockExecFileAsync).not.toHaveBeenCalled();
+    });
 });
