@@ -21,7 +21,7 @@ router.get('/api/cron', (req, res) => {
             const json = JSON.parse(fileData);
             if (json.jobs) return res.json(json.jobs);
         }
-    } catch (e) {
+    } catch (_e) {
         // Silent fail, fallthrough to CLI
     }
 
@@ -34,7 +34,7 @@ router.get('/api/cron', (req, res) => {
             const data = JSON.parse(stdout);
             if (data.jobs) return res.json(data.jobs);
             return res.json([]);
-        } catch (e) {
+        } catch (_e) {
             res.json([]);
         }
     });

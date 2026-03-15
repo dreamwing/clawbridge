@@ -27,6 +27,14 @@ jest.mock('openclaw', () => {
     };
 }, { virtual: true });
 
+jest.mock('../src/services/analyzer', () => {
+    return {
+        runAnalyzer: jest.fn().mockReturnValue({ triggered: true, running: true, message: 'Analysis started.' }),
+        getAnalyzerState: jest.fn().mockReturnValue({ running: true }),
+        setWss: jest.fn()
+    };
+});
+
 const fs = require('fs');
 fs.mkdirSync('/tmp/claw_test_ws/memory', { recursive: true });
 
@@ -140,6 +148,12 @@ describe('Rate Limiting on /api/auth', () => {
         // 11th should be rate-limited
         const res = await request(app).post('/api/auth').send({ key: 'wrongkey' });
         expect(res.status).toBe(429);
+
+        // Reset rate limiter for next test suites
+        const { resetAuthAttempts } = require('../src/auth/sessions');
+        resetAuthAttempts('::ffff:127.0.0.1');
+        resetAuthAttempts('::1');
+        resetAuthAttempts('127.0.0.1');
     });
 });
 
@@ -152,3 +166,51 @@ describe('Legacy Magic Link', () => {
         expect(cookies[0]).toMatch(/claw_session=/);
     });
 });
+
+describe('Token Routes (/api/tokens)', () => {
+    let sessionCookie;
+
+    beforeAll(async () => {
+        const res = await request(app)
+            .post('/api/auth')
+            .send({ key: 'testkey123' });
+        sessionCookie = res.headers['set-cookie'][0].split(';')[0];
+    });
+
+    test('GET /api/tokens handles missing file gracefully', async () => {
+        // Mock fs to simulate missing file
+        const originalFs = jest.requireActual('fs');
+        jest.spyOn(fs, 'existsSync').mockImplementation(path => {
+            if (path.includes('latest.json')) return false;
+            return originalFs.existsSync(path);
+        });
+
+        const res = await request(app)
+            .get('/api/tokens')
+            .set('Cookie', sessionCookie);
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty('today');
+        expect(res.body.today).toHaveProperty('cost', 0);
+        expect(res.body).toHaveProperty('recentCosts');
+
+        jest.restoreAllMocks();
+    });
+
+    test('POST /api/tokens/refresh triggers analysis', async () => {
+        const res = await request(app)
+            .post('/api/tokens/refresh')
+            .set('Cookie', sessionCookie);
+        // It should either trigger (200) or report already running (409)
+        expect([200, 409]).toContain(res.status);
+        expect(res.body).toHaveProperty('running', true);
+    });
+
+    test('GET /api/tokens/status returns analyzer state', async () => {
+        const res = await request(app)
+            .get('/api/tokens/status')
+            .set('Cookie', sessionCookie);
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty('running');
+    });
+});
+

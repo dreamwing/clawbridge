@@ -4,20 +4,22 @@
  */
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
 
 // --- Environment ---
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.ACCESS_KEY;
-if (!SECRET_KEY) {
+if (!SECRET_KEY && !process.env.JEST_WORKER_ID) {
     console.error('❌ ACCESS_KEY not set in .env! Please set a secure key. Exiting.');
     process.exit(1);
 }
 const TUNNEL_TOKEN = process.env.TUNNEL_TOKEN;
 
 // --- Paths ---
-const HOME_DIR = os.homedir();
-const STATE_DIR = process.env.OPENCLAW_STATE_DIR || path.join(HOME_DIR, '.openclaw');
+// Shared home/config directory resolution, aligned with OpenClaw's src/infra/home-dir.ts.
+const { resolveHomeDir, resolveConfigDir } = require('./utils/paths');
+
+const HOME_DIR = resolveHomeDir();
+const STATE_DIR = resolveConfigDir();
 const APP_DIR = path.resolve(__dirname, '..');
 
 const LOG_DIR = path.join(APP_DIR, 'data/logs');
@@ -41,5 +43,7 @@ module.exports = {
     ID_FILE,
     ANALYZE_SCRIPT,
     CACHE_TTL_MS,
+    resolveHomeDir,
+    resolveConfigDir,
     IS_DOCKER,
 };

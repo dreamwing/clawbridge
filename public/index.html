@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="app-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260315-07">
 </head>
 
 <body>
@@ -172,6 +172,27 @@
             </div>
         </div>
 
+        <div id="undo-skill-modal" class="modal-overlay" onclick="if(event.target===this) closeUndoSkillModal(null)">
+            <div class="modal-content" style="max-width:460px;">
+                <div class="modal-header">
+                    <span class="modal-title">Restore Removed Skills</span>
+                    <button class="modal-close" onclick="closeUndoSkillModal(null)">×</button>
+                </div>
+                <div class="undo-skill-copy">
+                    Choose which skills to restore from this backup. Leave them all checked to restore everything.
+                </div>
+                <div class="undo-skill-actions">
+                    <button class="skill-audit-action" onclick="setUndoSkillSelection(true)">Select All</button>
+                    <button class="skill-audit-action" onclick="setUndoSkillSelection(false)">Clear All</button>
+                </div>
+                <div id="undo-skill-list" class="undo-skill-list"></div>
+                <div class="undo-skill-footer">
+                    <button class="btn" style="background:rgba(255,255,255,0.08); color:var(--text);" onclick="closeUndoSkillModal(null)">Cancel</button>
+                    <button class="btn" style="background:var(--accent);" onclick="confirmUndoSkillSelection()">Restore Selected</button>
+                </div>
+            </div>
+        </div>
+
         <!-- VIEW: HOME (Status + Logs) -->
         <div id="view-home" class="view-container active">
             <div class="card">
@@ -257,198 +278,336 @@
             </div>
         </div>
         <div id="view-tokens" class="view-container">
-            <div class="card" id="token-card">
-                <div class="section-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                    <span style="font-weight:600">Token Economy</span>
-                    <div style="font-size:12px; color:var(--text-dim)">
-                        Total: <span style="color:var(--text); font-weight:bold" id="grand-total-cost">--</span>
+            <!-- EXTERNAL TRIGGER OVER THE CARD -->
+            <div class="external-trigger-container" id="external-trigger">
+                <div class="external-trigger" id="scanner-trigger" onclick="flipToOptimizer()">
+                    <div class="et-left">
+                        <div class="et-icon" id="trigger-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20"
+                                height="20">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                        </div>
+                        <div class="et-text" id="trigger-text">Loading optimization data...</div>
                     </div>
+                    <button class="et-btn" id="trigger-btn">Optimize</button>
                 </div>
+            </div>
 
-                <div style="text-align:center; padding: 20px 0;">
-                    <div style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">
-                        Today's Cost</div>
-                    <div style="font-size:42px; font-weight:800; color:var(--success); margin:10px 0;" id="token-cost">
-                        --</div>
+            <!-- THE ROTATING CARD -->
+            <div class="flip-container" id="flip-container">
+                <!-- CARD SIDE 1: Dashboard -->
+                <div class="card-face card-front" id="token-card">
 
-                    <!-- Forecast Banner -->
+                    <div class="section-header"
+                        style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                        <span style="font-weight:600">Token Economy</span>
+                        <div style="font-size:12px; color:var(--text-dim)">
+                            Total: <span style="color:var(--text); font-weight:bold" id="grand-total-cost">--</span>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; padding: 20px 0;">
+                        <div
+                            style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">
+                            Today's Cost</div>
+                        <div style="font-size:42px; font-weight:800; color:var(--success); margin:10px 0;"
+                            id="token-cost">
+                            --</div>
+
+                        <!-- Forecast & Cache Hit Banner -->
+                        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:5px;">
+                            <div
+                                style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
+                                <span style="font-size:11px; color:var(--text-dim);">Est. Monthly</span>
+                                <span style="font-size:12px; font-weight:600; color:var(--accent);"
+                                    id="monthly-forecast">--</span>
+                            </div>
+                            <div
+                                style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
+                                <span style="font-size:11px; color:var(--text-dim);">Cache Hit</span>
+                                <span style="font-size:12px; font-weight:600; color:var(--success);"
+                                    id="token-cache-hit-rate">--%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meta Info & Refresh -->
                     <div
-                        style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px; margin-top:5px;">
-                        <span style="font-size:11px; color:var(--text-dim);">Est. Monthly</span>
-                        <span style="font-size:12px; font-weight:600; color:var(--accent);"
-                            id="monthly-forecast">--</span>
+                        style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:10px; color:var(--text-dim);">LAST UPDATED</span>
+                            <span style="font-size:11px; font-family:monospace;" id="token-updated">Never</span>
+                        </div>
+                        <button class="btn"
+                            style="width:auto; padding:6px 12px; font-size:12px; background:var(--accent);"
+                            onclick="refreshTokenStats()">
+                            ↻ Refresh
+                        </button>
+                    </div>
+                    <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;">
+                        System automatically recalculates every hour.
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                        <div class="metric-box" style="padding:10px;">
+                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">INPUT (READ)
+                            </div>
+                            <div style="font-size:16px; font-weight:600;" id="token-in">--</div>
+                        </div>
+                        <div class="metric-box" style="padding:10px;">
+                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">OUTPUT
+                                (WRITE)</div>
+                            <div style="font-size:16px; font-weight:600;" id="token-out">--</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">COST TREND (7
+                            DAYS)</div>
+                        <div id="trend-chart"
+                            style="display:flex; align-items:flex-end; gap:8px; height:100px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                        </div>
+                        <div id="trend-labels"
+                            style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim); margin-top:6px; padding:0 4px;">
+                        </div>
+                    </div>
+
+                    <!-- Top Models List -->
+                    <div style="margin-top:25px;">
+                        <div
+                            style="font-size:11px; color:var(--text-dim); margin-bottom:10px; display:flex; justify-content:space-between;">
+                            <span>TOP MODELS</span>
+                            <span>COST</span>
+                        </div>
+                        <div id="top-models-list">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+
+                    <div id="daily-detail"
+                        style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:15px; margin-top:20px; border:1px solid var(--border);">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:14px; font-weight:bold; color:var(--text)"
+                                    id="detail-date">--</span>
+                                <span style="font-size:12px; font-weight:bold; display:none;"
+                                    id="detail-change"></span>
+                            </div>
+                            <span style="font-size:16px; font-weight:bold; color:var(--success)"
+                                id="detail-cost">--</span>
+                        </div>
+                        <div
+                            style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; color:var(--text-dim);">
+                            <div>In: <span id="detail-input"
+                                    style="color:var(--text); font-family:monospace;">--</span></div>
+                            <div>Out: <span id="detail-output"
+                                    style="color:var(--text); font-family:monospace;">--</span></div>
+                            <div>Cache R: <span id="detail-cache-read"
+                                    style="color:#22d3ee; font-family:monospace;">--</span></div>
+                            <div>Cache W: <span id="detail-cache-write"
+                                    style="color:#22d3ee; font-family:monospace;">--</span></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Meta Info & Refresh -->
-                <div
-                    style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; flex-direction:column;">
-                        <span style="font-size:10px; color:var(--text-dim);">LAST UPDATED</span>
-                        <span style="font-size:11px; font-family:monospace;" id="token-updated">Never</span>
+                <!-- CARD SIDE 2: Optimizer Interface -->
+                <div class="card-face card-back">
+                    <div class="back-header">
+                        <div class="optimizer-brand">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22"
+                                height="22">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                            Optimizer
+                        </div>
+                        <button class="btn-close-back" onclick="flipToDashboard()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"
+                                height="14">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
                     </div>
-                    <button class="btn" style="width:auto; padding:6px 12px; font-size:12px; background:var(--accent);"
-                        onclick="refreshTokenStats()">
-                        ↻ Refresh
-                    </button>
-                </div>
-                <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;">
-                    System automatically recalculates every hour.
-                </div>
 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-                    <div class="metric-box" style="padding:10px;">
-                        <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">INPUT (READ)</div>
-                        <div style="font-size:16px; font-weight:600;" id="token-in">--</div>
+                    <!-- Loader State -->
+                    <div class="scan-progress" id="scan-progress">
+                        <div class="scan-spinner"></div>
+                        <div class="progress-title">Analyzing Usage Patterns</div>
+                        <div class="progress-sub" id="scan-step-text">Reading 6 days of history...</div>
                     </div>
-                    <div class="metric-box" style="padding:10px;">
-                        <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">OUTPUT (WRITE)</div>
-                        <div style="font-size:16px; font-weight:600;" id="token-out">--</div>
-                    </div>
-                </div>
 
-                <div style="margin-top:20px;">
-                    <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">COST TREND (7 DAYS)</div>
-                    <div id="trend-chart"
-                        style="display:flex; align-items:flex-end; gap:8px; height:100px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <!-- ACTIVE RESULTS VIEW -->
+                    <div class="scan-results" id="scan-results">
+                        <div class="savings-hero">
+                            <div class="savings-hero-label">Potential Monthly Savings</div>
+                            <div class="savings-hero-amount" id="main-savings-amount">--</div>
+                        </div>
+                        <div class="cost-comparison">
+                            <div class="cost-compare-item">
+                                <div class="cost-compare-label">Current</div>
+                                <div class="cost-compare-val current">--</div>
+                            </div>
+                            <div class="cost-compare-arrow">→</div>
+                            <div class="cost-compare-item">
+                                <div class="cost-compare-label">Optimized</div>
+                                <div class="cost-compare-val optimized">--</div>
+                            </div>
+                            <div class="cost-compare-item cache-rate-item" style="display:none;">
+                                <div class="cost-compare-label">Cache Hit</div>
+                                <div class="cost-compare-val" id="optimizer-cache-hit-rate">—</div>
+                            </div>
+                        </div>
+                        <div class="result-title">Cost-Saving Actions Found</div>
+                        <div class="opt-list" id="opt-list">
+                            <!-- Dynamically populated by renderOptimizerList() -->
+                        </div>
+                        <div class="history-section" id="active-history-section">
+                            <div class="history-title">Implemented Optimizations</div>
+                            <div class="timeline" id="active-timeline-list">
+                                <!-- Timeline items will be injected here -->
+                            </div>
+                        </div>
                     </div>
-                    <div id="trend-labels"
-                        style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim); margin-top:6px; padding:0 4px;">
-                    </div>
-                </div>
 
-                <!-- Top Models List -->
-                <div style="margin-top:25px;">
-                    <div
-                        style="font-size:11px; color:var(--text-dim); margin-bottom:10px; display:flex; justify-content:space-between;">
-                        <span>TOP MODELS</span>
-                        <span>COST</span>
-                    </div>
-                    <div id="top-models-list">
-                        <!-- Injected via JS -->
-                    </div>
-                </div>
+                    <!-- SUCCESS STATE VIEW -->
+                    <div class="success-state" id="success-state">
+                        <div class="success-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="40"
+                                height="40">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="success-title">Fully Optimized</div>
+                        <div class="success-desc">Great job! Your token consumption is now running at maximum
+                            efficiency.</div>
+                        <div class="history-section">
+                            <div class="history-title">Recent Optimizations</div>
+                            <div class="timeline" id="timeline-list">
+                                <!-- Timeline items will be injected here -->
+                            </div>
+                        </div>
 
-                <div id="daily-detail"
-                    style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:15px; margin-top:20px; border:1px solid var(--border);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                        <span style="font-size:14px; font-weight:bold; color:var(--text)" id="detail-date">--</span>
-                        <span style="font-size:16px; font-weight:bold; color:var(--success)" id="detail-cost">--</span>
-                    </div>
-                    <div style="display:flex; gap:15px; font-size:12px; color:var(--text-dim);">
-                        <span>In: <span id="detail-input" style="color:var(--text)">--</span></span>
-                        <span>Out: <span id="detail-output" style="color:var(--text)">--</span></span>
+                        <div id="success-skipped-section" class="hidden" style="width:100%; margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                            <div class="result-title">Skipped Recommendations</div>
+                            <div id="success-skipped-list" class="opt-list"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- VIEW: SETTINGS -->
-        <div id="view-settings" class="view-container">
-            <div class="card">
-                <h3 style="margin-top:0">Danger Zone</h3>
-                <div style="display:grid; gap:15px;">
-                    <div>
-                        <button class="btn btn-restart" onclick="restartGateway()">
-                            <span>♻️</span> Restart Gateway Service
-                        </button>
-                        <div style="font-size:11px; color:var(--text-dim); margin-top:5px; text-align:center;">
-                            Current PID: <span id="gateway-pid"
-                                style="font-family:monospace; color:var(--accent)">--</span>
+                <div id="view-settings" class="view-container">
+                    <div class="card">
+                        <h3 style="margin-top:0">Danger Zone</h3>
+                        <div style="display:grid; gap:15px;">
+                            <div>
+                                <button class="btn btn-restart" onclick="restartGateway()">
+                                    <span>♻️</span> Restart Gateway Service
+                                </button>
+                                <div style="font-size:11px; color:var(--text-dim); margin-top:5px; text-align:center;">
+                                    Current PID: <span id="gateway-pid"
+                                        style="font-family:monospace; color:var(--accent)">--</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <button class="btn btn-danger" onclick="killAll()">
+                                    <span>🛑</span> Emergency Stop All Scripts
+                                </button>
+                                <div id="running-scripts-list"
+                                    style="font-size:11px; color:var(--text-dim); margin-top:8px; padding:0 5px;">
+                                    <!-- Scripts injected here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div>
-                        <button class="btn btn-danger" onclick="killAll()">
-                            <span>🛑</span> Emergency Stop All Scripts
-                        </button>
-                        <div id="running-scripts-list"
-                            style="font-size:11px; color:var(--text-dim); margin-top:8px; padding:0 5px;">
-                            <!-- Scripts injected here -->
+                    <div class="card">
+                        <h3 style="margin-top:0">About</h3>
+                        <div class="info-row">
+                            <span class="info-label">ClawBridge Version</span>
+                            <span class="info-val" id="ver-num">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Environment</span>
+                            <span class="info-val" id="runtime-env">Node.js (Systemd)</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Server Timezone</span>
+                            <span class="info-val" id="server-tz">--</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">OpenClaw Core</span>
+                            <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank"
+                                    style="color:var(--accent); text-decoration:none;" id="ver-core">--</a></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">ClawBridge Source</span>
+                            <span class="info-val"><a
+                                    href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard"
+                                    target="_blank" style="color:var(--accent); text-decoration:none;"
+                                    id="ver-dash">View
+                                    GitHub</a></span>
+                        </div>
+
+                        <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
+                            ClawBridge is the mobile-first dashboard for your AI Agent runtime.
+                            <br>Designed for monitoring, cost tracking, and task management.
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="card">
-                <h3 style="margin-top:0">About</h3>
-                <div class="info-row">
-                    <span class="info-label">ClawBridge Version</span>
-                    <span class="info-val" id="ver-num">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Environment</span>
-                    <span class="info-val" id="runtime-env">Node.js (Systemd)</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Server Timezone</span>
-                    <span class="info-val" id="server-tz">--</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">OpenClaw Core</span>
-                    <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank"
-                            style="color:var(--accent); text-decoration:none;" id="ver-core">--</a></span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">ClawBridge Source</span>
-                    <span class="info-val"><a href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard"
-                            target="_blank" style="color:var(--accent); text-decoration:none;" id="ver-dash">View
-                            GitHub</a></span>
-                </div>
-
-                <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
-                    ClawBridge is the mobile-first dashboard for your AI Agent runtime.
-                    <br>Designed for monitoring, cost tracking, and task management.
-                </div>
-            </div>
-        </div>
 
 
-        <nav class="bottom-nav">
-            <a class="nav-item active" onclick="switchTab('home')">
-                <div class="nav-icon"><svg viewBox="0 0 24 24">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                    </svg></div>
-                <div>Home</div>
-            </a>
-            <a class="nav-item" onclick="switchTab('memory')">
-                <div class="nav-icon"><svg viewBox="0 0 24 24">
-                        <path
-                            d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.48-2.04z">
-                        </path>
-                        <path
-                            d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.48-2.04z">
-                        </path>
-                    </svg></div>
-                <div>Memory</div>
-            </a>
-            <a class="nav-item" onclick="switchTab('tokens')">
-                <div class="nav-icon"><svg viewBox="0 0 24 24">
-                        <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"></path>
-                        <line x1="18" y1="12" x2="22" y2="12"></line>
-                        <line x1="16" y1="9" x2="20" y2="9"></line>
-                        <line x1="16" y1="15" x2="20" y2="15"></line>
-                    </svg></div>
-                <div>Tokens</div>
-            </a>
-            <a class="nav-item" onclick="switchTab('missions')">
-                <div class="nav-icon"><svg viewBox="0 0 24 24">
-                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg></div>
-                <div>Missions</div>
-            </a>
-            <a class="nav-item" onclick="switchTab('settings')">
-                <div class="nav-icon"><svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path
-                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                        </path>
-                    </svg></div>
-                <div>Settings</div>
-            </a>
-        </nav>
+                <nav class="bottom-nav">
+                    <a class="nav-item active" onclick="switchTab('home')">
+                        <div class="nav-icon"><svg viewBox="0 0 24 24">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg></div>
+                        <div>Home</div>
+                    </a>
+                    <a class="nav-item" onclick="switchTab('memory')">
+                        <div class="nav-icon"><svg viewBox="0 0 24 24">
+                                <path
+                                    d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.48-2.04z">
+                                </path>
+                                <path
+                                    d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.48-2.04z">
+                                </path>
+                            </svg></div>
+                        <div>Memory</div>
+                    </a>
+                    <a class="nav-item" onclick="switchTab('tokens')">
+                        <div class="nav-icon"><svg viewBox="0 0 24 24">
+                                <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5">
+                                </path>
+                                <line x1="18" y1="12" x2="22" y2="12"></line>
+                                <line x1="16" y1="9" x2="20" y2="9"></line>
+                                <line x1="16" y1="15" x2="20" y2="15"></line>
+                            </svg></div>
+                        <div>Tokens</div>
+                    </a>
+                    <a class="nav-item" onclick="switchTab('missions')">
+                        <div class="nav-icon"><svg viewBox="0 0 24 24">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg></div>
+                        <div>Missions</div>
+                    </a>
+                    <a class="nav-item" onclick="switchTab('settings')">
+                        <div class="nav-icon"><svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path
+                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                </path>
+                            </svg></div>
+                        <div>Settings</div>
+                    </a>
+                </nav>
 
-        <script src="js/dashboard.js" defer></script>
+                <script src="js/dashboard.js?v=20260315-07" defer></script>
 </body>
 
 </html>

@@ -10,6 +10,7 @@ const {
     checkAuthRateLimit,
     resetAuthAttempts,
 } = require('./sessions');
+const { safeCompare } = require('./utils');
 
 // POST /api/auth — Login
 router.post('/api/auth', (req, res) => {
@@ -17,7 +18,7 @@ router.post('/api/auth', (req, res) => {
         return res.status(429).json({ error: 'Too many attempts. Please wait.' });
     }
     const { key } = req.body;
-    if (key === SECRET_KEY) {
+    if (safeCompare(key, SECRET_KEY)) {
         resetAuthAttempts(req.ip);
         const token = generateSessionToken();
         addSession(token);

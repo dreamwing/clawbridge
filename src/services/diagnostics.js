@@ -1,0 +1,655 @@
+const configManager = require('./openclaw_config');
+const pricingService = require('./pricing');
+const { WORKSPACE_DIR } = require('./openclaw');
+const { resolveConfigDir } = require('../utils/paths');
+const fs = require('fs').promises;
+const path = require('path');
+
+// Cache for diagnostic results (60s TTL)
+let _diagCache = null;
+let _diagCacheTs = 0;
+let _skipWriteQueue = Promise.resolve();
+const DIAG_CACHE_TTL = 60000;
+
+class DiagnosticsEngine {
+    constructor() {
+        this.statsPath = path.join(__dirname, '../../data/token_stats/latest.json');
+        this.thresholdsPath = path.join(__dirname, '../../data/diagnostics.config.json');
+        this.skipPath = path.join(__dirname, '../../data/optimizer.skip.json');
+        this._thresholds = null;
+    }
+
+    /**
+     * Get list of skipped action IDs.
+     */
+    async getSkipList() {
+        try {
+            const data = await fs.readFile(this.skipPath, 'utf8');
+            const parsed = JSON.parse(data);
+            return Array.isArray(parsed) ? parsed.filter(id => typeof id === 'string') : [];
+        } catch (_e) {
+            return [];
+        }
+    }
+
+    /**
+     * Add an action ID to the skip list.
+     */
+    async skipAction(actionId) {
+        await this._queueSkipListMutation((list) => {
+            if (!list.includes(actionId)) list.push(actionId);
+            return list;
+        });
+        return { success: true, skipped: actionId };
+    }
+
+    /**
+     * Remove an action ID from the skip list.
+     */
+    async unskipAction(actionId) {
+        await this._queueSkipListMutation((list) => list.filter(id => id !== actionId));
+        return { success: true, unskipped: actionId };
+    }
+
+    /**
+     * Clear the skip list (optional reset).
+     */
+    async clearSkipList() {
+        await this._queueSkipListMutation(() => []);
+    }
+
+    async _queueSkipListMutation(mutator) {
+        const operation = _skipWriteQueue.then(async () => {
+            const list = await this.getSkipList();
+            const nextList = mutator([...list]);
+            await fs.writeFile(this.skipPath, JSON.stringify(nextList, null, 2), 'utf8');
+            this.invalidateCache();
+        });
+        _skipWriteQueue = operation.catch(() => { });
+        await operation;
+    }
+
+    async _getSkillLastUsedMs(folderPath) {
+        const candidatePaths = [folderPath, path.join(folderPath, 'SKILL.md')];
+        let latest = 0;
+
+        for (const candidate of candidatePaths) {
+            try {
+                const stat = await fs.stat(candidate);
+                const atimeMs = Number.isFinite(stat.atimeMs) ? stat.atimeMs : 0;
+                const mtimeMs = Number.isFinite(stat.mtimeMs) ? stat.mtimeMs : 0;
+                latest = Math.max(latest, atimeMs, mtimeMs);
+            } catch (_e) {
+                // Ignore missing candidate paths.
+            }
+        }
+
+        return latest || Date.now();
+    }
+
+    /**
+     * Load custom thresholds from diagnostics.config.json.
+     * Falls back to defaults if file doesn't exist.
+     */
+    async _getThresholds() {
+        if (this._thresholds) return this._thresholds;
+        const defaults = {
+            D01_modelCostRatio: 0.5,        // trigger if single model > 50% of total cost
+            D04_idleDaysThreshold: 7,       // trigger if a skill has been idle for over 7 days
+            D06_cacheHitRateMin: 0.10,       // trigger if cache hit rate < 10%
+            D06_cacheableRatio: 0.80,        // assume 80% of input is cacheable
+            D09_outputRatioThreshold: 0.10,  // trigger if output/input > 10%
+            D09_minOutputTokens: 1000,       // minimum output tokens to trigger
+            D09_reductionFactor: 0.30,       // concise mode reduces output by 30%
+            D05_thinkingProportion: 0.40,    // 40% of output is thinking
+            D05_reductionRatio: 0.75         // minimal mode cuts thinking by 75%
+        };
+        try {
+            const data = await fs.readFile(this.thresholdsPath, 'utf8');
+            this._thresholds = { ...defaults, ...JSON.parse(data) };
+        } catch (_e) {
+            this._thresholds = defaults;
+        }
+        return this._thresholds;
+    }
+
+    async getStats() {
+        try {
+            const data = await fs.readFile(this.statsPath, 'utf8');
+            return JSON.parse(data);
+        } catch (_err) {
+            // No stats available — return zeroed structure, never fake data
+            return {
+                totals: { input: 0, output: 0, cacheRead: 0 },
+                cost: { total: 0, byModel: {} },
+                history: {},
+                _empty: true
+            };
+        }
+    }
+
+    /**
+     * Compute the per-token cost ratio for a given token type from per-model data.
+     * Uses the actual model rates from latest.json to get precise $/token.
+     */
+    _computeTokenCostRatio(models, tokenType) {
+        let totalTokens = 0;
+        let totalCost = 0;
+        for (const m of Object.values(models || {})) {
+            totalTokens += m[tokenType] || 0;
+            // We only have aggregate cost per model, so we estimate per-type cost
+            // using the token proportion within that model.
+            const modelTotal = (m.input || 0) + (m.output || 0) + (m.cacheRead || 0);
+            if (modelTotal > 0 && m.cost) {
+                totalCost += m.cost * ((m[tokenType] || 0) / modelTotal);
+            }
+        }
+        if (totalTokens === 0) return 0;
+        return totalCost / totalTokens;
+    }
+
+    async runDiagnostics() {
+        // Return cached result if still fresh
+        const now = Date.now();
+        if (_diagCache && (now - _diagCacheTs) < DIAG_CACHE_TTL) {
+            return _diagCache;
+        }
+
+        const results = [];
+
+        // Load threshold config (custom or defaults)
+        const thresholds = await this._getThresholds();
+        const skipList = await this.getSkipList();
+
+        // 1. Get current config
+        const agentsConfig = await configManager.getRawConfig();
+        const defaults = agentsConfig.defaults || {};
+        const modelConfigKey = (defaults.model && typeof defaults.model === 'object' && !Array.isArray(defaults.model))
+            ? 'agents.defaults.model.primary'
+            : 'agents.defaults.model';
+
+        // 2. Get usage stats
+        const rawStats = await this.getStats();
+
+        // If stats are empty, return no recommendations rather than fake ones
+        if (rawStats._empty) {
+            const emptyResult = {
+                totalMonthlySavings: 0,
+                currentMonthlyCost: 0,
+                actions: [],
+                noData: true
+            };
+            _diagCache = emptyResult;
+            _diagCacheTs = now;
+            return emptyResult;
+        }
+
+        // Normalize data: support both old (cost.total) and new (total.cost) formats
+        const rawModels = (rawStats.total && rawStats.total.models) || {};
+        const stats = {
+            totals: rawStats.totals || rawStats.total || { input: 0, output: 0, cacheRead: 0 },
+            cost: {
+                total: (rawStats.cost && rawStats.cost.total) ? rawStats.cost.total
+                    : (rawStats.total ? rawStats.total.cost : 0) || 0,
+                byModel: (rawStats.cost && rawStats.cost.byModel) ? rawStats.cost.byModel
+                    : Object.fromEntries(Object.entries(rawModels).map(([k, v]) => [k, v.cost || 0]))
+            },
+            models: rawModels,
+            activeDays: Math.max(1, Object.keys(rawStats.history || {}).length)
+        };
+
+        const totalCost = stats.cost.total || 0;
+        const monthlyMultiplier = 30 / stats.activeDays;
+        const totalInput = stats.totals.input || 0;
+        const totalOutput = stats.totals.output || 0;
+        const totalCacheRead = stats.totals.cacheRead || 0;
+
+        // Precise per-token cost ratios from actual model data
+        const inputCostPerToken = this._computeTokenCostRatio(stats.models, 'input');
+        const outputCostPerToken = this._computeTokenCostRatio(stats.models, 'output');
+
+        // --- D01: Expensive Model ---
+        const MODEL_REPLACEMENTS = await pricingService.getReplacements(stats.models);
+        const byModelStats = stats.cost.byModel;
+        const sortedModelStats = Object.entries(byModelStats).sort(([, costA], [, costB]) => costB - costA);
+        for (const [modelId, cost] of sortedModelStats) {
+            if (totalCost > 0 && MODEL_REPLACEMENTS[modelId] && (cost / totalCost) > thresholds.D01_modelCostRatio) {
+                const info = MODEL_REPLACEMENTS[modelId];
+                const estimatedSavings = cost * monthlyMultiplier * info.savingsRatio;
+                results.push({
+                    actionId: 'A01',
+                    title: `Downgrade ${modelId.split('-').slice(0, 2).join(' ')}`,
+                    plainTitle: 'Switch to a cheaper AI model',
+                    helpText: 'AI models come in different tiers. Premium models are smarter but cost more per message. This switches to a model that\'s almost as good but significantly cheaper.',
+                    description: `Primary usage is on premium model. Switching to ${info.alternative} saves ~${(info.savingsRatio * 100).toFixed(0)}%.`,
+                    sideEffect: '⚠ Mild decrease in performance on highly complex reasoning tasks.',
+                    plainSideEffect: 'Complex math or logic problems might get slightly less accurate answers.',
+                    savings: estimatedSavings,
+                    savingsStr: `-$${estimatedSavings.toFixed(2)}/mo`,
+                    codeTag: `model: "${info.alternative}"`,
+                    calcDetail: `${modelId}: $${cost.toFixed(2)} (${((cost / totalCost) * 100).toFixed(0)}% of total) × ${info.savingsRatio} ratio × ${monthlyMultiplier.toFixed(1)}x monthly`,
+                    configDiff: { key: modelConfigKey, from: modelId, to: info.alternative },
+                    level: 'high',
+                    _meta: { alternative: info.alternative }
+                });
+                // Intentional: only flag the top expensive model to keep recommendation
+                // actionable (one model switch at a time). Additional models below the
+                // threshold are not flagged.
+                break;
+            }
+        }
+
+        // --- D02: Heartbeat Optimization ---
+        // Robust check: Aggregate costs from ALL active agents in the workspace
+        let heartbeatTasksText = '';
+        try {
+            const hbPath = path.join(WORKSPACE_DIR, 'HEARTBEAT.md');
+            const fileContent = await fs.readFile(hbPath, 'utf8');
+            heartbeatTasksText = fileContent.split('\n')
+                .filter(l => l.trim() && !l.trim().startsWith('#'))
+                .join('\n');
+        } catch (_e) {
+            // HEARTBEAT.md is optional; treat missing/unreadable as no heartbeat tasks.
+        }
+
+        const taskTokens = Math.ceil(heartbeatTasksText.length / 4);
+        const tokensPerRun = 2000 + taskTokens;
+        const hbCostPerToken = inputCostPerToken > 0 ? inputCostPerToken : (0.10 / 1000000);
+
+        let totalMonthlyTokensHB = 0;
+        let activeHbAgents = [];
+
+        // Correctly scan each agent for their specific or default heartbeat config
+        const heartbeatAgents = Array.isArray(agentsConfig.list) && agentsConfig.list.length > 0
+            ? agentsConfig.list
+            : [{ id: 'default' }];
+
+        heartbeatAgents.forEach(agent => {
+            const hasOverride = agent.heartbeat?.every != null;
+            const hb = hasOverride ? agent.heartbeat?.every : defaults.heartbeat?.every;
+            if (!hasOverride && hb && hb !== '0m' && hb !== '0' && heartbeatTasksText.length > 0) {
+                let mins = 5;
+                if (hb.endsWith('m')) mins = parseInt(hb) || 5;
+                else if (hb.endsWith('h')) mins = (parseInt(hb) || 1) * 60;
+
+                const runs = (30 * 24 * 60) / Math.max(1, mins);
+                totalMonthlyTokensHB += runs * tokensPerRun;
+                activeHbAgents.push({ id: agent.id, every: hb, mins });
+            }
+        });
+
+        if (activeHbAgents.length > 0) {
+            const currentMonthlyCostHB = totalMonthlyTokensHB * hbCostPerToken;
+            const currentMonthlyTokens = totalMonthlyTokensHB;
+            const hbEvery = activeHbAgents[0].every;
+            const intervalMinutes = activeHbAgents[0].mins;
+            const taskCount = heartbeatTasksText.split('\n').length;
+
+            // Generate multi-interval options with per-option savings
+            const intervalOptions = [
+                { label: 'Every 30 min', value: '30m', minutes: 30 },
+                { label: 'Every 1 hour', value: '1h', minutes: 60 },
+                { label: 'Every 2 hours', value: '2h', minutes: 120 },
+                { label: 'Every 4 hours', value: '4h', minutes: 240 },
+                { label: 'Every 6 hours', value: '6h', minutes: 360 },
+                { label: 'Every 12 hours', value: '12h', minutes: 720 },
+                { label: 'Every 24 hours', value: '24h', minutes: 1440 },
+                { label: 'Disable completely', value: '0m', minutes: Infinity }
+            ];
+
+            const options = intervalOptions
+                .filter(opt => opt.minutes > intervalMinutes) // Only show slower intervals
+                .map(opt => {
+                    const optRunsPerMonth = opt.minutes === Infinity ? 0
+                        : (30 * 24 * 60) / opt.minutes;
+                    const optMonthlyCost = optRunsPerMonth * tokensPerRun * hbCostPerToken;
+                    const optSavings = currentMonthlyCostHB - optMonthlyCost;
+                    return {
+                        label: opt.label,
+                        value: opt.value,
+                        savings: optSavings,
+                        savingsStr: `-$${optSavings.toFixed(2)}/mo`,
+                        monthlyTokens: optRunsPerMonth * tokensPerRun,
+                    };
+                });
+
+            const defaultOption = options[0];
+            const defaultSavings = defaultOption ? defaultOption.savings : currentMonthlyCostHB;
+            const activeAgentsStr = activeHbAgents.map(a => `${a.id}: ${a.every}`).join(', ');
+            results.push({
+                actionId: 'A02',
+                title: 'Adjust Heartbeat Interval',
+                plainTitle: 'Reduce Heartbeat (background checking) frequency',
+                helpText: "'Heartbeat' is the AI's background refresh. Just like your phone syncing email in the background, every check consumes a few tokens. Lowering the frequency reduces wake-ups, saving significant idle costs by extending 'deep sleep'.",
+                description: `Active on ${activeHbAgents.length} agent(s) (${activeAgentsStr}) with ${taskCount} task(s), consuming ~${(currentMonthlyTokens / 1000000).toFixed(1)}M tokens/mo ($${currentMonthlyCostHB.toFixed(2)}/mo).`,
+                sideEffect: '⚠ Longer intervals delay cross-agent message delivery.',
+                plainSideEffect: 'Your AI agent will check for updates less often. You may need to manually refresh for new messages.',
+                savings: defaultSavings,
+                savingsStr: `-$${defaultSavings.toFixed(2)}/mo`,
+                codeTag: 'heartbeat.every',
+                calcDetail: `${taskCount} task(s) × ${tokensPerRun} tok/run × aggregated runs/mo × $${(hbCostPerToken * 1000000).toFixed(2)}/M`,
+                configDiff: { key: 'heartbeat.every', from: hbEvery, to: 'your choice' },
+                level: 'medium',
+                options,
+                currentInterval: hbEvery,
+                _meta: { type: 'heartbeat-interval' }
+            });
+        }
+
+        // --- D03: Session Reset Pattern ---
+        // If average tokens per session is very low (<5K) but many sessions, user may be
+        // creating new conversations instead of continuing — wasting context loading tokens.
+        const historyDays = Object.values(rawStats.history || {});
+        if (historyDays.length > 0) {
+            const totalSessions = historyDays.reduce((sum, day) => sum + (day.sessions || day.count || 1), 0);
+            const avgTokensPerSession = (totalInput + totalOutput) / Math.max(1, totalSessions);
+            const avgSessionsPerDay = totalSessions / stats.activeDays;
+
+            if (avgTokensPerSession < 5000 && avgSessionsPerDay > 5) {
+                // Wasted context = sessions × system prompt load (~1000 tokens) × input cost
+                const wastedContextTokens = totalSessions * 1000;
+                const contextWasteSavings = wastedContextTokens * inputCostPerToken * monthlyMultiplier * 0.5; // 50% reduction if users continue sessions
+
+                if (contextWasteSavings > 0.1) {
+                    results.push({
+                        actionId: 'A03',
+                        title: 'Reduce Session Resets',
+                        plainTitle: 'Continue existing conversations instead of starting new ones',
+                        helpText: 'Every new conversation loads the full system prompt and context from scratch. Continuing an existing conversation reuses what\'s already loaded, saving input tokens.',
+                        description: `~${avgSessionsPerDay.toFixed(0)} sessions/day with only ${(avgTokensPerSession / 1000).toFixed(1)}K tokens each. Many short sessions waste context loading costs.`,
+                        sideEffect: '⚠ Longer conversations may eventually need compaction.',
+                        plainSideEffect: 'Longer conversations might slow down slightly as they grow, but cost much less overall.',
+                        savings: contextWasteSavings,
+                        savingsStr: `-$${contextWasteSavings.toFixed(2)}/mo`,
+                        codeTag: 'session.resumeDefault: true',
+                        calcDetail: `${totalSessions} sessions × 1K prompt tokens × $${(inputCostPerToken * 1000000).toFixed(2)}/M × 50% reduction × ${monthlyMultiplier.toFixed(1)}x`,
+                        configDiff: { key: 'session.resumeDefault', from: 'false', to: 'true' },
+                        level: 'medium',
+                        type: 'advisory'
+                    });
+                }
+            }
+        }
+
+        // --- D04: Idle Skill Detection (Granular) ---
+        // Reference: openclaw/src/agents/skills/workspace.ts loadSkillEntries()
+        // Skills are loaded from 6 sources (precedence: extra < bundled < managed < personal-agents < project-agents < workspace).
+        // For idle detection, we only scan "managed" skills (user-installed via `openclaw skills install`).
+        // Managed dir: CONFIG_DIR/skills = (OPENCLAW_STATE_DIR || ~/.openclaw)/skills
+        // A valid skill folder must contain SKILL.md.
+        try {
+            const configDir = resolveConfigDir();
+            const managedSkillsDir = path.join(configDir, 'skills');
+            const entries = await fs.readdir(managedSkillsDir, { withFileTypes: true });
+
+            // Match OpenClaw's listChildDirectories: skip dotfiles, handle symlinks
+            const skillFolders = [];
+            for (const e of entries) {
+                if (e.name.startsWith('.') || e.name === 'node_modules') continue;
+                const fullPath = path.join(managedSkillsDir, e.name);
+                let isDir = e.isDirectory();
+                if (!isDir && e.isSymbolicLink()) {
+                    try { isDir = (await fs.stat(fullPath)).isDirectory(); } catch { continue; }
+                }
+                if (!isDir) continue;
+                // Must contain SKILL.md to be a valid Skill
+                try { await fs.access(path.join(fullPath, 'SKILL.md')); } catch { continue; }
+                skillFolders.push({ name: e.name, path: fullPath });
+            }
+
+            const idleDaysThreshold = thresholds.D04_idleDaysThreshold ?? 7;
+            const quietDaysThreshold = 3;
+            const now = Date.now();
+
+            const idleSkills = [];  // >7d — strongly recommend removal
+            const quietSkills = []; // >3d but ≤7d — listed for user to decide
+
+            for (const folder of skillFolders) {
+                try {
+                    const folderPath = folder.path;
+                    const lastUsedMs = await this._getSkillLastUsedMs(folderPath);
+                    const daysSince = (now - lastUsedMs) / (1000 * 60 * 60 * 24);
+
+                    if (daysSince > idleDaysThreshold) {
+                        idleSkills.push({ name: folder.name, daysSince: Math.floor(daysSince) });
+                    } else if (daysSince > quietDaysThreshold) {
+                        quietSkills.push({ name: folder.name, daysSince: Math.floor(daysSince) });
+                    }
+                } catch (_statErr) {
+                    // Skip unreadable folders
+                }
+            }
+
+            if (idleSkills.length > 0 || quietSkills.length > 0) {
+                const totalFlaggedCount = idleSkills.length + quietSkills.length;
+                const defaultSelectedCount = idleSkills.length;
+                // Each Skill adds ~750 tokens to system prompt per session
+                const totalSessions = historyDays.reduce((sum, day) => sum + (day.sessions || day.count || 1), 0);
+                const headlineTokenWaste = defaultSelectedCount * 750;
+                const headlineSavings = headlineTokenWaste * totalSessions * inputCostPerToken * monthlyMultiplier;
+                const potentialTokenWaste = totalFlaggedCount * 750;
+                const potentialSavings = potentialTokenWaste * totalSessions * inputCostPerToken * monthlyMultiplier;
+
+                // Build description with specific skill names
+                const idleNames = idleSkills.map(s => `${s.name} (${s.daysSince}d)`).join(', ');
+                const quietNames = quietSkills.map(s => `${s.name} (${s.daysSince}d)`).join(', ');
+                let descParts = [];
+                if (idleSkills.length > 0) descParts.push(`Idle >7d: ${idleNames}`);
+                if (quietSkills.length > 0) descParts.push(`Quiet >3d: ${quietNames}`);
+
+                results.push({
+                    actionId: 'A04',
+                    title: `Audit ${totalFlaggedCount} Possibly Inactive Skills`,
+                    plainTitle: 'Audit possibly inactive skills',
+                    helpText: 'This is a heuristic audit based on file activity, not a true skill usage log. Checked skills will be removed, unchecked skills will be kept. Use it to review which installed skills still look worth keeping loaded.',
+                    description: descParts.join('. ') + '.',
+                    sideEffect: '⚠ Removed Skills will no longer be available until re-installed.',
+                    plainSideEffect: 'The AI will lose specific abilities for any Skills you remove. You can always re-install them later.',
+                    savings: headlineSavings,
+                    savingsStr: headlineSavings > 0 ? `-$${headlineSavings.toFixed(2)}/mo` : '🛡️ Review',
+                    codeTag: `${idleSkills.length} idle, ${quietSkills.length} quiet`,
+                    calcDetail: `${defaultSelectedCount} pre-selected × 750 tok/session × ${totalSessions} sessions × $${(inputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'skills', from: `${skillFolders.length} installed`, to: `audit ${totalFlaggedCount}, remove ${defaultSelectedCount} selected` },
+                    level: totalFlaggedCount > 0 ? 'medium' : 'low',
+                    _meta: {
+                        type: 'skill-audit',
+                        idleSkills,
+                        quietSkills,
+                        totalInstalled: skillFolders.length,
+                        potentialSavings,
+                        defaultSelectedCount,
+                        totalFlaggedCount,
+                        perSkillSavings: totalFlaggedCount > 0 ? (potentialSavings / totalFlaggedCount) : 0
+                    }
+                });
+            }
+        } catch (_e) {
+            // Skills dir not found — skip D04
+        }
+
+        // --- D05: Thinking Token Overhead ---
+        const thinking = defaults.thinkingDefault;
+        // Only trigger when user has explicitly configured a high-cost thinking mode.
+        // Skip when undefined (not configured) to avoid noise for new users.
+        if (thinking === 'high' || thinking === 'xhigh' || thinking === 'on') {
+            // Precise: thinking tokens are output tokens that the model generates internally.
+            // With "high" thinking, ~40% of output goes to reasoning. Minimal reduces this by ~75%.
+            // Savings = outputTokens * thinkingProportion * reductionRatio * outputCostPerToken
+            const thinkingProportion = thresholds.D05_thinkingProportion;
+            const reductionRatio = thresholds.D05_reductionRatio;
+            const thinkingSavingsAllTime = totalOutput * thinkingProportion * reductionRatio * outputCostPerToken;
+            const thinkingSavings = thinkingSavingsAllTime * monthlyMultiplier;
+
+            if (thinkingSavings > 0) {
+                results.push({
+                    actionId: 'A05',
+                    title: 'Reduce Thinking Overhead',
+                    plainTitle: 'Make the AI think less before answering',
+                    helpText: 'AI models can "think" before responding — like showing their work on a math problem. This uses extra tokens. Minimal mode skips most internal reasoning to save costs.',
+                    description: `~${(totalOutput * thinkingProportion / 1000).toFixed(0)}K output tokens spent on reasoning. Minimal mode cuts this by ${(reductionRatio * 100).toFixed(0)}%.`,
+                    sideEffect: '⚠ May reduce mathematical or logical accuracy on hard prompts.',
+                    plainSideEffect: 'The AI might make more mistakes on tricky math or logic questions.',
+                    savings: thinkingSavings,
+                    savingsStr: `-$${thinkingSavings.toFixed(2)}/mo`,
+                    codeTag: 'thinkingDefault: "minimal"',
+                    calcDetail: `${(totalOutput / 1000).toFixed(0)}K output × ${(thinkingProportion * 100)}% thinking × ${(reductionRatio * 100)}% cut × $${(outputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'thinkingDefault', from: thinking || 'high', to: 'minimal' },
+                    level: 'medium'
+                });
+            }
+        }
+
+        // --- D06: Prompt Caching ---
+        // PRD formula: hitRate = cacheRead / (input + cacheRead)
+        const cacheHitRate = (totalInput + totalCacheRead) > 0
+            ? totalCacheRead / (totalInput + totalCacheRead) : 0;
+        const contextPruningMode = defaults.contextPruning?.mode || 'none';
+
+        if (contextPruningMode !== 'cache-ttl' && cacheHitRate < thresholds.D06_cacheHitRateMin) {
+            const cacheableInput = totalInput * thresholds.D06_cacheableRatio;
+            const cacheDiscount = 0.9; // cache reads are 90% cheaper
+            const cachingSavingsAllTime = cacheableInput * inputCostPerToken * cacheDiscount;
+            const cachingSavings = cachingSavingsAllTime * monthlyMultiplier;
+
+            if (cachingSavings > 0) {
+                results.push({
+                    actionId: 'A06',
+                    title: 'Enable Prompt Caching',
+                    plainTitle: 'Turn on memory for repeated prompts',
+                    helpText: 'Every round of conversation sends repetitive "instructions" to the AI. Caching is like providing the AI with high-speed bookmarks, allowing it to quickly retrieve previously read content without charging you to read it again.',
+                    description: `Cache hit rate is ${(cacheHitRate * 100).toFixed(1)}%. ${(cacheableInput / 1000).toFixed(0)}K input tokens could be cached at 90% discount.`,
+                    sideEffect: '⚠ First message per session remains full price.',
+                    plainSideEffect: 'The first question in each conversation costs the same. Savings kick in from the second question onwards.',
+                    savings: cachingSavings,
+                    savingsStr: `-$${cachingSavings.toFixed(2)}/mo`,
+                    codeTag: 'cachePolicy: "aggressive"',
+                    calcDetail: `${(cacheableInput / 1000).toFixed(0)}K cacheable × $${(inputCostPerToken * 1000000).toFixed(2)}/M × 90% discount × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'contextPruning.mode', from: contextPruningMode, to: 'cache-ttl' },
+                    level: 'high'
+                });
+            }
+        }
+
+        // --- D07: Safeguard Compaction ---
+        if (defaults.compaction?.mode !== 'safeguard') {
+            const currentCompMode = defaults.compaction?.mode || 'off';
+            results.push({
+                actionId: 'A07',
+                title: 'Enable Compaction Safeguard',
+                plainTitle: 'Auto-trim long conversations to save money',
+                helpText: 'Extremely long conversations can generate massive bills. Automatic compaction acts as a "fuse," truncating and summarizing history before costs spiral out of control, preventing unexpected charges for tens of thousands of tokens.',
+                description: 'Auto-compacts at 50K tokens to prevent extreme single-session billing.',
+                sideEffect: '⚠ May truncate history during massive code translation sessions.',
+                plainSideEffect: 'Very long conversations may lose some early messages to keep costs down.',
+                savings: 0,
+                savingsStr: '🛡️ Protection',
+                codeTag: 'mode: "safeguard"',
+                configDiff: { key: 'compaction.mode', from: currentCompMode, to: 'safeguard' },
+                level: 'safety'
+            });
+        }
+
+        /*
+                // --- D08: Daily Budget Limit ---
+                const hasBudget = defaults.budget && (defaults.budget.maxCostPerDay || defaults.budget.maxTokensPerDay);
+                if (!hasBudget) {
+                    results.push({
+                        actionId: 'A11',
+                        title: 'Set Daily Budget Limit',
+                        plainTitle: 'Protect your wallet against runaway AI tasks',
+                helpText: 'Highly recommended for all users. Even if budget is not an issue, a daily $5 limit protects your wallet if an agent enters an infinite reasoning loop.',
+                        description: 'No daily budget limits are currently configured. A typical safeguard is $5.00/day.',
+                        sideEffect: '⚠ Operations will be blocked once the limit is reached.',
+                        plainSideEffect: 'The AI will temporarily stop working if it spends more than $5 in a single day.',
+                        savings: 0,
+                        savingsStr: '🛡️ Protection',
+                        codeTag: 'maxCostPerDay: 5.00',
+                        configDiff: { key: 'budget.maxCostPerDay', from: 'none', to: '5.00' },
+                        level: 'safety',
+                        type: 'advisory'
+                    });
+                }
+        */
+
+        // --- D09: Output Verbosity ---
+        // Precise: compare output/input ratio. Industry average is ~5-15%.
+        // If > 15%, output is verbose. "Be concise" typically reduces by 30%.
+        const outputRatio = totalInput > 0 ? totalOutput / totalInput : 0;
+        if (outputRatio > thresholds.D09_outputRatioThreshold && totalOutput > thresholds.D09_minOutputTokens) {
+            const reductionFactor = thresholds.D09_reductionFactor;
+            const reducibleOutput = totalOutput * reductionFactor;
+            const verbositySavingsAllTime = reducibleOutput * outputCostPerToken;
+            const verbositySavings = verbositySavingsAllTime * monthlyMultiplier;
+
+            if (verbositySavings > 0) {
+                results.push({
+                    actionId: 'A09',
+                    title: 'Reduce Output Verbosity',
+                    plainTitle: 'Ask the AI to give shorter answers',
+                    helpText: 'AI responses include explanations, examples, and formatting. "Concise mode" tells the AI to skip the fluff and give direct answers — saving output tokens.',
+                    description: `Output/Input ratio is ${(outputRatio * 100).toFixed(1)}% (${(totalOutput / 1000).toFixed(0)}K tokens). Concise mode cuts ~30%.`,
+                    sideEffect: '⚠ Responses become visibly shorter.',
+                    plainSideEffect: 'The AI will give you more concise answers — less explanation, more action.',
+                    savings: verbositySavings,
+                    savingsStr: `-$${verbositySavings.toFixed(2)}/mo`,
+                    codeTag: 'SOUL.md += "Be concise"',
+                    calcDetail: `${(totalOutput / 1000).toFixed(0)}K output × 30% cut × $${(outputCostPerToken * 1000000).toFixed(2)}/M × ${monthlyMultiplier.toFixed(1)}x`,
+                    configDiff: { key: 'SOUL.md', from: '(current)', to: 'append: "Be concise."' },
+                    level: 'high'
+                });
+            }
+        }
+
+        // Filter out skipped actions
+        const finalActions = results.filter(act => !skipList.includes(act.actionId));
+        const skippedActions = results.filter(act => skipList.includes(act.actionId));
+
+        // Sort by savings descending (protection items last)
+        finalActions.sort((a, b) => b.savings - a.savings);
+        skippedActions.sort((a, b) => b.savings - a.savings);
+
+        const currentMonthlyCost = totalCost * monthlyMultiplier;
+        const result = {
+            totalMonthlySavings: finalActions
+                .filter(action => action.type !== 'advisory')
+                .reduce((sum, a) => sum + a.savings, 0),
+            advisoryMonthlySavings: finalActions
+                .filter(action => action.type === 'advisory')
+                .reduce((sum, a) => sum + a.savings, 0),
+            currentMonthlyCost,
+            cacheHitRate,
+            actions: finalActions,
+            skippedActions: skippedActions
+        };
+
+        // Attach raw data for verbose API export (advanced users)
+        result._rawData = {
+            activeDays: stats.activeDays,
+            totalCost,
+            monthlyMultiplier,
+            totalInput,
+            totalOutput,
+            totalCacheRead,
+            inputCostPerToken,
+            outputCostPerToken,
+            byModel: stats.cost.byModel,
+            thresholds
+        };
+
+        // Cache the result
+        _diagCache = result;
+        _diagCacheTs = now;
+
+        return result;
+    }
+
+    /** Invalidate cached diagnostics (e.g. after optimization applied) */
+    invalidateCache() {
+        _diagCache = null;
+        _diagCacheTs = 0;
+        this._thresholds = null;
+        pricingService.invalidateCache();
+    }
+}
+
+module.exports = new DiagnosticsEngine();
