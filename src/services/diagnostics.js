@@ -293,7 +293,7 @@ class DiagnosticsEngine {
             results.push({
                 actionId: 'A02',
                 title: 'Adjust Heartbeat Interval',
-                plainTitle: 'Reduce background checking frequency',
+                plainTitle: 'Reduce Heartbeat (background checking) frequency',
                 helpText: "'Heartbeat' is the AI's background refresh. Just like your phone syncing email in the background, every check consumes a few tokens. Lowering the frequency reduces wake-ups, saving significant idle costs by extending 'deep sleep'.",
                 description: `Active on ${activeHbAgents.length} agent(s) (${activeAgentsStr}) with ${taskCount} task(s), consuming ~${(currentMonthlyTokens / 1000000).toFixed(1)}M tokens/mo ($${currentMonthlyCostHB.toFixed(2)}/mo).`,
                 sideEffect: '⚠ Longer intervals delay cross-agent message delivery.',
@@ -413,7 +413,7 @@ class DiagnosticsEngine {
                 results.push({
                     actionId: 'A04',
                     title: `Review ${totalIdleCount} Unused Skills`,
-                    plainTitle: 'Remove AI add-ons you haven\'t used recently',
+                    plainTitle: "Remove skills you haven't used recently",
                     helpText: 'Extended Skills are like "plugins" for the AI. Even if you don\'t use them in a specific chat, the AI loads them into its active context, increasing the "base cost" of every message. Removing unused skills allows the AI to operate faster and at a lower cost.',
                     description: descParts.join('. ') + '.',
                     sideEffect: '⚠ Removed Skills will no longer be available until re-installed.',
