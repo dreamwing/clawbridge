@@ -156,7 +156,6 @@ class DiagnosticsEngine {
         }
 
         const results = [];
-        let totalMonthlySavings = 0;
         let advisoryMonthlySavings = 0;
 
         // Load threshold config (custom or defaults)
@@ -217,9 +216,6 @@ class DiagnosticsEngine {
             if (totalCost > 0 && MODEL_REPLACEMENTS[modelId] && (cost / totalCost) > thresholds.D01_modelCostRatio) {
                 const info = MODEL_REPLACEMENTS[modelId];
                 const estimatedSavings = cost * monthlyMultiplier * info.savingsRatio;
-                totalMonthlySavings += estimatedSavings;
-
-
                 results.push({
                     actionId: 'A01',
                     title: `Downgrade ${modelId.split('-').slice(0, 2).join(' ')}`,
@@ -252,7 +248,9 @@ class DiagnosticsEngine {
             heartbeatTasksText = fileContent.split('\n')
                 .filter(l => l.trim() && !l.trim().startsWith('#'))
                 .join('\n');
-        } catch (_e) {}
+        } catch (_e) {
+            // HEARTBEAT.md is optional; treat missing/unreadable as no heartbeat tasks.
+        }
 
         const taskTokens = Math.ceil(heartbeatTasksText.length / 4);
         const tokensPerRun = 2000 + taskTokens;
@@ -317,8 +315,6 @@ class DiagnosticsEngine {
 
             const defaultOption = options[0];
             const defaultSavings = defaultOption ? defaultOption.savings : currentMonthlyCostHB;
-            totalMonthlySavings += defaultSavings;
-
             const activeAgentsStr = activeHbAgents.map(a => `${a.id}: ${a.every}`).join(', ');
             results.push({
                 actionId: 'A02',
@@ -442,7 +438,6 @@ class DiagnosticsEngine {
                 if (idleSkills.length > 0) descParts.push(`Idle >7d: ${idleNames}`);
                 if (quietSkills.length > 0) descParts.push(`Quiet >3d: ${quietNames}`);
 
-                totalMonthlySavings += headlineSavings;
                 results.push({
                     actionId: 'A04',
                     title: `Audit ${totalFlaggedCount} Possibly Inactive Skills`,
@@ -487,7 +482,6 @@ class DiagnosticsEngine {
             const thinkingSavings = thinkingSavingsAllTime * monthlyMultiplier;
 
             if (thinkingSavings > 0) {
-                totalMonthlySavings += thinkingSavings;
                 results.push({
                     actionId: 'A05',
                     title: 'Reduce Thinking Overhead',
@@ -519,7 +513,6 @@ class DiagnosticsEngine {
             const cachingSavings = cachingSavingsAllTime * monthlyMultiplier;
 
             if (cachingSavings > 0) {
-                totalMonthlySavings += cachingSavings;
                 results.push({
                     actionId: 'A06',
                     title: 'Enable Prompt Caching',
@@ -590,7 +583,6 @@ class DiagnosticsEngine {
             const verbositySavings = verbositySavingsAllTime * monthlyMultiplier;
 
             if (verbositySavings > 0) {
-                totalMonthlySavings += verbositySavings;
                 results.push({
                     actionId: 'A09',
                     title: 'Reduce Output Verbosity',
