@@ -17,6 +17,7 @@ data/logs/
 data/backups/
 data/token_stats/
 data/last_id.txt
+data/optimizer.skip.json
 dashboard.log
 *.log
 

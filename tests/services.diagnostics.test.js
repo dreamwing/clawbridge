@@ -112,6 +112,43 @@ describe('DiagnosticsEngine', () => {
         expect(action._meta.type).toBe('heartbeat-interval');
     });
 
+    test('Should ignore malformed skip list content', async () => {
+        configManager.getRawConfig.mockResolvedValue({
+            defaults: {
+                model: { primary: 'openai/gpt-5-pro' }
+            }
+        });
+
+        const mockStats = {
+            totals: { input: 1000, output: 100, cacheRead: 50 },
+            cost: {
+                total: 100,
+                byModel: {
+                    'openai/gpt-5-pro': 60,
+                    'openai/gpt-5-mini': 40
+                }
+            },
+            total: {
+                models: {
+                    'openai/gpt-5-pro': { input: 1000, output: 100, cacheRead: 50, cost: 60 },
+                    'openai/gpt-5-mini': { input: 1000, output: 100, cacheRead: 50, cost: 40 }
+                }
+            }
+        };
+
+        fs.readFile.mockImplementation((pathStr) => {
+            if (pathStr.includes('optimizer.skip.json')) {
+                return Promise.resolve(JSON.stringify({ skipped: ['A01'] }));
+            }
+            return Promise.resolve(JSON.stringify(mockStats));
+        });
+
+        const result = await diagnosticsEngine.runDiagnostics();
+
+        expect(result.actions.find(a => a.actionId === 'A01')).toBeDefined();
+        expect(result.skippedActions).toEqual([]);
+    });
+
     test('D05: Should flag high thinkingDefault', async () => {
         configManager.getRawConfig.mockResolvedValue({
             defaults: {

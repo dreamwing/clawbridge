@@ -24,7 +24,8 @@ class DiagnosticsEngine {
     async getSkipList() {
         try {
             const data = await fs.readFile(this.skipPath, 'utf8');
-            return JSON.parse(data) || [];
+            const parsed = JSON.parse(data);
+            return Array.isArray(parsed) ? parsed.filter(id => typeof id === 'string') : [];
         } catch (_e) {
             return [];
         }
@@ -230,20 +231,24 @@ class DiagnosticsEngine {
         } catch (_e) {}
 
         const taskTokens = Math.ceil(heartbeatTasksText.length / 4);
-        const tokensPerRun = 2000 + taskTokens; 
+        const tokensPerRun = 2000 + taskTokens;
         const hbCostPerToken = inputCostPerToken > 0 ? inputCostPerToken : (0.10 / 1000000);
-        
+
         let totalMonthlyTokensHB = 0;
         let activeHbAgents = [];
 
         // Correctly scan each agent for their specific or default heartbeat config
-        (agentsConfig.list || []).forEach(agent => {
+        const heartbeatAgents = Array.isArray(agentsConfig.list) && agentsConfig.list.length > 0
+            ? agentsConfig.list
+            : [{ id: 'default', heartbeat: defaults.heartbeat }];
+
+        heartbeatAgents.forEach(agent => {
             const hb = agent.heartbeat?.every || defaults.heartbeat?.every;
             if (hb && hb !== '0m' && hb !== '0' && heartbeatTasksText.length > 0) {
                 let mins = 5;
                 if (hb.endsWith('m')) mins = parseInt(hb) || 5;
                 else if (hb.endsWith('h')) mins = (parseInt(hb) || 1) * 60;
-                
+
                 const runs = (30 * 24 * 60) / Math.max(1, mins);
                 totalMonthlyTokensHB += runs * tokensPerRun;
                 activeHbAgents.push({ id: agent.id, every: hb, mins });
@@ -253,7 +258,7 @@ class DiagnosticsEngine {
         if (activeHbAgents.length > 0) {
             const currentMonthlyCostHB = totalMonthlyTokensHB * hbCostPerToken;
             const currentMonthlyTokens = totalMonthlyTokensHB;
-            const hbEvery = activeHbAgents[0].every; 
+            const hbEvery = activeHbAgents[0].every;
             const intervalMinutes = activeHbAgents[0].mins;
             const taskCount = heartbeatTasksText.split('\n').length;
 
@@ -285,8 +290,8 @@ class DiagnosticsEngine {
                     };
                 });
 
-            const maxSavingsOption = options.find(opt => opt.value === '0m') || options[options.length - 1];
-            const defaultSavings = maxSavingsOption ? maxSavingsOption.savings : currentMonthlyCostHB;
+            const defaultOption = options[0];
+            const defaultSavings = defaultOption ? defaultOption.savings : currentMonthlyCostHB;
             totalMonthlySavings += defaultSavings;
 
             const activeAgentsStr = activeHbAgents.map(a => `${a.id}: ${a.every}`).join(', ');

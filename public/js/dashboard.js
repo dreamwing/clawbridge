@@ -773,6 +773,9 @@ function renderSkillAuditList(meta) {
 function renderActionItem(act, isSkipped = false) {
     const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}/mo` : '🛡️ Protection';
     const savingsClass = act.savings > 10 ? 'high-savings' : (act.savings > 0 ? 'medium-savings' : 'safety');
+    const initialMeta = act._meta && typeof act._meta === 'object' && !Array.isArray(act._meta)
+        ? { ...act._meta }
+        : {};
 
     // L2: Side effect in plain language
     let sideEffectHtml = '';
@@ -782,11 +785,14 @@ function renderActionItem(act, isSkipped = false) {
 
     // L1: Use plainTitle (beginner-friendly), fallback to title
     const displayTitle = act.plainTitle || act.title;
-    const metaAttr = act._meta ? ' data-meta=\'' + JSON.stringify(act._meta).replace(/'/g, '&#39;') + '\'' : '';
 
     // A02 with multi-interval options
     let optionsHtml = '';
     if (act.actionId === 'A02' && act.options && act.options.length > 0) {
+        const initialOption = act.options[0];
+        if (initialOption) {
+            initialMeta.interval = initialOption.value;
+        }
         const optItems = act.options.map((opt, i) => {
             const checked = i === 0 ? ' checked' : '';
             const isDisable = opt.value === '0m';
@@ -827,6 +833,9 @@ function renderActionItem(act, isSkipped = false) {
            <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')">Apply Anyway</button>`
         : `<button class="btn-skip" onclick="handleSkip(this, '${act.actionId}')">Skip</button>
            <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>`;
+    const metaAttr = Object.keys(initialMeta).length > 0
+        ? ' data-meta=\'' + JSON.stringify(initialMeta).replace(/'/g, '&#39;') + '\''
+        : '';
 
     const itemHtml = `
                 <div class="opt-item ${savingsClass} ${isSkipped ? 'is-skipped' : ''}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
