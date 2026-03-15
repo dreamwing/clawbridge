@@ -921,7 +921,7 @@ function renderOptimizerList() {
                 <span>Skipped Recommendations (${skipped.length})</span>
                 <span style="font-size:10px; opacity:0.6; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">Toggle View</span>
             </div>
-            <div id="skipped-list" class="opt-list hidden" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; opacity: 0.9;"></div>
+            <div id="skipped-list" class="opt-list" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; opacity: 0.9;"></div>
         `;
         list.appendChild(skippedWrapper);
         const skippedListContainer = skippedWrapper.querySelector('#skipped-list');
@@ -941,24 +941,25 @@ function renderOptimizerList() {
 }
 
 async function renderHistoryList() {
-    // 1. Render Skipped Recommendations in Success View
-    const successSkippedSection = document.getElementById('success-skipped-section');
-    const successSkippedList = document.getElementById('success-skipped-list');
-    const skipped = (diagnosticsData && diagnosticsData.skippedActions) || [];
+        const successSkippedSection = document.getElementById('success-skipped-section');
+        const successSkippedList = document.getElementById('success-skipped-list');
+        const skipped = (diagnosticsData && diagnosticsData.skippedActions) || [];
 
-    if (successSkippedSection && successSkippedList) {
-        if (skipped.length > 0) {
-            console.log('[Optimizer] Rendering', skipped.length, 'skipped actions in Success view');
-            successSkippedSection.classList.remove('hidden');
-            successSkippedList.innerHTML = '';
-            skipped.forEach(act => {
-                successSkippedList.appendChild(renderActionItem(act, true));
-            });
-        } else {
-            console.log('[Optimizer] No skipped actions to render in Success view');
-            successSkippedSection.classList.add('hidden');
+        if (successSkippedSection && successSkippedList) {
+            console.log('[Optimizer] Success View - Skipped Actions:', skipped.length);
+            if (skipped.length > 0) {
+                successSkippedSection.classList.remove('hidden');
+                successSkippedList.innerHTML = '';
+                skipped.forEach(act => {
+                    const itemNode = renderActionItem(act, true);
+                    if (itemNode) {
+                        successSkippedList.appendChild(itemNode);
+                    }
+                });
+            } else {
+                successSkippedSection.classList.add('hidden');
+            }
         }
-    }
 
     // 2. Render Optimization History
     try {
@@ -1005,13 +1006,19 @@ async function renderHistoryList() {
                     effectHtml = `<span class="effect-tag ${effectClass}">7d: $${actualSaving.toFixed(2)}</span>`;
                 }
 
+                const detailsHtml = hist.configChanged ? `<div class="timeline-details hidden">${escapeHtml(hist.configChanged)}</div>` : '';
+                const clickHandler = hist.configChanged ? 'style="cursor:pointer;" onclick="this.querySelector(\'.timeline-details\').classList.toggle(\'hidden\')"' : '';
+
                 const div = document.createElement('div');
                 div.className = 'timeline-item';
                 const dotColor = hist.actionId === 'UNDO' ? 'rgba(245, 158, 11, 0.8)' : (i === 0 ? 'var(--accent-green)' : 'var(--text-dim)');
                 div.innerHTML = `
                                 <div class="timeline-dot" style="border-color: ${dotColor};"></div>
                                 <div class="timeline-time">${timeStr}</div>
-                                <div class="timeline-content">${escapeHtml(title)}${savingsTag} ${effectHtml} ${undoHtml}</div>
+                                <div class="timeline-content" ${clickHandler}>
+                                    ${escapeHtml(title)}${savingsTag} ${effectHtml} ${undoHtml}
+                                    ${detailsHtml}
+                                </div>
                             `;
                 list.appendChild(div);
             });
