@@ -127,6 +127,27 @@ describe('OptimizerService', () => {
         expect(logCall).toBeDefined();
     });
 
+    test('A09: creates SOUL.md when the file does not already exist', async () => {
+        fs.readFile.mockImplementation((pathStr) => {
+            if (pathStr.includes('SOUL.md')) {
+                const err = new Error('ENOENT');
+                err.code = 'ENOENT';
+                return Promise.reject(err);
+            }
+            return Promise.resolve('{}');
+        });
+
+        const result = await optimizerService.applyAction('A09');
+
+        expect(result.success).toBe(true);
+        expect(fs.writeFile).toHaveBeenCalledWith(expect.stringContaining('soul_backup_'), '', 'utf8');
+        expect(fs.appendFile).toHaveBeenCalledWith(
+            expect.stringContaining('SOUL.md'),
+            expect.stringContaining('Be concise'),
+            'utf8'
+        );
+    });
+
     test('A07: Enable Compaction Safeguard sets two config keys', async () => {
         const result = await optimizerService.applyAction('A07');
 

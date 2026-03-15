@@ -73,7 +73,41 @@ const KNOWN_REPLACEMENTS = {
  * Get model replacements map: { expensiveModelId: { alternative, savingsRatio } }
  * savingsRatio = 1 - (cheaperPrice / expensivePrice)
  */
-async function getReplacements() {
+function getNumericPrice(price, key) {
+    const value = price && Number.isFinite(price[key]) ? price[key] : null;
+    if (value != null) return value;
+    if (key === 'cacheRead') {
+        return price && Number.isFinite(price.input) ? price.input : 0;
+    }
+    return 0;
+}
+
+function computeSavingsRatio(expPrice, cheapPrice, usageStats) {
+    if (!expPrice || !cheapPrice) return 0.8;
+
+    const inputTokens = Math.max(0, usageStats?.input || 0);
+    const outputTokens = Math.max(0, usageStats?.output || 0);
+    const cacheReadTokens = Math.max(0, usageStats?.cacheRead || 0);
+
+    const blendedExpensive =
+        inputTokens * getNumericPrice(expPrice, 'input') +
+        outputTokens * getNumericPrice(expPrice, 'output') +
+        cacheReadTokens * getNumericPrice(expPrice, 'cacheRead');
+    const blendedCheap =
+        inputTokens * getNumericPrice(cheapPrice, 'input') +
+        outputTokens * getNumericPrice(cheapPrice, 'output') +
+        cacheReadTokens * getNumericPrice(cheapPrice, 'cacheRead');
+
+    if (blendedExpensive <= 0) {
+        const fallbackRatio = 1 - (getNumericPrice(cheapPrice, 'input') / Math.max(getNumericPrice(expPrice, 'input'), Number.EPSILON));
+        return Math.max(0, Math.min(1, parseFloat(fallbackRatio.toFixed(2))));
+    }
+
+    const ratio = 1 - (blendedCheap / blendedExpensive);
+    return Math.max(0, Math.min(1, parseFloat(ratio.toFixed(2))));
+}
+
+async function getReplacements(modelUsage = {}) {
     if (_replacements) return _replacements;
 
     const pricing = await loadPricing();
@@ -84,10 +118,9 @@ async function getReplacements() {
         const cheapPrice = pricing.models[cheaper];
 
         if (expPrice && cheapPrice) {
-            const ratio = 1 - (cheapPrice.input / expPrice.input);
             _replacements[expensive] = {
                 alternative: cheaper,
-                savingsRatio: Math.max(0, Math.min(1, parseFloat(ratio.toFixed(2))))
+                savingsRatio: computeSavingsRatio(expPrice, cheapPrice, modelUsage[expensive])
             };
         } else {
             // For legacy model IDs without pricing data, use conservative estimate

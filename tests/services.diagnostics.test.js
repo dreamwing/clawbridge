@@ -305,7 +305,13 @@ describe('DiagnosticsEngine', () => {
         expect(action.savings).toBeGreaterThan(0);
     });
     test('D03: Should flag frequent session resets', async () => {
-        configManager.getRawConfig.mockResolvedValue({ defaults: {} });
+        configManager.getRawConfig.mockResolvedValue({
+            defaults: {
+                compaction: { mode: 'safeguard' },
+                thinkingDefault: 'minimal',
+                contextPruning: { mode: 'cache-ttl' }
+            }
+        });
 
         const mockStats = {
             totals: { input: 100000, output: 100, cacheRead: 0 },
@@ -336,6 +342,61 @@ describe('DiagnosticsEngine', () => {
         expect(action.savings).toBeGreaterThan(0);
         expect(action.type).toBe('advisory');
         expect(result.advisoryMonthlySavings).toBeGreaterThan(0);
+        expect(result.totalMonthlySavings).toBeCloseTo(
+            result.actions
+                .filter(a => a.type !== 'advisory')
+                .reduce((sum, a) => sum + a.savings, 0),
+            5
+        );
+    });
+
+    test('D01: prefers the highest-cost matching model when multiple exceed the threshold', async () => {
+        configManager.getRawConfig.mockResolvedValue({
+            defaults: {
+                model: { primary: 'anthropic/claude-opus-4.6' }
+            }
+        });
+
+        pricingService.getReplacements.mockResolvedValue({
+            'openai/gpt-5-pro': { alternative: 'openai/gpt-5', savingsRatio: 0.5 },
+            'anthropic/claude-opus-4.6': { alternative: 'anthropic/claude-sonnet-4.6', savingsRatio: 0.6 }
+        });
+
+        const mockStats = {
+            totals: { input: 1000, output: 500, cacheRead: 0 },
+            cost: {
+                total: 100,
+                byModel: {
+                    'openai/gpt-5-pro': 35,
+                    'anthropic/claude-opus-4.6': 45,
+                    'openai/gpt-5-mini': 20
+                }
+            },
+            total: {
+                models: {
+                    'openai/gpt-5-pro': { input: 100, output: 100, cacheRead: 0, cost: 35 },
+                    'anthropic/claude-opus-4.6': { input: 400, output: 300, cacheRead: 0, cost: 45 },
+                    'openai/gpt-5-mini': { input: 500, output: 100, cacheRead: 0, cost: 20 }
+                }
+            },
+            history: {
+                '2026-03-01': { input: 1000, output: 500, cacheRead: 0, cost: 100, sessions: 1 }
+            }
+        };
+
+        fs.readFile.mockImplementation(async (pathStr) => {
+            if (pathStr.includes('diagnostics.config.json')) {
+                return JSON.stringify({ D01_modelCostRatio: 0.3 });
+            }
+            return JSON.stringify(mockStats);
+        });
+
+        const result = await diagnosticsEngine.runDiagnostics();
+        const action = result.actions.find(a => a.actionId === 'A01');
+
+        expect(action).toBeDefined();
+        expect(action.configDiff.from).toBe('anthropic/claude-opus-4.6');
+        expect(action._meta.alternative).toBe('anthropic/claude-sonnet-4.6');
     });
 
     test('D04: Should flag idle skills', async () => {

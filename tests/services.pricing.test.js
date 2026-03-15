@@ -58,4 +58,19 @@ describe('Pricing Service', () => {
         expect(replacements['openai/gpt-5-pro'].alternative).toBe('openai/gpt-5');
         expect(replacements['openai/gpt-5-pro'].savingsRatio).toBe(0.8);
     });
+
+    test('Should compute savings ratio using observed input and output mix', async () => {
+        const mockPricing = {
+            "anthropic/claude-opus-4.6": { input: 10.0, output: 50.0 },
+            "anthropic/claude-sonnet-4.6": { input: 3.0, output: 20.0 }
+        };
+        fs.readFile.mockResolvedValue(JSON.stringify(mockPricing));
+
+        const replacements = await pricingService.getReplacements({
+            "anthropic/claude-opus-4.6": { input: 200, output: 800, cacheRead: 0 }
+        });
+
+        expect(replacements['anthropic/claude-opus-4.6']).toBeDefined();
+        expect(replacements['anthropic/claude-opus-4.6'].savingsRatio).toBeCloseTo(0.6, 2);
+    });
 });

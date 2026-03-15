@@ -210,9 +210,10 @@ class DiagnosticsEngine {
         const outputCostPerToken = this._computeTokenCostRatio(stats.models, 'output');
 
         // --- D01: Expensive Model ---
-        const MODEL_REPLACEMENTS = await pricingService.getReplacements();
+        const MODEL_REPLACEMENTS = await pricingService.getReplacements(stats.models);
         const byModelStats = stats.cost.byModel;
-        for (const [modelId, cost] of Object.entries(byModelStats)) {
+        const sortedModelStats = Object.entries(byModelStats).sort(([, costA], [, costB]) => costB - costA);
+        for (const [modelId, cost] of sortedModelStats) {
             if (totalCost > 0 && MODEL_REPLACEMENTS[modelId] && (cost / totalCost) > thresholds.D01_modelCostRatio) {
                 const info = MODEL_REPLACEMENTS[modelId];
                 const estimatedSavings = cost * monthlyMultiplier * info.savingsRatio;
@@ -611,7 +612,9 @@ class DiagnosticsEngine {
 
         const currentMonthlyCost = totalCost * monthlyMultiplier;
         const result = {
-            totalMonthlySavings: finalActions.reduce((sum, a) => sum + a.savings, 0),
+            totalMonthlySavings: finalActions
+                .filter(action => action.type !== 'advisory')
+                .reduce((sum, a) => sum + a.savings, 0),
             advisoryMonthlySavings,
             currentMonthlyCost,
             cacheHitRate,

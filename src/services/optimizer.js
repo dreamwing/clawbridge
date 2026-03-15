@@ -344,7 +344,12 @@ class OptimizerService {
                 const CONCISE_MARKER = 'Be concise.';
                 try {
                     // Backup SOUL.md before modifying
-                    const originalContent = (await fs.readFile(soulPath, 'utf8')) || '';
+                    let originalContent = '';
+                    try {
+                        originalContent = (await fs.readFile(soulPath, 'utf8')) || '';
+                    } catch (readErr) {
+                        if (readErr.code !== 'ENOENT') throw readErr;
+                    }
                     const ts = new Date().toISOString().replace(/[:.]/g, '-');
                     const soulBackupPath = path.join(this.backupDir, `soul_backup_${ts}.md`);
                     await fs.mkdir(this.backupDir, { recursive: true });
