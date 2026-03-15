@@ -195,10 +195,8 @@ class DiagnosticsEngine {
                 totalMonthlySavings += estimatedSavings;
 
 
-                results.push({
-                    actionId: 'A01',
-                    title: `Downgrade ${modelId.split('-').slice(0, 2).join(' ')}`,
-                    plainTitle: 'Switch to a cheaper AI model',
+                title: `Downgrade ${modelId.split('-').slice(0, 2).join(' ')}`,
+                    plainTitle: 'Migrate to cost-efficient model architecture',
                     helpText: 'AI models come in different tiers. Premium models are smarter but cost more per message. This switches to a model that\'s almost as good but significantly cheaper.',
                     description: `Primary usage is on premium model. Switching to ${info.alternative} saves ~${(info.savingsRatio * 100).toFixed(0)}%.`,
                     sideEffect: '⚠ Mild decrease in performance on highly complex reasoning tasks.',
@@ -293,7 +291,7 @@ class DiagnosticsEngine {
             results.push({
                 actionId: 'A02',
                 title: 'Adjust Heartbeat Interval',
-                plainTitle: 'Reduce background checking frequency',
+                plainTitle: 'Optimize Heartbeat background polling interval',
                 helpText: "'Heartbeat' is the AI's background refresh. Just like your phone syncing email in the background, every check consumes a few tokens. Lowering the frequency reduces wake-ups, saving significant idle costs by extending 'deep sleep'.",
                 description: `Active on ${activeHbAgents.length} agent(s) (${activeAgentsStr}) with ${taskCount} task(s), consuming ~${(currentMonthlyTokens / 1000000).toFixed(1)}M tokens/mo ($${currentMonthlyCostHB.toFixed(2)}/mo).`,
                 sideEffect: '⚠ Longer intervals delay cross-agent message delivery.',
@@ -413,7 +411,7 @@ class DiagnosticsEngine {
                 results.push({
                     actionId: 'A04',
                     title: `Review ${totalIdleCount} Unused Skills`,
-                    plainTitle: 'Remove AI add-ons you haven\'t used recently',
+                    plainTitle: 'Prune underutilized AI skills and extensions',
                     helpText: 'Extended Skills are like "plugins" for the AI. Even if you don\'t use them in a specific chat, the AI loads them into its active context, increasing the "base cost" of every message. Removing unused skills allows the AI to operate faster and at a lower cost.',
                     description: descParts.join('. ') + '.',
                     sideEffect: '⚠ Removed Skills will no longer be available until re-installed.',
@@ -486,7 +484,7 @@ class DiagnosticsEngine {
                 results.push({
                     actionId: 'A06',
                     title: 'Enable Prompt Caching',
-                    plainTitle: 'Turn on memory for repeated prompts',
+                    plainTitle: 'Enable persistent prompt caching layers',
                     helpText: 'Every round of conversation sends repetitive "instructions" to the AI. Caching is like providing the AI with high-speed bookmarks, allowing it to quickly retrieve previously read content without charging you to read it again.',
                     description: `Cache hit rate is ${(cacheHitRate * 100).toFixed(1)}%. ${(cacheableInput / 1000).toFixed(0)}K input tokens could be cached at 90% discount.`,
                     sideEffect: '⚠ First message per session remains full price.',
@@ -507,7 +505,7 @@ class DiagnosticsEngine {
             results.push({
                 actionId: 'A07',
                 title: 'Enable Compaction Safeguard',
-                plainTitle: 'Auto-trim long conversations to save money',
+                plainTitle: 'Implement automated context compaction safeguard',
                 helpText: 'Extremely long conversations can generate massive bills. Automatic compaction acts as a "fuse," truncating and summarizing history before costs spiral out of control, preventing unexpected charges for tens of thousands of tokens.',
                 description: 'Auto-compacts at 50K tokens to prevent extreme single-session billing.',
                 sideEffect: '⚠ May truncate history during massive code translation sessions.',
@@ -557,7 +555,7 @@ class DiagnosticsEngine {
                 results.push({
                     actionId: 'A09',
                     title: 'Reduce Output Verbosity',
-                    plainTitle: 'Ask the AI to give shorter answers',
+                    plainTitle: 'Enforce concise output verbosity constraints',
                     helpText: 'AI responses include explanations, examples, and formatting. "Concise mode" tells the AI to skip the fluff and give direct answers — saving output tokens.',
                     description: `Output/Input ratio is ${(outputRatio * 100).toFixed(1)}% (${(totalOutput / 1000).toFixed(0)}K tokens). Concise mode cuts ~30%.`,
                     sideEffect: '⚠ Responses become visibly shorter.',
