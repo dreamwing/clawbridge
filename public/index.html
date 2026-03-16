@@ -39,33 +39,33 @@
     <div id="legend-modal" class="modal-overlay" onclick="if(event.target===this) toggleLegend(false)">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="modal-title">Activity Legend</span>
+                <span class="modal-title" data-i18n="legend_title">Activity Legend</span>
                 <button class="modal-close" onclick="toggleLegend(false)">×</button>
             </div>
             <div class="legend-grid">
                 <div class="legend-item">
                     <span class="legend-icon">🔧</span>
-                    <div class="legend-text"><strong style="color:#fbbf24">Tool Call</strong><span>External actions
+                    <div class="legend-text"><strong style="color:#fbbf24" data-i18n="legend_tool">Tool Call</strong><span data-i18n="legend_tool_desc">External actions
                             (search, exec, write)</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">🧠</span>
-                    <div class="legend-text"><strong style="color:#60a5fa">Thinking</strong><span>AI reasoning &
+                    <div class="legend-text"><strong style="color:#60a5fa" data-i18n="legend_thinking">Thinking</strong><span data-i18n="legend_thinking_desc">AI reasoning &
                             planning process</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">📜</span>
-                    <div class="legend-text"><strong style="color:#c084fc">Script</strong><span>Background automation
+                    <div class="legend-text"><strong style="color:#c084fc" data-i18n="legend_script">Script</strong><span data-i18n="legend_script_desc">Background automation
                             (Cron jobs)</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">📄</span>
-                    <div class="legend-text"><strong style="color:#4ade80">File IO</strong><span>Workspace file creation
+                    <div class="legend-text"><strong style="color:#4ade80" data-i18n="legend_file">File IO</strong><span data-i18n="legend_file_desc">Workspace file creation
                             or updates</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">⚡</span>
-                    <div class="legend-text"><strong style="color:#f8fafc">System</strong><span>High CPU or resource
+                    <div class="legend-text"><strong style="color:#f8fafc" data-i18n="legend_system">System</strong><span data-i18n="legend_system_desc">High CPU or resource
                             alerts</span></div>
                 </div>
                 <div
@@ -197,22 +197,22 @@
         <div id="view-home" class="view-container active">
             <div class="card">
                 <div class="section-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                    <span style="font-weight:600">System Status</span>
+                    <span style="font-weight:600" data-i18n="sys_status">System Status</span>
                     <small style="font-family:monospace; color:var(--text-dim)" id="heartbeat">--:--:--</small>
                 </div>
 
                 <div class="metrics">
                     <div class="metric-box">
                         <div class="metric-val" id="cpu-val">--%</div>
-                        <div class="metric-label">CPU Load</div>
+                        <div class="metric-label" data-i18n="cpu_load">CPU Load</div>
                     </div>
                     <div class="metric-box">
                         <div class="metric-val" id="mem-val">--%</div>
-                        <div class="metric-label">Memory</div>
+                        <div class="metric-label" data-i18n="ram">Memory</div>
                     </div>
                     <div class="metric-box">
                         <div class="metric-val" id="disk-val">--%</div>
-                        <div class="metric-label">Disk</div>
+                        <div class="metric-label" data-i18n="disk">Disk</div>
                     </div>
                 </div>
 
@@ -220,17 +220,17 @@
                     <div
                         style="font-size:11px; color:var(--text-dim); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <span>LIVE ACTIVITY</span>
+                            <span data-i18n="live_activity">LIVE ACTIVITY</span>
                             <button onclick="toggleLegend(true)"
                                 style="background:none; border:none; color:var(--text-dim); cursor:pointer; padding:0; font-size:12px; opacity:0.5; transition:opacity 0.2s;"
                                 onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">
                                 ⓘ
                             </button>
                         </div>
-                        <span id="activity-status" style="color:var(--success)">● Live</span>
+                        <span id="activity-status" style="color:var(--success)" data-i18n="status_live">● Live</span>
                     </div>
                     <div id="activity-feed">
-                        <div style="color:var(--text-dim); font-style:italic; padding:5px;">Connecting...</div>
+                        <div style="color:var(--text-dim); font-style:italic; padding:5px;" data-i18n="loading">Connecting...</div>
                     </div>
                 </div>
             </div>
@@ -241,23 +241,23 @@
             <div class="card">
                 <div class="section-header"
                     style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span style="font-weight:600">Memory Timeline</span>
+                    <span style="font-weight:600" data-i18n="memory_timeline">Memory Timeline</span>
                     <select id="memory-selector" onchange="fetchMemory(this.value)"
                         style="background:rgba(255,255,255,0.1); border:none; color:var(--text); padding:4px 8px; border-radius:4px; font-size:12px;">
-                        <option value="">Today</option>
+                        <option value="" data-i18n="today">Today</option>
                     </select>
                 </div>
 
                 <div id="memory-content"
-                    style="font-size:14px; line-height:1.6; color:var(--text-dim); white-space: pre-wrap;">
+                    style="font-size:14px; line-height:1.6; color:var(--text-dim); white-space: pre-wrap;" data-i18n="loading">
                     Loading...
                 </div>
 
                 <div style="display:flex; justify-content:space-between; margin-top:20px;">
                     <button class="btn" style="width:48%; background:rgba(255,255,255,0.05); color:var(--text);"
-                        onclick="navMemory(-1)">← Previous</button>
+                        onclick="navMemory(-1)" data-i18n="btn_prev">← Previous</button>
                     <button class="btn" style="width:48%; background:rgba(255,255,255,0.05); color:var(--text);"
-                        onclick="navMemory(1)">Next →</button>
+                        onclick="navMemory(1)" data-i18n="btn_next">Next →</button>
                 </div>
             </div>
         </div>
@@ -268,7 +268,7 @@
             <div class="card">
                 <div class="section-header"
                     style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span style="font-weight:600">Mission Control</span>
+                    <span style="font-weight:600" data-i18n="tab_jobs">Mission Control</span>
                     <button class="refresh-btn" onclick="fetchJobs()">↻</button>
                 </div>
                 <div id="job-list" class="job-list">
@@ -301,15 +301,15 @@
 
                     <div class="section-header"
                         style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                        <span style="font-weight:600">Token Economy</span>
+                        <span style="font-weight:600" data-i18n="token_economy">Token Economy</span>
                         <div style="font-size:12px; color:var(--text-dim)">
-                            Total: <span style="color:var(--text); font-weight:bold" id="grand-total-cost">--</span>
+                            <span data-i18n="total_label">Total</span>: <span style="color:var(--text); font-weight:bold" id="grand-total-cost">--</span>
                         </div>
                     </div>
 
                     <div style="text-align:center; padding: 20px 0;">
                         <div
-                            style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">
+                            style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;" data-i18n="today_cost">
                             Today's Cost</div>
                         <div style="font-size:42px; font-weight:800; color:var(--success); margin:10px 0;"
                             id="token-cost">
@@ -319,13 +319,13 @@
                         <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:5px;">
                             <div
                                 style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
-                                <span style="font-size:11px; color:var(--text-dim);">Est. Monthly</span>
+                                <span style="font-size:11px; color:var(--text-dim);" data-i18n="est_monthly">Est. Monthly</span>
                                 <span style="font-size:12px; font-weight:600; color:var(--accent);"
                                     id="monthly-forecast">--</span>
                             </div>
                             <div
                                 style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
-                                <span style="font-size:11px; color:var(--text-dim);">Cache Hit</span>
+                                <span style="font-size:11px; color:var(--text-dim);" data-i18n="cache_hit">Cache Hit</span>
                                 <span style="font-size:12px; font-weight:600; color:var(--success);"
                                     id="token-cache-hit-rate">--%</span>
                             </div>
@@ -336,34 +336,34 @@
                     <div
                         style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:10px; color:var(--text-dim);">LAST UPDATED</span>
+                            <span style="font-size:10px; color:var(--text-dim);" data-i18n="last_updated">LAST UPDATED</span>
                             <span style="font-size:11px; font-family:monospace;" id="token-updated">Never</span>
                         </div>
                         <button class="btn"
                             style="width:auto; padding:6px 12px; font-size:12px; background:var(--accent);"
                             onclick="refreshTokenStats()">
-                            ↻ Refresh
+                            ↻ <span data-i18n="refresh">Refresh</span>
                         </button>
                     </div>
-                    <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;">
+                    <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;" data-i18n="recalc_note">
                         System automatically recalculates every hour.
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
                         <div class="metric-box" style="padding:10px;">
-                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">INPUT (READ)
+                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;" data-i18n="input_read">INPUT (READ)
                             </div>
                             <div style="font-size:16px; font-weight:600;" id="token-in">--</div>
                         </div>
                         <div class="metric-box" style="padding:10px;">
-                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">OUTPUT
+                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;" data-i18n="output_write">OUTPUT
                                 (WRITE)</div>
                             <div style="font-size:16px; font-weight:600;" id="token-out">--</div>
                         </div>
                     </div>
 
                     <div style="margin-top:20px;">
-                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">COST TREND (7
+                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;" data-i18n="cost_trend">COST TREND (7
                             DAYS)</div>
                         <div id="trend-chart"
                             style="display:flex; align-items:flex-end; gap:8px; height:100px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1);">
@@ -377,8 +377,8 @@
                     <div style="margin-top:25px;">
                         <div
                             style="font-size:11px; color:var(--text-dim); margin-bottom:10px; display:flex; justify-content:space-between;">
-                            <span>TOP MODELS</span>
-                            <span>COST</span>
+                            <span data-i18n="top_models">TOP MODELS</span>
+                            <span data-i18n="cost">COST</span>
                         </div>
                         <div id="top-models-list">
                             <!-- Injected via JS -->
@@ -527,13 +527,29 @@
                     </div>
 
                     <div class="card">
+                        <h3 style="margin-top:0" data-i18n="tab_settings">Settings</h3>
+                        <div class="info-row">
+                            <span class="info-label" data-i18n="lang_label">Language</span>
+                            <span class="info-val">
+                                <select onchange="setLanguage(this.value)" id="lang-selector" style="background:rgba(255,255,255,0.1); color:white; border:1px solid var(--border); border-radius:4px; padding:2px 5px; font-size:12px;">
+                                    <option value="en">English</option>
+                                    <option value="zh">中文</option>
+                                </select>
+                            </span>
+                        </div>
+                        <div style="margin-top:15px;">
+                            <button class="btn" style="width:100%; background:rgba(239, 68, 68, 0.1); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.2);" onclick="localStorage.removeItem('clawbridge_session'); location.reload();" data-i18n="logout">Logout</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
                         <h3 style="margin-top:0">About</h3>
                         <div class="info-row">
-                            <span class="info-label">ClawBridge Version</span>
+                            <span class="info-label" data-i18n="version">ClawBridge Version</span>
                             <span class="info-val" id="ver-num">Loading...</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Environment</span>
+                            <span class="info-label" data-i18n="lang_label">Environment</span>
                             <span class="info-val" id="runtime-env">Node.js (Systemd)</span>
                         </div>
                         <div class="info-row">
@@ -567,7 +583,7 @@
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                             </svg></div>
-                        <div>Home</div>
+                        <div data-i18n="tab_status">Home</div>
                     </a>
                     <a class="nav-item" onclick="switchTab('memory')">
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
@@ -578,7 +594,7 @@
                                     d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.48-2.04z">
                                 </path>
                             </svg></div>
-                        <div>Memory</div>
+                        <div data-i18n="tab_memory">Memory</div>
                     </a>
                     <a class="nav-item" onclick="switchTab('tokens')">
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
@@ -588,13 +604,13 @@
                                 <line x1="16" y1="9" x2="20" y2="9"></line>
                                 <line x1="16" y1="15" x2="20" y2="15"></line>
                             </svg></div>
-                        <div>Tokens</div>
+                        <div data-i18n="tab_usage">Tokens</div>
                     </a>
                     <a class="nav-item" onclick="switchTab('missions')">
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
                             </svg></div>
-                        <div>Missions</div>
+                        <div data-i18n="tab_jobs">Missions</div>
                     </a>
                     <a class="nav-item" onclick="switchTab('settings')">
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
@@ -603,10 +619,11 @@
                                     d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
                                 </path>
                             </svg></div>
-                        <div>Settings</div>
+                        <div data-i18n="tab_settings">Settings</div>
                     </a>
                 </nav>
 
+                <script src="js/i18n.js"></script>
                 <script src="js/dashboard.js?v=20260315-07" defer></script>
 </body>
 

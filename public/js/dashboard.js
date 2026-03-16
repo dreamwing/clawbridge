@@ -629,7 +629,9 @@ async function fetchTokens() {
                 toggleDiv.style.fontSize = '12px';
                 toggleDiv.style.color = 'var(--accent)';
                 toggleDiv.style.cursor = 'pointer';
-                toggleDiv.innerText = showAllModels ? '▲ Show less' : '▼ Show all (' + data.topModels.length + ')';
+                const showAllText = t('show_all');
+                const showLessText = t('show_less');
+                toggleDiv.innerText = showAllModels ? `▲ ${showLessText}` : `▼ ${showAllText} (${data.topModels.length})`;
                 toggleDiv.onclick = () => {
                     showAllModels = !showAllModels;
                     fetchTokens();
