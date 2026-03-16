@@ -51,6 +51,12 @@ const translations = {
         danger_zone: "Danger Zone",
         restart_gateway: "Restart Gateway Service",
         kill_all: "Emergency Stop All Scripts",
+        about: "About",
+        env: "Environment",
+        server_tz: "Server Timezone",
+        oc_core: "OpenClaw Core",
+        cb_source: "ClawBridge Source",
+        view_github: "View GitHub",
         
         // Common Labels
         ram: "RAM",
@@ -152,6 +158,12 @@ const translations = {
         danger_zone: "危险区域",
         restart_gateway: "重启网关服务",
         kill_all: "紧急停止所有脚本",
+        about: "关于",
+        env: "运行环境",
+        server_tz: "服务器时区",
+        oc_core: "OpenClaw 内核",
+        cb_source: "ClawBridge 源码",
+        view_github: "查看 GitHub",
         
         // Common Labels
         ram: "内存",
@@ -226,11 +238,10 @@ function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         
-        // Skip elements that already have dynamic user-generated content
-        // But allow translation if they only contain the initial placeholder
+        // Dynamic content protection
         if (el.id === 'activity-feed' || el.id === 'memory-content') {
             const currentText = el.textContent.trim();
-            const isInitial = currentText === t('loading') || currentText === t('memory_loading') || currentText === 'Loading...' || currentText === 'Accessing agent memories...';
+            const isInitial = currentText === t('loading') || currentText === t('memory_loading') || currentText === 'Loading...' || currentText === 'Accessing agent memories...' || currentText === t('connecting') || currentText === 'Connecting...';
             if (!isInitial) return;
         }
 
@@ -238,7 +249,6 @@ function applyTranslations() {
 
         const translation = t(key);
         if (translation !== key) {
-            // Use innerHTML for description which contains <br>
             if (key === 'about_desc') {
                 el.innerHTML = translation;
             } else {
