@@ -502,11 +502,11 @@
         <!-- VIEW: SETTINGS -->
                 <div id="view-settings" class="view-container">
                     <div class="card">
-                        <h3 style="margin-top:0">Danger Zone</h3>
+                        <h3 style="margin-top:0" data-i18n="danger_zone">Danger Zone</h3>
                         <div style="display:grid; gap:15px;">
                             <div>
                                 <button class="btn btn-restart" onclick="restartGateway()">
-                                    <span>♻️</span> Restart Gateway Service
+                                    <span>♻️</span> <span data-i18n="restart_gateway">Restart Gateway Service</span>
                                 </button>
                                 <div style="font-size:11px; color:var(--text-dim); margin-top:5px; text-align:center;">
                                     Current PID: <span id="gateway-pid"
@@ -516,7 +516,7 @@
 
                             <div>
                                 <button class="btn btn-danger" onclick="killAll()">
-                                    <span>🛑</span> Emergency Stop All Scripts
+                                    <span>🛑</span> <span data-i18n="kill_all">Emergency Stop All Scripts</span>
                                 </button>
                                 <div id="running-scripts-list"
                                     style="font-size:11px; color:var(--text-dim); margin-top:8px; padding:0 5px;">
@@ -543,34 +543,34 @@
                     </div>
 
                     <div class="card">
-                        <h3 style="margin-top:0">About</h3>
+                        <h3 style="margin-top:0" data-i18n="about">About</h3>
                         <div class="info-row">
                             <span class="info-label" data-i18n="version">ClawBridge Version</span>
                             <span class="info-val" id="ver-num">Loading...</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label" data-i18n="lang_label">Environment</span>
+                            <span class="info-label" data-i18n="env">Environment</span>
                             <span class="info-val" id="runtime-env">Node.js (Systemd)</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Server Timezone</span>
+                            <span class="info-label" data-i18n="server_tz">Server Timezone</span>
                             <span class="info-val" id="server-tz">--</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">OpenClaw Core</span>
+                            <span class="info-label" data-i18n="core_ver">OpenClaw Core</span>
                             <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank"
                                     style="color:var(--accent); text-decoration:none;" id="ver-core">--</a></span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">ClawBridge Source</span>
+                            <span class="info-label" data-i18n="source_code">ClawBridge Source</span>
                             <span class="info-val"><a
                                     href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard"
                                     target="_blank" style="color:var(--accent); text-decoration:none;"
-                                    id="ver-dash">View
+                                    id="ver-dash" data-i18n="view_github">View
                                     GitHub</a></span>
                         </div>
 
-                        <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
+                        <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;" data-i18n="about_desc">
                             ClawBridge is the mobile-first dashboard for your AI Agent runtime.
                             <br>Designed for monitoring, cost tracking, and task management.
                         </div>

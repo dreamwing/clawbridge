@@ -107,7 +107,7 @@ async function initMemory() {
         if (memoryDates.length > 0) {
             fetchMemory(memoryDates[0]);
         } else {
-            document.getElementById('memory-content').innerText = 'No memories found.';
+            document.getElementById('memory-content').innerText = t('memory_empty');
         }
     } catch (e) { console.warn('[Memory] Init failed:', e.message); }
 }
@@ -270,11 +270,11 @@ async function fetchStatus() {
         const dot = document.getElementById('status-dot');
         if (data.status === 'busy') {
             dot.className = 'status-dot busy';
-            document.getElementById('activity-status').innerText = '● Busy';
+            document.getElementById('activity-status').innerText = t('status_busy');
             document.getElementById('activity-status').style.color = 'var(--warning)';
         } else {
             dot.className = 'status-dot active';
-            document.getElementById('activity-status').innerText = '● Idle';
+            document.getElementById('activity-status').innerText = t('status_idle');
             document.getElementById('activity-status').style.color = 'var(--success)';
         }
 
@@ -289,7 +289,7 @@ async function fetchStatus() {
 
 function addFeedItem(ts, task, method = 'append') {
     const feed = document.getElementById('activity-feed');
-    if (feed.children.length === 1 && feed.children[0].innerText.includes('Connecting')) {
+    if (feed.children.length === 1 && feed.children[0].innerText.includes(t('connecting').replace('...', ''))) {
         feed.innerHTML = '';
     }
 
@@ -403,7 +403,7 @@ async function fetchJobs() {
         container.innerHTML = '';
 
         if (jobs.length === 0) {
-            container.innerHTML = '<div style="text-align:center; opacity:0.5; padding:20px;">No jobs found</div>';
+            container.innerHTML = `<div style="text-align:center; opacity:0.5; padding:20px;">${t('no_jobs')}</div>`;
             return;
         }
 
@@ -466,32 +466,32 @@ async function fetchJobs() {
 }
 
 async function runJob(id) {
-    if (!confirm('Execute task?')) return;
+    if (!confirm(t('confirm_run'))) return;
     const res = await fetchAuth(API + '/run/' + id, { method: 'POST' });
     if (!res.ok) {
-        alert(await readErrorMessage(res, 'Failed to run job.'));
+        alert(await readErrorMessage(res, t('run_failed')));
         return;
     }
     setTimeout(fetchJobs, 2000);
 }
 
 async function killAll() {
-    if (!confirm('⚠️ STOP ALL SCRIPTS?')) return;
+    if (!confirm(t('confirm_kill_all'))) return;
     const res = await fetchAuth(API + '/kill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirm: true })
     });
     if (!res.ok) {
-        alert(await readErrorMessage(res, 'Failed to stop scripts.'));
+        alert(await readErrorMessage(res, t('stop_failed')));
     }
 }
 
 async function restartGateway() {
-    if (!confirm('♻️ RESTART GATEWAY?')) return;
+    if (!confirm(t('confirm_restart'))) return;
     const res = await fetchAuth(API + '/gateway/restart', { method: 'POST' });
     if (!res.ok) {
-        alert(await readErrorMessage(res, 'Failed to restart gateway.'));
+        alert(await readErrorMessage(res, t('restart_failed')));
     }
 }
 

@@ -77,7 +77,17 @@ const translations = {
 
         // Memory
         memory_loading: "Accessing agent memories...",
-        memory_empty: "No memory records found for this date."
+        memory_empty: "No memory records found for this date.",
+
+        // Missions & Control
+        no_jobs: "No jobs found",
+        confirm_run: "Execute task?",
+        run_failed: "Failed to run job.",
+        confirm_kill_all: "⚠️ STOP ALL SCRIPTS?",
+        stop_failed: "Failed to stop scripts.",
+        confirm_restart: "♻️ RESTART GATEWAY?",
+        restart_failed: "Failed to restart gateway.",
+        restart_sent: "Restart signal sent."
     },
     zh: {
         // App Title
@@ -157,7 +167,17 @@ const translations = {
 
         // Memory
         memory_loading: "正在调取 Agent 记忆...",
-        memory_empty: "未找到该日期的记忆记录。"
+        memory_empty: "未找到该日期的记忆记录。",
+
+        // Missions & Control
+        no_jobs: "未找到任务",
+        confirm_run: "执行任务？",
+        run_failed: "执行失败。",
+        confirm_kill_all: "⚠️ 停止所有脚本？",
+        stop_failed: "停止失败。",
+        confirm_restart: "♻️ 重启网关？",
+        restart_failed: "重启失败。",
+        restart_sent: "重启信号已发送。"
     }
 };
 
