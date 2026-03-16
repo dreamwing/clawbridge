@@ -1,5 +1,11 @@
 const API = '/api';
 
+// Listen for language changes to re-render dynamic items
+window.addEventListener('clawbridge-lang-change', () => {
+    fetchTokens();
+    fetchJobs();
+});
+
 // --- Utility: HTML Escape ---
 function escapeHtml(str) {
     if (!str) return '';
