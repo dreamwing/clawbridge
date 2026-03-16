@@ -123,7 +123,7 @@ async function fetchMemory(date) {
         const data = await res.json();
 
         // Simple Markdown Rendering
-        let html = (data.content || '')
+        let html = (data.content || t('memory_empty'))
             .replace(/^# (.*$)/gim, (_match, text) => `<h3 style="margin-top:0;color:var(--accent)">${escapeHtml(text)}</h3>`)
             .replace(/^## (.*$)/gim, (_match, text) => `<h4 style="margin:10px 0 5px;color:var(--text)">${escapeHtml(text)}</h4>`)
             .replace(/\*\*(.*)\*\*/gim, (_match, text) => `<b>${escapeHtml(text)}</b>`)

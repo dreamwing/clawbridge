@@ -73,7 +73,11 @@ const translations = {
         input_read: "INPUT (READ)",
         output_write: "OUTPUT (WRITE)",
         cost_trend: "COST TREND (7 DAYS)",
-        top_models: "TOP MODELS"
+        top_models: "TOP MODELS",
+
+        // Memory
+        memory_loading: "Accessing agent memories...",
+        memory_empty: "No memory records found for this date."
     },
     zh: {
         // App Title
@@ -149,7 +153,11 @@ const translations = {
         input_read: "输入 (读)",
         output_write: "输出 (写)",
         cost_trend: "成本趋势 (7天)",
-        top_models: "热门模型"
+        top_models: "热门模型",
+
+        // Memory
+        memory_loading: "正在调取 Agent 记忆...",
+        memory_empty: "未找到该日期的记忆记录。"
     }
 };
 
