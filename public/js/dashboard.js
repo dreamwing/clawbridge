@@ -225,6 +225,10 @@ async function fetchStatus() {
     if (document.hidden) return;
     try {
         const res = await fetchAuth(API + '/status');
+        if (!res.ok) {
+            console.warn('[Status] Fetch failed:', res.status);
+            return;
+        }
         const data = await res.json();
 
         setMetricValue('cpu-val', isUnsupportedMetric(data, 'cpu') ? 'N/A' : (data.cpu == null ? '--%' : data.cpu + '%'));
@@ -388,6 +392,10 @@ async function fetchHistory() {
 async function fetchJobs() {
     try {
         const res = await fetchAuth(API + '/cron');
+        if (!res.ok) {
+            console.warn('[Missions] Fetch failed:', res.status);
+            return;
+        }
         const jobs = await res.json();
         jobs.sort((a, b) => (b.state?.lastRunAtMs || 0) - (a.state?.lastRunAtMs || 0));
 

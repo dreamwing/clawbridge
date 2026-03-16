@@ -582,4 +582,39 @@ describe('DiagnosticsEngine', () => {
         // Second call should use cache (fs.readFile called only once for stats)
         expect(result1).toBe(result2); // Same reference = cached
     });
+
+    test('Should reload thresholds after diagnostics TTL expires', async () => {
+        const originalNow = Date.now;
+        configManager.getRawConfig.mockResolvedValue({ defaults: {} });
+
+        fs.readFile.mockImplementation((pathStr) => {
+            if (pathStr.includes('diagnostics.config.json')) {
+                if (Date.now() < 61000) {
+                    return Promise.resolve(JSON.stringify({ D09_outputRatioThreshold: 0.9 }));
+                }
+                return Promise.resolve(JSON.stringify({ D09_outputRatioThreshold: 0.1 }));
+            }
+            return Promise.resolve(JSON.stringify({
+                totals: { input: 100000, output: 20000, cacheRead: 0 },
+                cost: { total: 10 },
+                total: {
+                    models: {
+                        modelA: { input: 100000, output: 20000, cacheRead: 0, cost: 10 }
+                    }
+                }
+            }));
+        });
+
+        try {
+            Date.now = jest.fn(() => 0);
+            const result1 = await diagnosticsEngine.runDiagnostics();
+            expect(result1.actions.find(a => a.actionId === 'A09')).toBeUndefined();
+
+            Date.now = jest.fn(() => 61000);
+            const result2 = await diagnosticsEngine.runDiagnostics();
+            expect(result2.actions.find(a => a.actionId === 'A09')).toBeDefined();
+        } finally {
+            Date.now = originalNow;
+        }
+    });
 });

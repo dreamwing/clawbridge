@@ -155,6 +155,10 @@ class DiagnosticsEngine {
             return _diagCache;
         }
 
+        // The diagnostics TTL should also bound threshold caching, so direct
+        // edits to diagnostics.config.json become visible on the next recompute.
+        this._thresholds = null;
+
         const results = [];
 
         // Load threshold config (custom or defaults)

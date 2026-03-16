@@ -27,7 +27,7 @@ router.post('/api/optimizations/undo', async (req, res) => {
 
         // Security: resolve to expected directory, reject traversal attempts
         const resolved = path.resolve(BACKUPS_DIR, path.basename(backupPath));
-        if (!resolved.startsWith(BACKUPS_DIR)) {
+        if (!resolved.startsWith(BACKUPS_DIR + path.sep)) {
             return res.status(400).json({ error: 'Invalid backup path' });
         }
 
@@ -47,7 +47,7 @@ router.post('/api/optimizations/undo-preview', async (req, res) => {
         }
 
         const resolved = path.resolve(BACKUPS_DIR, path.basename(backupPath));
-        if (!resolved.startsWith(BACKUPS_DIR)) {
+        if (!resolved.startsWith(BACKUPS_DIR + path.sep)) {
             return res.status(400).json({ error: 'Invalid backup path' });
         }
 
