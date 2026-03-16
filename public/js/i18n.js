@@ -3,6 +3,7 @@ const translations = {
         // App Title
         app_name: "ClawBridge",
         app_tagline: "Mobile-first mission control for OpenClaw agents.",
+        about_desc: "ClawBridge is the mobile-first dashboard for your AI Agent runtime.<br>Designed for monitoring, cost tracking, and task management.",
         
         // Navigation / Tabs
         tab_status: "Home",
@@ -103,6 +104,7 @@ const translations = {
         // App Title
         app_name: "ClawBridge",
         app_tagline: "移动优先的 OpenClaw Agent 任务控制中心。",
+        about_desc: "ClawBridge 是移动优先的 AI Agent 运行环境仪表盘。<br>专为监控、成本追踪和任务管理而设计。",
         
         // Navigation / Tabs
         tab_status: "主页",
@@ -202,7 +204,7 @@ const translations = {
 };
 
 let currentLang = localStorage.getItem('clawbridge_lang') || 
-                  (navigator.language.startsWith('zh') ? 'zh' : 'en');
+                  (navigator && navigator.language && navigator.language.startsWith('zh') ? 'zh' : 'en');
 
 function t(key) {
     if (!translations[currentLang]) currentLang = 'en';
@@ -221,19 +223,27 @@ function setLanguage(lang) {
 }
 
 function applyTranslations() {
-    // Only update elements that have content but aren't purely dynamic
-    // Or use a more specific selector to avoid overwriting live logs
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         
-        // Skip elements that are currently holding live feed or dynamic HTML
-        if (el.id === 'activity-feed' || el.id === 'memory-content' || el.classList.contains('job-list')) {
-            return;
+        // Skip elements that already have dynamic user-generated content
+        // But allow translation if they only contain the initial placeholder
+        if (el.id === 'activity-feed' || el.id === 'memory-content') {
+            const currentText = el.textContent.trim();
+            const isInitial = currentText === t('loading') || currentText === t('memory_loading') || currentText === 'Loading...' || currentText === 'Accessing agent memories...';
+            if (!isInitial) return;
         }
+
+        if (el.classList.contains('job-list')) return;
 
         const translation = t(key);
         if (translation !== key) {
-            el.textContent = translation;
+            // Use innerHTML for description which contains <br>
+            if (key === 'about_desc') {
+                el.innerHTML = translation;
+            } else {
+                el.textContent = translation;
+            }
         }
     });
     
