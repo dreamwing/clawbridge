@@ -15,9 +15,10 @@ const { PORT, TUNNEL_TOKEN, LOG_DIR } = require('./src/config');
 const app = require('./src/app');
 const { setupWebSocket } = require('./src/websocket');
 const { checkSystemStatus } = require('./src/services/monitor');
-const { runAnalyzer } = require('./src/services/analyzer');
+const { runAnalyzer, setWss } = require('./src/services/analyzer');
 const { WORKSPACE_DIR } = require('./src/services/openclaw');
 const tunnel = require('./tunnel');
+const disableAnalyzer = process.env.COST_CONTROL_SKIP_ANALYZER === 'true';
 
 // --- Create Server ---
 const server = createServer(app);
@@ -25,13 +26,16 @@ const wss = new WebSocketServer({ server });
 
 // --- WebSocket ---
 setupWebSocket(wss);
+setWss(wss);
 
 // --- Background Tasks ---
 setInterval(() => {
-    checkSystemStatus(() => {});
+    checkSystemStatus(() => { });
 }, 3000);
-runAnalyzer();
-setInterval(runAnalyzer, 60 * 60 * 1000);
+if (!disableAnalyzer) {
+    runAnalyzer();
+    setInterval(runAnalyzer, 60 * 60 * 1000);
+}
 
 // --- Startup ---
 async function main() {

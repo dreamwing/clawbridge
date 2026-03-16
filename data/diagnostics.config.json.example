@@ -1,0 +1,11 @@
+{
+  "D01_modelCostRatio": 0.5,
+  "D06_cacheHitRateMin": 0.10,
+  "D06_cacheableRatio": 0.80,
+  "D09_outputRatioThreshold": 0.10,
+  "D09_minOutputTokens": 1000,
+  "D09_reductionFactor": 0.30,
+  "D05_thinkingProportion": 0.40,
+  "D05_reductionRatio": 0.75,
+  "D04_idleDaysThreshold": 7
+}

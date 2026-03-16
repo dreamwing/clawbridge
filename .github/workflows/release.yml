@@ -40,4 +40,4 @@ jobs:
       - name: Run Release Script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/release.mjs ${{ inputs.type }}
+        run: node .github/scripts/release.mjs ${{ inputs.type }}
