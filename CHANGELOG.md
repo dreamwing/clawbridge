@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-03-16
+
 ### Added
-- Docker image support: added `Dockerfile`, `.dockerignore`, and CI workflow for automatic image publishing to GitHub Container Registry (#24)
-- Docker usage instructions in README
+- **Cost Control Center**: A comprehensive dashboard for monitoring and optimizing token consumption.
+- **Optimizer Service**: Intelligent WebSocket-based flows to reduce costs with history and undo support.
+- **Diagnostics**: Real-time identification of cost-heavy patterns and actionable efficiency suggestions.
+- New interactive UI components for cost visualization and timeline details.
+
+### Fixed
+- Hardened WebSocket reliability in the optimizer.
+- Improved diagnostic handling and user feedback clarity.
+- Refined dashboard success messages and wording.
 
 ## [1.1.4] - 2026-03-13
 

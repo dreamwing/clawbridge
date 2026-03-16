@@ -35,6 +35,13 @@ jest.mock('../src/services/analyzer', () => {
     };
 });
 
+jest.mock('../src/services/monitor', () => {
+    return {
+        checkSystemStatus: jest.fn(callback => callback({ status: 'idle', task: 'System Idle' })),
+        getVersions: jest.fn().mockReturnValue({ dashboard: '1.2.0', core: 'Unknown' })
+    };
+});
+
 const fs = require('fs');
 fs.mkdirSync('/tmp/claw_test_ws/memory', { recursive: true });
 
