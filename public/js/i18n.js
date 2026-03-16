@@ -29,9 +29,16 @@ const translations = {
         // Global Actions
         refresh: "Refresh",
         loading: "Loading...",
+        connecting: "Connecting...",
         connected: "Connected",
         disconnected: "Disconnected",
         retry: "Retry",
+
+        // Status states
+        status_live: "● Live",
+        status_busy: "● Busy",
+        status_idle: "● Idle",
+        status_error: "● Error",
 
         // Settings
         lang_label: "Language",
@@ -40,6 +47,9 @@ const translations = {
         logout: "Logout",
         access_key: "Access Key",
         version: "Version",
+        danger_zone: "Danger Zone",
+        restart_gateway: "Restart Gateway Service",
+        kill_all: "Emergency Stop All Scripts",
         
         // Common Labels
         ram: "RAM",
@@ -56,7 +66,6 @@ const translations = {
         sys_status: "System Status",
         cpu_load: "CPU Load",
         live_activity: "LIVE ACTIVITY",
-        status_live: "● Live",
         memory_timeline: "Memory Timeline",
         today: "Today",
         btn_prev: "← Previous",
@@ -80,6 +89,7 @@ const translations = {
         memory_empty: "No memory records found for this date.",
 
         // Missions & Control
+        mission_control: "Mission Control",
         no_jobs: "No jobs found",
         confirm_run: "Execute task?",
         run_failed: "Failed to run job.",
@@ -119,9 +129,16 @@ const translations = {
         // Global Actions
         refresh: "刷新",
         loading: "载入中...",
+        connecting: "连接中...",
         connected: "已连接",
         disconnected: "已断开",
         retry: "重试",
+
+        // Status states
+        status_live: "● 在线",
+        status_busy: "● 繁忙",
+        status_idle: "● 空闲",
+        status_error: "● 错误",
 
         // Settings
         lang_label: "语言",
@@ -130,6 +147,9 @@ const translations = {
         logout: "退出登录",
         access_key: "访问密钥",
         version: "版本",
+        danger_zone: "危险区域",
+        restart_gateway: "重启网关服务",
+        kill_all: "紧急停止所有脚本",
         
         // Common Labels
         ram: "内存",
@@ -146,7 +166,6 @@ const translations = {
         sys_status: "系统状态",
         cpu_load: "CPU 负载",
         live_activity: "实时活动",
-        status_live: "● 在线",
         memory_timeline: "内存时间轴",
         today: "今天",
         btn_prev: "← 上一页",
@@ -170,6 +189,7 @@ const translations = {
         memory_empty: "未找到该日期的记忆记录。",
 
         // Missions & Control
+        mission_control: "任务控制台",
         no_jobs: "未找到任务",
         confirm_run: "执行任务？",
         run_failed: "执行失败。",
@@ -194,25 +214,36 @@ function setLanguage(lang) {
         currentLang = lang;
         localStorage.setItem('clawbridge_lang', lang);
         applyTranslations();
+        
+        // Custom events for dynamic components to re-render
+        window.dispatchEvent(new CustomEvent('clawbridge-lang-change', { detail: { lang } }));
     }
 }
 
 function applyTranslations() {
+    // Only update elements that have content but aren't purely dynamic
+    // Or use a more specific selector to avoid overwriting live logs
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        el.textContent = t(key);
+        
+        // Skip elements that are currently holding live feed or dynamic HTML
+        if (el.id === 'activity-feed' || el.id === 'memory-content' || el.classList.contains('job-list')) {
+            return;
+        }
+
+        const translation = t(key);
+        if (translation !== key) {
+            el.textContent = translation;
+        }
     });
     
-    // Update placeholders or other attributes if needed
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
         el.placeholder = t(key);
     });
 
-    // Update selector value
     const selector = document.getElementById('lang-selector');
     if (selector) selector.value = currentLang;
 }
 
-// Initial application
 document.addEventListener('DOMContentLoaded', applyTranslations);
