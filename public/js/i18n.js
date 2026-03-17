@@ -8,7 +8,7 @@ const translations = {
         // Navigation / Tabs
         tab_status: "Home",
         tab_logs: "Logs",
-        tab_usage: "Cost",
+        tab_usage: "Tokens",
         tab_jobs: "Missions",
         tab_scripts: "Scripts",
         tab_memory: "Memory",
@@ -83,7 +83,7 @@ const translations = {
         btn_next: "Next →",
 
         // Token Economy
-        token_economy: "Cost Analysis",
+        token_economy: "Tokens Analysis",
         total_label: "Total",
         today_cost: "Today's Cost",
         est_monthly: "Est. Monthly",
@@ -172,6 +172,20 @@ const translations = {
         hist_undo: "Undo",
         hist_undo_unavailable: "Undo unavailable due to newer changes.",
         hist_restore_skills: "Restore Skills",
+        hist_undoing: "Reverting...",
+
+        // Skill Audit
+        opt_audit_summary: "{n} skills selected for removal.",
+        opt_audit_none_selected: "No skills selected for removal.",
+        opt_audit_btn_keep_all: "Keep All",
+        opt_audit_btn_remove_all: "Remove Selected",
+        opt_audit_group_suggested: "Suggested Removal",
+        opt_audit_group_manual: "Manual Review",
+        opt_audit_choice_remove: "Remove",
+        opt_audit_choice_keep: "Keep",
+        opt_restore_title: "Restore Removed Skills",
+        opt_restore_btn: "Restore Selected",
+        undo_skill_desc: "Select skills to restore from this backup. Keep checked to restore all.",
 
         // Login
         login_title: "Secure Dashboard Login",
@@ -229,6 +243,14 @@ const translations = {
         'A02_desc': "Reducing heartbeat (background checking) frequency saves tokens.",
         'A02_help': "'Heartbeat' is the AI's background refresh. Just like your phone syncing email in the background, every check consumes a few tokens. Lowering the frequency reduces wake-ups, saving significant idle costs by extending 'deep sleep'.",
         'A02_side_effect': "Longer intervals delay cross-agent message delivery.",
+        'A02_opt_disable': "Disable",
+        'A02_opt_30m': "Every 30m",
+        'A02_opt_1h': "Every 1h",
+        'A02_opt_2h': "Every 2h",
+        'A02_opt_4h': "Every 4h",
+        'A02_opt_6h': "Every 6h",
+        'A02_opt_12h': "Every 12h",
+        'A02_opt_24h': "Every 24h",
         'A03_title': "Reduce Session Resets",
         'A03_desc': "Continuing existing conversations instead of starting new ones saves input tokens.",
         'A03_help': "Every new conversation loads the full system prompt and context from scratch. Continuing an existing conversation reuses what's already loaded, saving input tokens.",
@@ -257,6 +279,21 @@ const translations = {
         'A11_desc': "Protect your wallet against runaway AI tasks.",
         'A11_help': "Highly recommended for all users. Even if budget is not an issue, a daily $5 limit protects your wallet if an agent enters an infinite reasoning loop.",
         'A11_side_effect': "Operations will be blocked once the limit is reached.",
+
+        // Time & Units
+        time_s_ago: "{n}s ago",
+        time_m_ago: "{n}m ago",
+        time_h_ago: "{n}h ago",
+        time_d_ago: "{n}d ago",
+        time_just_now: "just now",
+        time_never: "never",
+        time_in_m: "({n}m later)",
+        time_in_h: "({n}h later)",
+        time_every_m: "Every {n} min",
+        time_every_h: "Every {n} hour",
+        unit_tasks: "task(s)",
+        unit_tok_run: "tok/run",
+        unit_agg_runs_mo: "aggregated runs/mo",
     },
     zh: {
         // App Title
@@ -431,6 +468,7 @@ const translations = {
         hist_undo: "撤销",
         hist_undo_unavailable: "由于存在更新的配置变更，无法撤销。",
         hist_restore_skills: "还原技能",
+        hist_undoing: "正在撤销...",
 
         // Skill Audit
         opt_audit_summary: "已选择 {n} 个待移除技能。",
