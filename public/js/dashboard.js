@@ -736,11 +736,6 @@ async function fetchTokens() {
                         } else if (changeEl) {
                             changeEl.style.display = 'none';
                         }
-
-                        // Auto Scroll to Detail (Delayed for render)
-                        setTimeout(() => {
-                            detail.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 50);
                     };
                     chart.appendChild(bar);
                     const label = document.createElement('div');
@@ -966,11 +961,13 @@ function renderActionItem(act, isSkipped = false) {
     // L1: Use plainTitle (beginner-friendly), fallback to title
     let displayTitle = act.plainTitle || act.title;
     let displayDesc = act.description || '';
+    let displayHelp = act.helpText || '';
 
     // Localize if key exists
     if (t(act.actionId + '_title') !== act.actionId + '_title') {
         displayTitle = t(act.actionId + '_title');
         displayDesc = t(act.actionId + '_desc');
+        displayHelp = t(act.actionId + '_help');
     }
 
     // Localize side effects if available in dict
@@ -1032,8 +1029,8 @@ function renderActionItem(act, isSkipped = false) {
         detailsHtml = `<details class="opt-details"><summary>${t('opt_tech_details')}</summary><div class="opt-details-body">${detailParts.join('')}</div></details>`;
     }
 
-    const tooltipHtml = act.helpText ? `<span class="opt-help" onclick="toggleHelp(this, event)">?</span>` : '';
-    const helpBoxHtml = act.helpText ? `<div class="opt-help-box">${escapeHtml(act.helpText)}</div>` : '';
+    const tooltipHtml = displayHelp ? `<span class="opt-help" onclick="toggleHelp(this, event)">?</span>` : '';
+    const helpBoxHtml = displayHelp ? `<div class="opt-help-box">${escapeHtml(displayHelp)}</div>` : '';
     const tagInteractive = act.savings === 0 ? ' interactive' : '';
     const tagOnclick = act.savings === 0 ? ' onclick="toggleHelp(this, event)"' : '';
 
