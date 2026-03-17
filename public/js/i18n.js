@@ -110,7 +110,15 @@ const translations = {
         scripts_running: "Running",
         scripts_none: "No scripts running",
         docker_unavailable: "Unavailable in Docker Mode",
-        gateway_stopped: "Stopped / Not Found"
+        gateway_stopped: "Stopped / Not Found",
+
+        // Time
+        time_never: "Never",
+        time_s_ago: "{n}s ago",
+        time_m_ago: "{n}m ago",
+        time_h_ago: "{n}h ago",
+        time_in_m: "(in {n}m)",
+        time_in_h: "(in {n}h)"
     },
     zh: {
         // App Title
@@ -223,7 +231,15 @@ const translations = {
         scripts_running: "运行中",
         scripts_none: "暂无运行中的脚本",
         docker_unavailable: "Docker 模式下不可用",
-        gateway_stopped: "已停止 / 未找到"
+        gateway_stopped: "已停止 / 未找到",
+
+        // Time
+        time_never: "从未运行",
+        time_s_ago: "{n}秒前",
+        time_m_ago: "{n}分前",
+        time_h_ago: "{n}小时前",
+        time_in_m: "({n}分后)",
+        time_in_h: "({n}小时后)"
     }
 };
 
@@ -239,6 +255,7 @@ function setLanguage(lang) {
     if (translations[lang]) {
         currentLang = lang;
         localStorage.setItem('clawbridge_lang', lang);
+        document.documentElement.lang = lang;
         applyTranslations();
         
         // Custom events for dynamic components to re-render
@@ -247,6 +264,7 @@ function setLanguage(lang) {
 }
 
 function applyTranslations() {
+    document.documentElement.lang = currentLang;
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         const translation = t(key);

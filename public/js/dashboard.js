@@ -5,6 +5,7 @@ window.addEventListener('clawbridge-lang-change', () => {
     fetchTokens();
     fetchJobs();
     fetchStatus();
+    initMemory();
 });
 
 // --- Utility: HTML Escape ---
@@ -217,13 +218,13 @@ function handleAnalysisError(error) {
 }
 
 function timeAgo(ms) {
-    if (!ms) return 'Never';
+    if (!ms) return t('time_never');
     const sec = Math.floor((Date.now() - ms) / 1000);
-    if (sec < 60) return sec + 's ago';
+    if (sec < 60) return t('time_s_ago').replace('{n}', sec);
     const min = Math.floor(sec / 60);
-    if (min < 60) return min + 'm ago';
+    if (min < 60) return t('time_m_ago').replace('{n}', min);
     const hr = Math.floor(min / 60);
-    return hr + 'h ago';
+    return t('time_h_ago').replace('{n}', hr);
 }
 
 let lastTask = '';
@@ -436,8 +437,8 @@ async function fetchJobs() {
                 const now = Date.now();
                 const diffMins = Math.round((nextRun - now) / 60000);
                 const timeStr = new Date(nextRun).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-                if (diffMins < 60) nextText = `🔜 ${timeStr} (in ${diffMins}m)`;
-                else nextText = `🔜 ${timeStr} (in ${(diffMins / 60).toFixed(1)}h)`;
+                if (diffMins < 60) nextText = `🔜 ${timeStr} ${t('time_in_m').replace('{n}', diffMins)}`;
+                else nextText = `🔜 ${timeStr} ${t('time_in_h').replace('{n}', (diffMins / 60).toFixed(1))}`;
             }
 
             let badgeClass = 'pending';
