@@ -16,26 +16,26 @@ Implement a robust localization system for ClawBridge Dashboard supporting Engli
 
 ## Implementation Steps
 
-### Phase 1: Infrastructure (In Progress)
-- [ ] Create `public/js/i18n.js` with `en` and `zh` dictionary.
-- [ ] Implement language detection and persistence logic.
-- [ ] Add language switcher to the Settings UI.
+### Phase 1: Infrastructure (Completed)
+- [x] Create `public/js/i18n.js` with `en` and `zh` dictionary.
+- [x] Implement language detection and persistence logic.
+- [x] Add language switcher to the Settings UI.
 
-### Phase 2: Static Content (HTML)
-- [ ] Add `data-i18n` attributes to all translatable elements in `public/index.html`.
-- [ ] Implement `applyTranslations()` to update DOM on load/switch.
+### Phase 2: Static Content (HTML) (Completed)
+- [x] Add `data-i18n` attributes to all translatable elements in `public/index.html`.
+- [x] Implement `applyTranslations()` to update DOM on load/switch.
 
-### Phase 3: Dynamic Content (JS)
-- [ ] Replace hardcoded strings in `public/js/dashboard.js` with `t()` function calls.
-- [ ] Translate:
+### Phase 3: Dynamic Content (JS) (Completed)
+- [x] Replace hardcoded strings in `public/js/dashboard.js` with `t()` function calls.
+- [x] Translate:
     - Sidebar/Navigation labels.
     - Status/Health indicators.
     - Script/Process management text.
     - Token analytics and cost reporting labels.
     - Optimizer/Diagnostics help text and buttons.
 
-### Phase 4: Backend/Config (Optional)
-- [ ] Ensure backend error messages (if any) are either generic or translatable on the frontend.
+### Phase 4: Backend/Config (Optional) (Completed)
+- [x] Ensure backend error messages (if any) are either generic or translatable on the frontend.
 
 ## Verification
 - Test automatic detection (change browser lang).

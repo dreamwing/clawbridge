@@ -4,6 +4,7 @@ const API = '/api';
 window.addEventListener('clawbridge-lang-change', () => {
     fetchTokens();
     fetchJobs();
+    fetchStatus();
 });
 
 // --- Utility: HTML Escape ---
@@ -140,7 +141,7 @@ async function fetchMemory(date) {
         document.getElementById('memory-content').innerHTML = html;
         document.getElementById('memory-content').style.opacity = '1';
     } catch (e) {
-        document.getElementById('memory-content').innerText = 'Failed to load memory.';
+        document.getElementById('memory-content').innerText = t('memory_failed');
         console.warn('[Memory] Fetch failed:', e.message);
     }
 }
@@ -251,16 +252,16 @@ async function fetchStatus() {
 
         // Update PID
         if (isUnsupportedMetric(data, 'gatewayPid')) {
-            document.getElementById('gateway-pid').innerText = 'N/A in Docker Mode';
+            document.getElementById('gateway-pid').innerText = t('docker_unavailable');
         } else if (data.gatewayPid) {
             document.getElementById('gateway-pid').innerText = data.gatewayPid;
         } else {
-            document.getElementById('gateway-pid').innerText = 'Stopped / Not Found';
+            document.getElementById('gateway-pid').innerText = t('status_error');
         }
         // Update Scripts List
         const scriptList = document.getElementById('running-scripts-list');
         if (isUnsupportedMetric(data, 'scripts')) {
-            scriptList.innerHTML = '<div style="opacity:0.7; text-align:center;">Unavailable in Docker Mode</div>';
+            scriptList.innerHTML = `<div style="opacity:0.7; text-align:center;">${t('docker_unavailable')}</div>`;
         } else if (data.scripts && data.scripts.length > 0) {
             const items = data.scripts.map(s =>
                 `<div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">
@@ -268,9 +269,9 @@ async function fetchStatus() {
                             <span style="opacity:0.5">${s.pid}</span>
                         </div>`
             ).join('');
-            scriptList.innerHTML = `<div style="margin-bottom:4px; font-weight:600; color:var(--text)">Running (${data.scripts.length}):</div>` + items;
+            scriptList.innerHTML = `<div style="margin-bottom:4px; font-weight:600; color:var(--text)">${t('scripts_running')} (${data.scripts.length}):</div>` + items;
         } else {
-            scriptList.innerHTML = '<div style="opacity:0.5; text-align:center;">No scripts running</div>';
+            scriptList.innerHTML = `<div style="opacity:0.5; text-align:center;">${t('scripts_none')}</div>`;
         }
 
         const dot = document.getElementById('status-dot');

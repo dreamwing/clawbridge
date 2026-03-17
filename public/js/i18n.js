@@ -94,6 +94,7 @@ const translations = {
         // Memory
         memory_loading: "Accessing agent memories...",
         memory_empty: "No memory records found for this date.",
+        memory_failed: "Failed to load memory.",
 
         // Missions & Control
         mission_control: "Mission Control",
@@ -104,7 +105,12 @@ const translations = {
         stop_failed: "Failed to stop scripts.",
         confirm_restart: "♻️ RESTART GATEWAY?",
         restart_failed: "Failed to restart gateway.",
-        restart_sent: "Restart signal sent."
+        restart_sent: "Restart signal sent.",
+
+        // Scripts/Status
+        scripts_running: "Running",
+        scripts_none: "No scripts running",
+        docker_unavailable: "Unavailable in Docker Mode"
     },
     zh: {
         // App Title
@@ -201,6 +207,7 @@ const translations = {
         // Memory
         memory_loading: "正在调取 Agent 记忆...",
         memory_empty: "未找到该日期的记忆记录。",
+        memory_failed: "记忆加载失败。",
 
         // Missions & Control
         mission_control: "任务控制台",
@@ -211,7 +218,12 @@ const translations = {
         stop_failed: "停止失败。",
         confirm_restart: "♻️ 重启网关？",
         restart_failed: "重启失败。",
-        restart_sent: "重启信号已发送。"
+        restart_sent: "重启信号已发送。",
+
+        // Scripts/Status
+        scripts_running: "运行中",
+        scripts_none: "暂无运行中的脚本",
+        docker_unavailable: "Docker 模式下不可用"
     }
 };
 
@@ -241,7 +253,15 @@ function applyTranslations() {
         // Dynamic content protection
         if (el.id === 'activity-feed' || el.id === 'memory-content') {
             const currentText = el.textContent.trim();
-            const isInitial = currentText === t('loading') || currentText === t('memory_loading') || currentText === 'Loading...' || currentText === 'Accessing agent memories...' || currentText === t('connecting') || currentText === 'Connecting...';
+            // Expanded initial states to include memory_empty and memory_failed
+            const initialStates = [
+                t('loading'), t('memory_loading'), t('connecting'),
+                t('memory_empty'), t('memory_failed'),
+                'Loading...', 'Accessing agent memories...', 'Connecting...',
+                'No memory records found for this date.', 'Failed to load memory.'
+            ];
+            
+            const isInitial = initialStates.some(s => currentText === s);
             if (!isInitial) return;
         }
 
