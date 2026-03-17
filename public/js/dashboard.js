@@ -425,7 +425,7 @@ async function fetchJobs() {
             const nextRun = job.state?.nextRunAtMs;
             const status = job.state?.lastStatus || 'pending';
             const duration = job.state?.lastDurationMs ? (job.state.lastDurationMs / 1000).toFixed(0) + 's' : '';
-            const cron = job.schedule?.expr || 'Manual';
+            const cron = job.schedule?.expr || t('schedule_manual');
 
             // Extract script path
             const text = job.payload?.text || '';
@@ -515,7 +515,7 @@ async function refreshTokenStats() {
     if (btn.disabled) return;
 
     // Set Loading State
-    btn.innerText = '⏳ Analyzing...';
+    btn.innerText = t('analyzing');
     btn.disabled = true;
     btn.style.opacity = '0.7';
 
@@ -527,7 +527,7 @@ async function refreshTokenStats() {
 
         if (triggerRes.status === 409) {
             // Already running — wait for WS completion
-            btn.innerText = '⏳ In progress...';
+            btn.innerText = t('in_progress');
         }
 
         // 2. Wait for WS completion event OR timeout at 30s
@@ -816,8 +816,8 @@ async function fetchDiagnostics() {
         if (diagnosticsData.noData) {
             trigger.style.display = 'flex';
             trigger.classList.add('all-done');
-            triggerText.innerHTML = '<strong>No usage data yet.</strong> Start chatting with your AI agent, then come back to see Token cost analysis and savings.';
-            triggerBtn.textContent = 'History';
+            triggerText.innerHTML = `<strong>${t('opt_no_data_title')}</strong> ${t('opt_no_data_desc')}`;
+            triggerBtn.textContent = t('opt_btn_history');
             isFullyOptimized = true;
         } else if (totalActions > 0) {
             trigger.style.display = 'flex';
@@ -826,25 +826,25 @@ async function fetchDiagnostics() {
                 const advisoryNote = diagnosticsData.advisorySavings > 0
                     ? ` <span class="opt-advisory-note">+ manual ~$${diagnosticsData.advisorySavings.toFixed(2)}/mo</span>`
                     : '';
-                triggerText.innerHTML = `<strong>${totalActions} action${totalActions > 1 ? 's' : ''}</strong> available. Tap to save <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.${advisoryNote}`;
+                triggerText.innerHTML = `<strong>${totalActions} ${t(totalActions > 1 ? 'actions' : 'tab_jobs').toLowerCase()}</strong> ${t('opt_actions_available')}. ${t('opt_tap_to_save')} <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.${advisoryNote}`;
             } else {
-                triggerText.innerHTML = `<strong>${totalActions} action${totalActions > 1 ? 's' : ''}</strong> found. Tap to review & protect.`;
+                triggerText.innerHTML = `<strong>${totalActions} ${t(totalActions > 1 ? 'actions' : 'tab_jobs').toLowerCase()}</strong> ${t('opt_actions_found')}. ${t('opt_tap_to_review')}`;
             }
-            triggerBtn.textContent = 'Optimize';
+            triggerBtn.textContent = t('opt_btn_optimize');
             isFullyOptimized = false;
         } else {
             isFullyOptimized = true;
             trigger.style.display = 'flex';
             trigger.classList.add('all-done');
-            triggerText.innerHTML = '<strong>System Optimized.</strong> Token usage is highly efficient.';
-            triggerBtn.textContent = 'History';
+            triggerText.innerHTML = `<strong>${t('opt_system_optimized')}</strong> ${t('opt_efficient_desc')}`;
+            triggerBtn.textContent = t('opt_btn_history');
         }
 
         // Re-render current view if visible
         refreshFlippedOptimizerView();
     } catch (e) {
         console.error('Failed to load diagnostics', e);
-        showToast(e.message || 'Failed to load diagnostics');
+        showToast(e.message || t('opt_toast_failed'));
     }
 }
 
@@ -868,24 +868,28 @@ function refreshFlippedOptimizerView() {
 function renderSkillAuditList(meta) {
     let html = '<div class="skill-audit-list">';
     const defaultCount = meta.defaultSelectedCount || 0;
+    const summaryText = defaultCount > 0 
+        ? t('opt_audit_summary').replace('{n}', defaultCount)
+        : t('opt_audit_none_selected');
+
     html += `<div class="skill-audit-summary">
-        <span class="skill-audit-summary-text">Checked = remove. Unchecked = keep. ${defaultCount > 0 ? `${defaultCount} suggested for removal by default.` : 'Nothing is pre-selected by default.'}</span>
+        <span class="skill-audit-summary-text">${summaryText}</span>
         <div class="skill-audit-actions">
-            <button type="button" class="skill-audit-action" data-skill-action="keep-all">Keep All</button>
-            <button type="button" class="skill-audit-action" data-skill-action="remove-flagged">Remove All</button>
+            <button type="button" class="skill-audit-action" data-skill-action="keep-all">${t('opt_audit_btn_keep_all')}</button>
+            <button type="button" class="skill-audit-action" data-skill-action="remove-flagged">${t('opt_audit_btn_remove_all')}</button>
         </div>
     </div>`;
     if (meta.idleSkills && meta.idleSkills.length > 0) {
-        html += '<div class="skill-group"><span class="skill-group-label idle">Suggested Remove (' + meta.idleSkills.length + ')</span>';
+        html += `<div class="skill-group"><span class="skill-group-label idle">${t('opt_audit_group_suggested')} (${meta.idleSkills.length})</span>`;
         meta.idleSkills.forEach(s => {
-            html += `<label class="skill-badge idle"><input type="checkbox" class="skill-checkbox" checked data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">Remove</span></label>`;
+            html += `<label class="skill-badge idle"><input type="checkbox" class="skill-checkbox" checked data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">${t('opt_audit_choice_remove')}</span></label>`;
         });
         html += '</div>';
     }
     if (meta.quietSkills && meta.quietSkills.length > 0) {
-        html += '<div class="skill-group"><span class="skill-group-label quiet">Review Manually (' + meta.quietSkills.length + ')</span>';
+        html += `<div class="skill-group"><span class="skill-group-label quiet">${t('opt_audit_group_manual')} (${meta.quietSkills.length})</span>`;
         meta.quietSkills.forEach(s => {
-            html += `<label class="skill-badge quiet"><input type="checkbox" class="skill-checkbox" data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">Keep</span></label>`;
+            html += `<label class="skill-badge quiet"><input type="checkbox" class="skill-checkbox" data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">${t('opt_audit_choice_keep')}</span></label>`;
         });
         html += '</div>';
     }
@@ -899,7 +903,7 @@ function updateSkillAuditSelection(itemEl) {
     skillCheckboxes.forEach(cb => {
         if (cb.checked) selectedCount++;
         const choice = cb.closest('.skill-badge')?.querySelector('.skill-choice');
-        if (choice) choice.textContent = cb.checked ? 'Remove' : 'Keep';
+        if (choice) choice.textContent = cb.checked ? t('opt_audit_choice_remove') : t('opt_audit_choice_keep');
     });
 
     const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
@@ -920,7 +924,7 @@ function updateSkillAuditSelection(itemEl) {
 }
 
 function renderActionItem(act, isSkipped = false) {
-    const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}/mo` : '🛡️ Protection';
+    const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}/mo` : t('legend_system');
     const savingsClass = act.savings > 10 ? 'high-savings' : (act.savings > 0 ? 'medium-savings' : 'safety');
     const initialMeta = act._meta && typeof act._meta === 'object' && !Array.isArray(act._meta)
         ? { ...act._meta }
@@ -929,7 +933,7 @@ function renderActionItem(act, isSkipped = false) {
     // L2: Side effect in plain language
     let sideEffectHtml = '';
     if (act.plainSideEffect || act.sideEffect) {
-        sideEffectHtml = `<div class="opt-sideeffect">${escapeHtml(act.plainSideEffect || act.sideEffect)}</div>`;
+        sideEffectHtml = `<div class="opt-sideeffect">${t('opt_side_effect')}: ${escapeHtml(act.plainSideEffect || act.sideEffect)}</div>`;
     }
 
     // L1: Use plainTitle (beginner-friendly), fallback to title
@@ -970,7 +974,7 @@ function renderActionItem(act, isSkipped = false) {
         detailParts.push(`<div class="opt-codetag"><code>${escapeHtml(act.codeTag)}</code></div>`);
     }
     if (detailParts.length > 0) {
-        detailsHtml = `<details class="opt-details"><summary>Technical Details</summary><div class="opt-details-body">${detailParts.join('')}</div></details>`;
+        detailsHtml = `<details class="opt-details"><summary>${t('opt_tech_details')}</summary><div class="opt-details-body">${detailParts.join('')}</div></details>`;
     }
 
     const tooltipHtml = act.helpText ? `<span class="opt-help" onclick="toggleHelp(this, event)">?</span>` : '';
@@ -979,10 +983,10 @@ function renderActionItem(act, isSkipped = false) {
     const tagOnclick = act.savings === 0 ? ' onclick="toggleHelp(this, event)"' : '';
 
     const actionButtons = isSkipped 
-        ? `<button class="btn-skip" onclick="handleUnskip('${act.actionId}')">Restore</button>
-           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')">Apply Anyway</button>`
-        : `<button class="btn-skip" onclick="handleSkip(this, '${act.actionId}')">Skip</button>
-           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>`;
+        ? `<button class="btn-skip" onclick="handleUnskip('${act.actionId}')">${t('opt_btn_restore')}</button>
+           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')">${t('btn_retry')}</button>`
+        : `<button class="btn-skip" onclick="handleSkip(this, '${act.actionId}')">${t('opt_btn_skip')}</button>
+           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">${t('opt_btn_apply')}</span><span class="confirm-label">${t('opt_btn_confirm')}</span><span class="applying-label">${t('opt_btn_applying')}</span><span class="done-label">${t('opt_btn_applied')}</span></button>`;
     const metaAttr = Object.keys(initialMeta).length > 0
         ? ' data-meta=\'' + JSON.stringify(initialMeta).replace(/'/g, '&#39;') + '\''
         : '';
@@ -997,7 +1001,7 @@ function renderActionItem(act, isSkipped = false) {
                     ${optionsHtml}
                     ${detailsHtml}
                     <div class="opt-action-line" style="justify-content: flex-end; gap: 8px;">
-                        ${act.type === 'advisory' ? '<span class="btn-advisory">ℹ️ Manual Action</span>' : actionButtons}
+                        ${act.type === 'advisory' ? `<span class="btn-advisory">${t('opt_manual_action')}</span>` : actionButtons}
                     </div>
                 </div>`;
 
@@ -1046,7 +1050,7 @@ function renderActionItem(act, isSkipped = false) {
             applyBtn.addEventListener('click', () => {
                 const selected = [];
                 skillCheckboxes.forEach(cb => { if (cb.checked) selected.push(cb.dataset.skillName); });
-                if (selected.length === 0) { showToast('Please select at least one skill to remove'); return; }
+                if (selected.length === 0) { showToast(t('opt_audit_none_selected')); return; }
                 const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
                 currentMeta.selectedSkillNames = selected;
                 itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
@@ -1069,7 +1073,7 @@ function renderOptimizerList() {
         document.getElementById('main-savings-amount').innerText = '$' + diagnosticsData.totalMonthlySavings.toFixed(2);
         document.getElementById('main-savings-amount').style.fontSize = '56px';
     } else {
-        document.getElementById('main-savings-amount').innerText = '🛡️ Preventative';
+        document.getElementById('main-savings-amount').innerText = t('opt_preventative');
         document.getElementById('main-savings-amount').style.fontSize = '36px';
     }
 
@@ -1096,8 +1100,8 @@ function renderOptimizerList() {
         skippedWrapper.style.marginTop = '30px';
         skippedWrapper.innerHTML = `
             <div class="section-header-small" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; border: 1px dashed var(--border);" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                <span>Skipped Recommendations (${skipped.length})</span>
-                <span style="font-size:10px; opacity:0.6; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">Toggle View</span>
+                <span>${t('opt_skipped_title')} (${skipped.length})</span>
+                <span style="font-size:10px; opacity:0.6; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">${t('opt_toggle_view')}</span>
             </div>
             <div id="skipped-list" class="opt-list" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; opacity: 0.9;"></div>
         `;
@@ -1159,7 +1163,7 @@ function renderHistoryTimeline(list, history) {
     list.innerHTML = '';
 
     if (history.length === 0) {
-        list.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No recent optimizations found.</div>';
+        list.innerHTML = `<div style="color:var(--text-dim); font-size:12px;">${t('opt_no_history')}</div>`;
         return;
     }
 
@@ -1259,17 +1263,17 @@ async function handleUndo(triggerBtn, backupPath) {
                 return;
             }
             if (response.length === 0) {
-                showToast('Select at least one skill to restore');
+                showToast(t('opt_audit_none_selected'));
                 setUndoButtonState(triggerBtn, false);
                 return;
             }
             if (response.length !== preview.restorableSkills.length) selectedSkillNames = response;
-        } else if (!confirm('Undo this optimization? Your config will be restored from the backup.')) {
+        } else if (!confirm(t('opt_btn_confirm'))) {
             setUndoButtonState(triggerBtn, false);
             return;
         }
 
-        showToast('Undo in progress...');
+        showToast(t('opt_toast_undoing'));
         const res = await fetchAuth(API + '/optimizations/undo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1278,14 +1282,14 @@ async function handleUndo(triggerBtn, backupPath) {
         if (res.ok) {
             const result = await res.json();
             const skillSuffix = result.skillsRestored ? ` and ${result.skillsRestored} skill${result.skillsRestored > 1 ? 's' : ''}` : '';
-            showToast(`✓ Restored ${result.restoredKeys.length} settings${skillSuffix} from ${result.backupFile}`);
+            showToast(t('opt_toast_undone').replace('{n}', result.restoredKeys.length).replace('{file}', result.backupFile));
             await renderHistoryList();
             await fetchDiagnostics();
         } else {
-            showToast('Undo failed: ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
+            showToast(t('opt_toast_failed') + ': ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
         }
     } catch (e) {
-        showToast('Undo failed: ' + e.message);
+        showToast(t('opt_toast_failed') + ': ' + e.message);
     } finally {
         setUndoButtonState(triggerBtn, false);
     }
@@ -1331,7 +1335,7 @@ function flipToDashboard() {
 }
 
 async function handleSkip(btn, actionId) {
-    if (!confirm('Ignore this recommendation? You can reset ignored items in Settings.')) return;
+    if (!confirm(t('opt_btn_confirm'))) return;
     btn.disabled = true;
     try {
         const res = await fetchAuth(API + '/optimize/' + actionId + '/skip', { method: 'POST' });
@@ -1340,14 +1344,14 @@ async function handleSkip(btn, actionId) {
             item.style.opacity = '0.5';
             item.style.pointerEvents = 'none';
             await fetchDiagnostics();
-            showToast('Recommendation skipped');
+            showToast(t('opt_toast_skipped'));
         } else {
             btn.disabled = false;
-            showToast(await readErrorMessage(res, 'Skip failed'));
+            showToast(await readErrorMessage(res, t('opt_toast_failed')));
         }
     } catch (e) {
         btn.disabled = false;
-        showToast('Network error');
+        showToast(t('retry'));
     }
 }
 
@@ -1356,12 +1360,12 @@ async function handleUnskip(actionId) {
         const res = await fetchAuth(API + '/optimize/' + actionId + '/unskip', { method: 'POST' });
         if (res.ok) {
             await fetchDiagnostics();
-            showToast('Recommendation restored');
+            showToast(t('opt_toast_restored'));
         } else {
-            showToast(await readErrorMessage(res, 'Restore failed'));
+            showToast(await readErrorMessage(res, t('opt_toast_failed')));
         }
     } catch (e) {
-        showToast('Restore failed');
+        showToast(t('opt_toast_failed'));
     }
 }
 
@@ -1406,7 +1410,7 @@ async function handleOpt(btn, actionId) {
                     mainAmount.textContent = '$' + Math.max(0, cur - savingsVal).toFixed(2);
                 }
 
-                showToast(appliedSkippedRecommendation ? 'Skipped recommendation applied' : 'Optimization applied');
+                showToast(appliedSkippedRecommendation ? t('opt_toast_restored') : t('opt_toast_applied'));
 
                 if (actionsApplied >= totalActions) {
                     setTimeout(showSuccess, 1000);
@@ -1414,12 +1418,12 @@ async function handleOpt(btn, actionId) {
             } else {
                 btn.classList.remove('applying');
                 btn.disabled = false;
-                showToast('Optimization failed: ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
+                showToast(t('opt_toast_failed') + ': ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
             }
         } catch (e) {
             btn.classList.remove('applying');
             btn.disabled = false;
-            showToast('Network error: ' + e.message);
+            showToast(t('opt_toast_failed') + ': ' + e.message);
         }
     }
 }
@@ -1430,15 +1434,15 @@ if (window.location.hostname.endsWith('trycloudflare.com')) {
 }
 
 async function resetSkips() {
-    if (!confirm('Reset all ignored recommendations?')) return;
+    if (!confirm(t('opt_btn_confirm'))) return;
     try {
         const res = await fetchAuth(API + '/optimize/reset-skips', { method: 'POST' });
         if (res.ok) {
-            showToast('Reset successful');
+            showToast(t('opt_toast_restored'));
             fetchDiagnostics();
         }
     } catch (e) {
-        showToast('Reset failed');
+        showToast(t('opt_toast_failed'));
     }
 }
 
@@ -1565,8 +1569,8 @@ function showSuccess() {
         success.style.display = 'flex';
         renderHistoryList(); // Refresh history
         trigger.classList.add('all-done');
-        triggerText.innerHTML = '<strong>System Optimized.</strong> Token usage is 100% efficient.';
-        triggerBtn.textContent = 'History';
+        triggerText.innerHTML = `<strong>${t('opt_system_optimized')}</strong> ${t('opt_efficient_desc')}`;
+        triggerBtn.textContent = t('opt_btn_history');
     }, 500);
 }
 
