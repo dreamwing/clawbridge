@@ -947,7 +947,7 @@ function updateSkillAuditSelection(itemEl) {
     itemEl.setAttribute('data-savings', selectedSavings);
     const tag = itemEl.querySelector(`#savings-tag-${itemEl.getAttribute('data-action')}`);
     if (tag) {
-        tag.textContent = selectedSavings > 0 ? `-$${selectedSavings.toFixed(2)}/mo` : '🛡️ Review';
+        tag.textContent = selectedSavings > 0 ? `-$${selectedSavings.toFixed(2)}${t('unit_per_month')}` : '🛡️ Review';
     }
 }
 
@@ -1001,6 +1001,8 @@ function renderActionItem(act, isSkipped = false) {
                 displayLabel = t('time_every_m').replace('{n}', parseInt(opt.value));
             } else if (opt.value.endsWith('h')) {
                 displayLabel = t('time_every_h').replace('{n}', parseInt(opt.value));
+            } else if (opt.label === 'your choice') {
+                displayLabel = t('opt_your_choice');
             }
 
             return `<label class="opt-radio ${labelClass}">
@@ -1017,7 +1019,17 @@ function renderActionItem(act, isSkipped = false) {
     const detailParts = [];
     if (act.configDiff) {
         const d = act.configDiff;
-        detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(d.from)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(t(d.to) !== d.to ? t(d.to) : d.to)}</span></div>`);
+        let toValue = d.to;
+        if (toValue === 'your choice') toValue = t('opt_your_choice');
+        else if (toValue.endsWith('m')) toValue = t('time_every_m').replace('{n}', parseInt(toValue)).replace('每 ', '').replace('every ', '');
+        else if (toValue.endsWith('h')) toValue = t('time_every_h').replace('{n}', parseInt(toValue)).replace('每 ', '').replace('every ', '');
+        else if (t(toValue) !== toValue) toValue = t(toValue);
+
+        let fromValue = d.from;
+        if (fromValue.endsWith('m')) fromValue = t('time_every_m').replace('{n}', parseInt(fromValue)).replace('每 ', '').replace('every ', '');
+        else if (fromValue.endsWith('h')) fromValue = t('time_every_h').replace('{n}', parseInt(fromValue)).replace('每 ', '').replace('every ', '');
+        
+        detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(fromValue)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(toValue)}</span></div>`);
     }
     if (act.calcDetail) {
         // Localize 'task(s)', 'tok/run', 'aggregated runs/mo' in calcDetail
@@ -1073,7 +1085,7 @@ function renderActionItem(act, isSkipped = false) {
             const selectedSavings = parseFloat(radio.getAttribute('data-savings')) || 0;
             itemEl.setAttribute('data-savings', selectedSavings);
             const tag = itemEl.querySelector(`#savings-tag-${act.actionId}`);
-            if (tag) tag.textContent = `-$${selectedSavings.toFixed(2)}/mo`;
+            if (tag) tag.textContent = `-$${selectedSavings.toFixed(2)}${t('unit_per_month')}`;
             const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
             currentMeta.interval = radio.value;
             itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));

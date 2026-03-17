@@ -80,36 +80,36 @@
         <div id="token-modal" class="modal-overlay" onclick="if(event.target===this) toggleTokenHelp(false)">
             <div class="modal-content" style="max-width:400px;">
                 <div class="modal-header">
-                    <span class="modal-title">Configure Permanent Link</span>
+                    <span class="modal-title" data-i18n="modal_cloudflare_title">Configure Permanent Link</span>
                     <button class="modal-close" onclick="toggleTokenHelp(false)">×</button>
                 </div>
                 <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
-                    <p style="margin-top:0">To keep your URL fixed, you need a Cloudflare Tunnel Token.</p>
+                    <p style="margin-top:0" data-i18n="modal_cloudflare_desc">To keep your URL fixed, you need a Cloudflare Tunnel Token.</p>
 
                     <div style="margin-bottom:15px;">
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Where to find your Token?
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_token_find">Where to find your Token?
                         </div>
                         <div style="font-size:12px; color:var(--text-dim); line-height:1.4;">
-                            1. Go to <a href="https://dash.cloudflare.com/?to=/:account/tunnels" target="_blank"
-                                style="color:var(--accent)">Cloudflare Dash</a> > Networking > Tunnels.<br>
-                            2. Create a tunnel, choose "Docker" (easiest to copy) or your OS, and grab the token string
+                            <span data-i18n="modal_token_step1">1. Go to <a href="https://dash.cloudflare.com/?to=/:account/tunnels" target="_blank"
+                                style="color:var(--accent)">Cloudflare Dash</a> > Networking > Tunnels.</span><br>
+                            <span data-i18n="modal_token_step2">2. Create a tunnel, choose "Docker" (easiest to copy) or your OS, and grab the token string
                             (starts with <code
-                                style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">ey...</code>).<br>
-                            3. After install, go to <b>Public Hostname</b> in your Tunnel settings and map your domain
+                                style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">ey...</code>).</span><br>
+                            <span data-i18n="modal_token_step3">3. After install, go to <b>Public Hostname</b> in your Tunnel settings and map your domain
                             to <code
-                                style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">localhost:3000</code>.
+                                style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">localhost:3000</code>.</span>
                         </div>
                     </div>
 
                     <div style="margin-bottom:15px;">
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask your Agent
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_option_agent">Option 1: Ask your Agent
                             (Chat)</div>
-                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">Send this message to
+                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;" data-i18n="modal_option_agent_desc">Send this message to
                             OpenClaw:</div>
                         <div class="copy-box"
                             onclick="copyText(this, 'Run this command to fix my dashboard URL:\ncd skills/clawbridge && ./install.sh --token=YOUR_TOKEN')">
                             <div style="flex:1; font-family:monospace; font-size:11px;">
-                                Run this command to fix my dashboard URL:<br>
+                                <span data-i18n="modal_fix_url_msg">Run this command to fix my dashboard URL:</span><br>
                                 <span style="color:var(--accent)">cd skills/clawbridge && ./install.sh
                                     --token=YOUR_TOKEN</span>
                             </div>
@@ -118,7 +118,7 @@
                     </div>
 
                     <div>
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal Command
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_option_terminal">Option 2: Terminal Command
                         </div>
                         <div class="copy-box"
                             onclick="copyText(this, 'cd ~/skills/clawbridge && ./install.sh --token=YOUR_TOKEN')">
@@ -137,24 +137,24 @@
         <div id="update-modal" class="modal-overlay" onclick="if(event.target===this) toggleUpdateHelp(false)">
             <div class="modal-content" style="max-width:400px;">
                 <div class="modal-header">
-                    <span class="modal-title">Update Available</span>
+                    <span class="modal-title" data-i18n="modal_update_title">Update Available</span>
                     <button class="modal-close" onclick="toggleUpdateHelp(false)">×</button>
                 </div>
                 <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
-                    <p style="margin-top:0">A new version of ClawBridge is ready.</p>
+                    <p style="margin-top:0" data-i18n="modal_update_desc">A new version of ClawBridge is ready.</p>
 
                     <div style="margin-bottom:15px;">
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask Agent</div>
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_update_agent">Option 1: Ask Agent</div>
                         <div class="copy-box"
                             onclick="copyText(this, 'Read https://clawbridge.app/SKILL.md and update ClawBridge to the latest version. Notify me when the service is back online.')">
-                            <div style="flex:1; font-family:monospace; font-size:11px;">"Read SKILL.md and update..."
+                            <div style="flex:1; font-family:monospace; font-size:11px;" data-i18n="modal_update_agent_desc">"Read SKILL.md and update..."
                             </div>
                             <span class="copy-icon">📋</span>
                         </div>
                     </div>
 
                     <div style="margin-bottom:20px;">
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal</div>
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_update_terminal">Option 2: Terminal</div>
                         <div class="copy-box"
                             onclick="copyText(this, 'curl -sL &quot;https://clawbridge.app/install.sh?ref=update&quot; | bash')">
                             <div style="flex:1; font-family:monospace; font-size:11px; word-break:break-all;">curl -sL
@@ -175,20 +175,20 @@
         <div id="undo-skill-modal" class="modal-overlay" onclick="if(event.target===this) closeUndoSkillModal(null)">
             <div class="modal-content" style="max-width:460px;">
                 <div class="modal-header">
-                    <span class="modal-title">Restore Removed Skills</span>
+                    <span class="modal-title" data-i18n="opt_restore_title">Restore Removed Skills</span>
                     <button class="modal-close" onclick="closeUndoSkillModal(null)">×</button>
                 </div>
-                <div class="undo-skill-copy">
+                <div class="undo-skill-copy" data-i18n="undo_skill_desc">
                     Choose which skills to restore from this backup. Leave them all checked to restore everything.
                 </div>
                 <div class="undo-skill-actions">
-                    <button class="skill-audit-action" onclick="setUndoSkillSelection(true)">Select All</button>
-                    <button class="skill-audit-action" onclick="setUndoSkillSelection(false)">Clear All</button>
+                    <button class="skill-audit-action" onclick="setUndoSkillSelection(true)" data-i18n="modal_btn_select_all">Select All</button>
+                    <button class="skill-audit-action" onclick="setUndoSkillSelection(false)" data-i18n="modal_btn_clear_all">Clear All</button>
                 </div>
                 <div id="undo-skill-list" class="undo-skill-list"></div>
                 <div class="undo-skill-footer">
-                    <button class="btn" style="background:rgba(255,255,255,0.08); color:var(--text);" onclick="closeUndoSkillModal(null)">Cancel</button>
-                    <button class="btn" style="background:var(--accent);" onclick="confirmUndoSkillSelection()">Restore Selected</button>
+                    <button class="btn" style="background:rgba(255,255,255,0.08); color:var(--text);" onclick="closeUndoSkillModal(null)" data-i18n="modal_btn_cancel">Cancel</button>
+                    <button class="btn" style="background:var(--accent);" onclick="confirmUndoSkillSelection()" data-i18n="opt_restore_btn">Restore Selected</button>
                 </div>
             </div>
         </div>
@@ -603,7 +603,7 @@
                                 <line x1="16" y1="9" x2="20" y2="9"></line>
                                 <line x1="16" y1="15" x2="20" y2="15"></line>
                             </svg></div>
-                        <div data-i18n="tab_usage">Tokens</div>
+                        <div data-i18n="tab_usage">Cost</div>
                     </a>
                     <a class="nav-item" onclick="switchTab('missions')">
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
