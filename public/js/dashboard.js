@@ -1,5 +1,21 @@
 const API = '/api';
 
+// Listen for language changes to re-render dynamic items
+window.addEventListener('clawbridge-lang-change', () => {
+    fetchTokens();
+    fetchJobs();
+    fetchStatus();
+    
+    // Update Optimizer and History if localized
+    if (typeof renderOptimizerList === 'function') renderOptimizerList();
+    if (typeof renderHistoryList === 'function') renderHistoryList();
+
+    // Only re-init memory if we are on the memory tab to save API calls
+    if (document.getElementById('view-memory').classList.contains('active')) {
+        initMemory();
+    }
+});
+
 // --- Utility: HTML Escape ---
 function escapeHtml(str) {
     if (!str) return '';
@@ -34,9 +50,21 @@ async function fetchAuth(url, options = {}) {
     const headers = options.headers || {};
     headers['x-claw-key'] = API_KEY;
     options.headers = headers;
-    const res = await fetch(url, options);
-    if (res.status === 401) throw new Error('Auth Failed');
-    return res;
+    try {
+        const res = await fetch(url, options);
+        if (res.status === 401) {
+            alert(t('auth_failed'));
+            logout();
+            throw new Error('Auth Failed');
+        }
+        return res;
+    } catch (e) {
+        if (e.message !== 'Auth Failed') {
+            console.error('[Fetch] Network or unknown error:', e);
+            // Optional: alert(t('err_generic')); 
+        }
+        throw e;
+    }
 }
 
 function isUnsupportedMetric(data, key) {
@@ -100,14 +128,14 @@ async function initMemory() {
         memoryDates.forEach((d, i) => {
             const opt = document.createElement('option');
             opt.value = d;
-            opt.innerText = d;
+            opt.innerText = i === 0 ? t('today') : d;
             sel.appendChild(opt);
         });
 
         if (memoryDates.length > 0) {
             fetchMemory(memoryDates[0]);
         } else {
-            document.getElementById('memory-content').innerText = 'No memories found.';
+            document.getElementById('memory-content').innerText = t('memory_empty');
         }
     } catch (e) { console.warn('[Memory] Init failed:', e.message); }
 }
@@ -123,7 +151,7 @@ async function fetchMemory(date) {
         const data = await res.json();
 
         // Simple Markdown Rendering
-        let html = (data.content || '')
+        let html = (data.content || t('memory_empty'))
             .replace(/^# (.*$)/gim, (_match, text) => `<h3 style="margin-top:0;color:var(--accent)">${escapeHtml(text)}</h3>`)
             .replace(/^## (.*$)/gim, (_match, text) => `<h4 style="margin:10px 0 5px;color:var(--text)">${escapeHtml(text)}</h4>`)
             .replace(/\*\*(.*)\*\*/gim, (_match, text) => `<b>${escapeHtml(text)}</b>`)
@@ -134,7 +162,7 @@ async function fetchMemory(date) {
         document.getElementById('memory-content').innerHTML = html;
         document.getElementById('memory-content').style.opacity = '1';
     } catch (e) {
-        document.getElementById('memory-content').innerText = 'Failed to load memory.';
+        document.getElementById('memory-content').innerText = t('memory_failed');
         console.warn('[Memory] Fetch failed:', e.message);
     }
 }
@@ -210,13 +238,13 @@ function handleAnalysisError(error) {
 }
 
 function timeAgo(ms) {
-    if (!ms) return 'Never';
+    if (!ms) return t('time_never');
     const sec = Math.floor((Date.now() - ms) / 1000);
-    if (sec < 60) return sec + 's ago';
+    if (sec < 60) return t('time_s_ago').replace('{n}', sec);
     const min = Math.floor(sec / 60);
-    if (min < 60) return min + 'm ago';
+    if (min < 60) return t('time_m_ago').replace('{n}', min);
     const hr = Math.floor(min / 60);
-    return hr + 'h ago';
+    return t('time_h_ago').replace('{n}', hr);
 }
 
 let lastTask = '';
@@ -245,16 +273,16 @@ async function fetchStatus() {
 
         // Update PID
         if (isUnsupportedMetric(data, 'gatewayPid')) {
-            document.getElementById('gateway-pid').innerText = 'N/A in Docker Mode';
+            document.getElementById('gateway-pid').innerText = t('docker_unavailable');
         } else if (data.gatewayPid) {
             document.getElementById('gateway-pid').innerText = data.gatewayPid;
         } else {
-            document.getElementById('gateway-pid').innerText = 'Stopped / Not Found';
+            document.getElementById('gateway-pid').innerText = t('gateway_stopped');
         }
         // Update Scripts List
         const scriptList = document.getElementById('running-scripts-list');
         if (isUnsupportedMetric(data, 'scripts')) {
-            scriptList.innerHTML = '<div style="opacity:0.7; text-align:center;">Unavailable in Docker Mode</div>';
+            scriptList.innerHTML = `<div style="opacity:0.7; text-align:center;">${t('docker_unavailable')}</div>`;
         } else if (data.scripts && data.scripts.length > 0) {
             const items = data.scripts.map(s =>
                 `<div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">
@@ -262,19 +290,19 @@ async function fetchStatus() {
                             <span style="opacity:0.5">${s.pid}</span>
                         </div>`
             ).join('');
-            scriptList.innerHTML = `<div style="margin-bottom:4px; font-weight:600; color:var(--text)">Running (${data.scripts.length}):</div>` + items;
+            scriptList.innerHTML = `<div style="margin-bottom:4px; font-weight:600; color:var(--text)">${t('scripts_running')} (${data.scripts.length}):</div>` + items;
         } else {
-            scriptList.innerHTML = '<div style="opacity:0.5; text-align:center;">No scripts running</div>';
+            scriptList.innerHTML = `<div style="opacity:0.5; text-align:center;">${t('scripts_none')}</div>`;
         }
 
         const dot = document.getElementById('status-dot');
         if (data.status === 'busy') {
             dot.className = 'status-dot busy';
-            document.getElementById('activity-status').innerText = '● Busy';
+            document.getElementById('activity-status').innerText = t('status_busy');
             document.getElementById('activity-status').style.color = 'var(--warning)';
         } else {
             dot.className = 'status-dot active';
-            document.getElementById('activity-status').innerText = '● Idle';
+            document.getElementById('activity-status').innerText = t('status_idle');
             document.getElementById('activity-status').style.color = 'var(--success)';
         }
 
@@ -284,13 +312,18 @@ async function fetchStatus() {
         }
     } catch (e) {
         document.getElementById('status-dot').className = 'status-dot error';
+        document.getElementById('activity-status').innerText = t('status_error');
     }
 }
 
 function addFeedItem(ts, task, method = 'append') {
     const feed = document.getElementById('activity-feed');
-    if (feed.children.length === 1 && feed.children[0].innerText.includes('Connecting')) {
-        feed.innerHTML = '';
+    if (feed.children.length === 1) {
+        const text = feed.children[0].innerText;
+        const isConnecting = Object.values(translations).some(loc => 
+            text.includes(loc.connecting.replace('...', ''))
+        );
+        if (isConnecting) feed.innerHTML = '';
     }
 
     // Deduplication Logic
@@ -371,6 +404,16 @@ function addFeedItem(ts, task, method = 'append') {
     if (feed.children.length > 100) feed.removeChild(feed.children[feed.children.length - 1]);
 }
 
+async function logout() {
+    try {
+        await fetchAuth(API + '/logout', { method: 'POST' });
+    } catch (e) {
+        console.warn('Backend logout failed', e);
+    }
+    localStorage.removeItem('claw_key');
+    location.href = '/';
+}
+
 async function fetchHistory() {
     try {
         const res = await fetchAuth(API + '/logs?limit=100');
@@ -403,7 +446,7 @@ async function fetchJobs() {
         container.innerHTML = '';
 
         if (jobs.length === 0) {
-            container.innerHTML = '<div style="text-align:center; opacity:0.5; padding:20px;">No jobs found</div>';
+            container.innerHTML = `<div style="text-align:center; opacity:0.5; padding:20px;">${t('no_jobs')}</div>`;
             return;
         }
 
@@ -413,7 +456,7 @@ async function fetchJobs() {
             const nextRun = job.state?.nextRunAtMs;
             const status = job.state?.lastStatus || 'pending';
             const duration = job.state?.lastDurationMs ? (job.state.lastDurationMs / 1000).toFixed(0) + 's' : '';
-            const cron = job.schedule?.expr || 'Manual';
+            const cron = job.schedule?.expr || t('schedule_manual');
 
             // Extract script path
             const text = job.payload?.text || '';
@@ -425,8 +468,8 @@ async function fetchJobs() {
                 const now = Date.now();
                 const diffMins = Math.round((nextRun - now) / 60000);
                 const timeStr = new Date(nextRun).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-                if (diffMins < 60) nextText = `🔜 ${timeStr} (in ${diffMins}m)`;
-                else nextText = `🔜 ${timeStr} (in ${(diffMins / 60).toFixed(1)}h)`;
+                if (diffMins < 60) nextText = `🔜 ${timeStr} ${t('time_in_m').replace('{n}', diffMins)}`;
+                else nextText = `🔜 ${timeStr} ${t('time_in_h').replace('{n}', (diffMins / 60).toFixed(1))}`;
             }
 
             let badgeClass = 'pending';
@@ -466,32 +509,32 @@ async function fetchJobs() {
 }
 
 async function runJob(id) {
-    if (!confirm('Execute task?')) return;
+    if (!confirm(t('confirm_run'))) return;
     const res = await fetchAuth(API + '/run/' + id, { method: 'POST' });
     if (!res.ok) {
-        alert(await readErrorMessage(res, 'Failed to run job.'));
+        alert(await readErrorMessage(res, t('run_failed')));
         return;
     }
     setTimeout(fetchJobs, 2000);
 }
 
 async function killAll() {
-    if (!confirm('⚠️ STOP ALL SCRIPTS?')) return;
+    if (!confirm(t('confirm_kill_all'))) return;
     const res = await fetchAuth(API + '/kill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirm: true })
     });
     if (!res.ok) {
-        alert(await readErrorMessage(res, 'Failed to stop scripts.'));
+        alert(await readErrorMessage(res, t('stop_failed')));
     }
 }
 
 async function restartGateway() {
-    if (!confirm('♻️ RESTART GATEWAY?')) return;
+    if (!confirm(t('confirm_restart'))) return;
     const res = await fetchAuth(API + '/gateway/restart', { method: 'POST' });
     if (!res.ok) {
-        alert(await readErrorMessage(res, 'Failed to restart gateway.'));
+        alert(await readErrorMessage(res, t('restart_failed')));
     }
 }
 
@@ -503,7 +546,7 @@ async function refreshTokenStats() {
     if (btn.disabled) return;
 
     // Set Loading State
-    btn.innerText = '⏳ Analyzing...';
+    btn.innerText = t('loading');
     btn.disabled = true;
     btn.style.opacity = '0.7';
 
@@ -515,7 +558,7 @@ async function refreshTokenStats() {
 
         if (triggerRes.status === 409) {
             // Already running — wait for WS completion
-            btn.innerText = '⏳ In progress...';
+            btn.innerText = t('in_progress');
         }
 
         // 2. Wait for WS completion event OR timeout at 30s
@@ -553,7 +596,7 @@ async function fetchTokens() {
         // Use API, not static file
         const res = await fetchAuth(API + '/tokens');
         if (!res.ok) {
-            throw new Error(await readErrorMessage(res, 'Failed to load token stats'));
+            throw new Error(await readErrorMessage(res, t('err_load_tokens')));
         }
         const data = await res.json();
         document.getElementById('token-card').style.display = 'block';
@@ -629,7 +672,9 @@ async function fetchTokens() {
                 toggleDiv.style.fontSize = '12px';
                 toggleDiv.style.color = 'var(--accent)';
                 toggleDiv.style.cursor = 'pointer';
-                toggleDiv.innerText = showAllModels ? '▲ Show less' : '▼ Show all (' + data.topModels.length + ')';
+                const showAllText = t('show_all');
+                const showLessText = t('show_less');
+                toggleDiv.innerText = showAllModels ? `▲ ${showLessText}` : `▼ ${showAllText} (${data.topModels.length})`;
                 toggleDiv.onclick = () => {
                     showAllModels = !showAllModels;
                     fetchTokens();
@@ -691,11 +736,6 @@ async function fetchTokens() {
                         } else if (changeEl) {
                             changeEl.style.display = 'none';
                         }
-
-                        // Auto Scroll to Detail (Delayed for render)
-                        setTimeout(() => {
-                            detail.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 50);
                     };
                     chart.appendChild(bar);
                     const label = document.createElement('div');
@@ -789,7 +829,7 @@ async function fetchDiagnostics() {
     try {
         const res = await fetchAuth(API + '/diagnostics?nocache=' + Date.now());
         if (!res.ok) {
-            throw new Error(await readErrorMessage(res, 'Failed to load diagnostics'));
+            throw new Error(await readErrorMessage(res, t('err_load_diagnostics')));
         }
         diagnosticsData = await res.json();
         // Normalize field name (backend sends totalMonthlySavings)
@@ -802,35 +842,37 @@ async function fetchDiagnostics() {
         if (diagnosticsData.noData) {
             trigger.style.display = 'flex';
             trigger.classList.add('all-done');
-            triggerText.innerHTML = '<strong>No usage data yet.</strong> Start chatting with your AI agent, then come back to see Token cost analysis and savings.';
-            triggerBtn.textContent = 'History';
+            triggerText.innerHTML = `<strong>${t('opt_no_data_title')}</strong> ${t('opt_no_data_desc')}`;
+            triggerBtn.textContent = t('opt_btn_history');
             isFullyOptimized = true;
         } else if (totalActions > 0) {
             trigger.style.display = 'flex';
             trigger.classList.remove('all-done');
             if (diagnosticsData.monthlySavings > 0) {
                 const advisoryNote = diagnosticsData.advisorySavings > 0
-                    ? ` <span class="opt-advisory-note">+ manual ~$${diagnosticsData.advisorySavings.toFixed(2)}/mo</span>`
+                    ? ` <span class="opt-advisory-note">+ manual ~$${diagnosticsData.advisorySavings.toFixed(2)}${t('unit_per_month')}</span>`
                     : '';
-                triggerText.innerHTML = `<strong>${totalActions} action${totalActions > 1 ? 's' : ''}</strong> available. Tap to save <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.${advisoryNote}`;
+                const actionLabel = totalActions === 1 ? t('opt_action_singular') : t('opt_action_plural');
+                triggerText.innerHTML = `<strong>${totalActions} ${actionLabel}</strong> ${t('opt_actions_available')}. ${t('opt_tap_to_save')} <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}${t('unit_per_month')}</span>.${advisoryNote}`;
             } else {
-                triggerText.innerHTML = `<strong>${totalActions} action${totalActions > 1 ? 's' : ''}</strong> found. Tap to review & protect.`;
+                const actionLabel = totalActions === 1 ? t('opt_action_singular') : t('opt_action_plural');
+                triggerText.innerHTML = `<strong>${totalActions} ${actionLabel}</strong> ${t('opt_actions_found')}. ${t('opt_tap_to_review')}`;
             }
-            triggerBtn.textContent = 'Optimize';
+            triggerBtn.textContent = t('opt_btn_optimize');
             isFullyOptimized = false;
         } else {
             isFullyOptimized = true;
             trigger.style.display = 'flex';
             trigger.classList.add('all-done');
-            triggerText.innerHTML = '<strong>System Optimized.</strong> Token usage is highly efficient.';
-            triggerBtn.textContent = 'History';
+            triggerText.innerHTML = `<strong>${t('opt_system_optimized')}</strong> ${t('opt_efficient_desc')}`;
+            triggerBtn.textContent = t('opt_btn_history');
         }
 
         // Re-render current view if visible
         refreshFlippedOptimizerView();
     } catch (e) {
         console.error('Failed to load diagnostics', e);
-        showToast(e.message || 'Failed to load diagnostics');
+        showToast(e.message || t('opt_toast_failed'));
     }
 }
 
@@ -854,24 +896,28 @@ function refreshFlippedOptimizerView() {
 function renderSkillAuditList(meta) {
     let html = '<div class="skill-audit-list">';
     const defaultCount = meta.defaultSelectedCount || 0;
+    const summaryText = defaultCount > 0 
+        ? t('opt_audit_summary').replace('{n}', defaultCount)
+        : t('opt_audit_none_selected');
+
     html += `<div class="skill-audit-summary">
-        <span class="skill-audit-summary-text">Checked = remove. Unchecked = keep. ${defaultCount > 0 ? `${defaultCount} suggested for removal by default.` : 'Nothing is pre-selected by default.'}</span>
+        <span class="skill-audit-summary-text">${summaryText}</span>
         <div class="skill-audit-actions">
-            <button type="button" class="skill-audit-action" data-skill-action="keep-all">Keep All</button>
-            <button type="button" class="skill-audit-action" data-skill-action="remove-flagged">Remove All</button>
+            <button type="button" class="skill-audit-action" data-skill-action="keep-all">${t('opt_audit_btn_keep_all')}</button>
+            <button type="button" class="skill-audit-action" data-skill-action="remove-flagged">${t('opt_audit_btn_remove_all')}</button>
         </div>
     </div>`;
     if (meta.idleSkills && meta.idleSkills.length > 0) {
-        html += '<div class="skill-group"><span class="skill-group-label idle">Suggested Remove (' + meta.idleSkills.length + ')</span>';
+        html += `<div class="skill-group"><span class="skill-group-label idle">${t('opt_audit_group_suggested')} (${meta.idleSkills.length})</span>`;
         meta.idleSkills.forEach(s => {
-            html += `<label class="skill-badge idle"><input type="checkbox" class="skill-checkbox" checked data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">Remove</span></label>`;
+            html += `<label class="skill-badge idle"><input type="checkbox" class="skill-checkbox" checked data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">${t('opt_audit_choice_remove')}</span></label>`;
         });
         html += '</div>';
     }
     if (meta.quietSkills && meta.quietSkills.length > 0) {
-        html += '<div class="skill-group"><span class="skill-group-label quiet">Review Manually (' + meta.quietSkills.length + ')</span>';
+        html += `<div class="skill-group"><span class="skill-group-label quiet">${t('opt_audit_group_manual')} (${meta.quietSkills.length})</span>`;
         meta.quietSkills.forEach(s => {
-            html += `<label class="skill-badge quiet"><input type="checkbox" class="skill-checkbox" data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">Keep</span></label>`;
+            html += `<label class="skill-badge quiet"><input type="checkbox" class="skill-checkbox" data-skill-name="${escapeHtml(s.name)}">${escapeHtml(s.name)} <small>${s.daysSince}d</small> <span class="skill-choice">${t('opt_audit_choice_keep')}</span></label>`;
         });
         html += '</div>';
     }
@@ -885,7 +931,7 @@ function updateSkillAuditSelection(itemEl) {
     skillCheckboxes.forEach(cb => {
         if (cb.checked) selectedCount++;
         const choice = cb.closest('.skill-badge')?.querySelector('.skill-choice');
-        if (choice) choice.textContent = cb.checked ? 'Remove' : 'Keep';
+        if (choice) choice.textContent = cb.checked ? t('opt_audit_choice_remove') : t('opt_audit_choice_keep');
     });
 
     const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
@@ -901,27 +947,40 @@ function updateSkillAuditSelection(itemEl) {
     itemEl.setAttribute('data-savings', selectedSavings);
     const tag = itemEl.querySelector(`#savings-tag-${itemEl.getAttribute('data-action')}`);
     if (tag) {
-        tag.textContent = selectedSavings > 0 ? `-$${selectedSavings.toFixed(2)}/mo` : '🛡️ Review';
+        tag.textContent = selectedSavings > 0 ? `-$${selectedSavings.toFixed(2)}${t('unit_per_month')}` : '🛡️ Review';
     }
 }
 
 function renderActionItem(act, isSkipped = false) {
-    const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}/mo` : '🛡️ Protection';
+    const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}${t('unit_per_month')}` : t('opt_preventative');
     const savingsClass = act.savings > 10 ? 'high-savings' : (act.savings > 0 ? 'medium-savings' : 'safety');
     const initialMeta = act._meta && typeof act._meta === 'object' && !Array.isArray(act._meta)
         ? { ...act._meta }
         : {};
 
-    // L2: Side effect in plain language
-    let sideEffectHtml = '';
-    if (act.plainSideEffect || act.sideEffect) {
-        sideEffectHtml = `<div class="opt-sideeffect">${escapeHtml(act.plainSideEffect || act.sideEffect)}</div>`;
+    // L1: Use plainTitle (beginner-friendly), fallback to title
+    let displayTitle = act.plainTitle || act.title;
+    let displayDesc = act.description || '';
+    let displayHelp = act.helpText || '';
+
+    // Localize if key exists
+    if (t(act.actionId + '_title') !== act.actionId + '_title') {
+        displayTitle = t(act.actionId + '_title');
+        displayDesc = t(act.actionId + '_desc');
+        displayHelp = t(act.actionId + '_help');
     }
 
-    // L1: Use plainTitle (beginner-friendly), fallback to title
-    const displayTitle = act.plainTitle || act.title;
+    // Localize side effects if available in dict
+    let displaySideEffect = act.plainSideEffect || act.sideEffect;
+    if (t(act.actionId + '_side_effect') !== act.actionId + '_side_effect') {
+        displaySideEffect = t(act.actionId + '_side_effect');
+    }
 
-    // A02 with multi-interval options
+    // L2: Side effect in plain language
+    let sideEffectHtml = '';
+    if (displaySideEffect) {
+        sideEffectHtml = `<div class="opt-sideeffect">${t('opt_side_effect')}: ${escapeHtml(displaySideEffect)}</div>`;
+    }
     let optionsHtml = '';
     if (act.actionId === 'A02' && act.options && act.options.length > 0) {
         const initialOption = act.options[0];
@@ -933,10 +992,23 @@ function renderActionItem(act, isSkipped = false) {
             const checked = i === 0 ? ' checked' : '';
             const isDisable = opt.value === '0m';
             const labelClass = isDisable ? 'opt-radio-disable' : '';
+            
+            // Localize radio labels
+            let displayLabel = opt.label;
+            if (opt.value === '0m') {
+                displayLabel = t('opt_btn_disable');
+            } else if (opt.value.endsWith('m')) {
+                displayLabel = t('time_every_m').replace('{n}', parseInt(opt.value));
+            } else if (opt.value.endsWith('h')) {
+                displayLabel = t('time_every_h').replace('{n}', parseInt(opt.value));
+            } else if (opt.label === 'your choice') {
+                displayLabel = t('opt_your_choice');
+            }
+
             return `<label class="opt-radio ${labelClass}">
                 <input type="radio" name="${isSkipped ? 'skip-' : ''}hb-interval-${act.actionId}" value="${opt.value}" data-savings="${opt.savings}"${checked}>
-                <span class="opt-radio-label">${escapeHtml(opt.label)}</span>
-                <span class="opt-radio-savings">${opt.savingsStr}</span>
+                <span class="opt-radio-label">${escapeHtml(displayLabel)}</span>
+                <span class="opt-radio-savings">${escapeHtml(opt.savingsStr).replace('/mo', t('unit_per_month'))}</span>
             </label>`;
         }).join('');
         optionsHtml = `<div class="opt-interval-selector" style="margin:8px 0;display:flex;flex-direction:column;gap:4px;">${optItems}</div>`;
@@ -947,28 +1019,43 @@ function renderActionItem(act, isSkipped = false) {
     const detailParts = [];
     if (act.configDiff) {
         const d = act.configDiff;
-        detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(d.from)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(d.to)}</span></div>`);
+        let toValue = d.to;
+        if (toValue === 'your choice') toValue = t('opt_your_choice');
+        else if (toValue.endsWith('m')) toValue = t('time_every_m').replace('{n}', parseInt(toValue)).replace('每 ', '').replace('every ', '');
+        else if (toValue.endsWith('h')) toValue = t('time_every_h').replace('{n}', parseInt(toValue)).replace('每 ', '').replace('every ', '');
+        else if (t(toValue) !== toValue) toValue = t(toValue);
+
+        let fromValue = d.from;
+        if (fromValue.endsWith('m')) fromValue = t('time_every_m').replace('{n}', parseInt(fromValue)).replace('每 ', '').replace('every ', '');
+        else if (fromValue.endsWith('h')) fromValue = t('time_every_h').replace('{n}', parseInt(fromValue)).replace('每 ', '').replace('every ', '');
+        
+        detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(fromValue)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(toValue)}</span></div>`);
     }
     if (act.calcDetail) {
-        detailParts.push(`<div class="opt-calc">\ud83d\udcd0 ${escapeHtml(act.calcDetail)}</div>`);
+        // Localize 'task(s)', 'tok/run', 'aggregated runs/mo' in calcDetail
+        const localizedDetail = act.calcDetail
+            .replace('task(s)', t('unit_tasks'))
+            .replace('tok/run', t('unit_tok_run'))
+            .replace('aggregated runs/mo', t('unit_agg_runs_mo'));
+        detailParts.push(`<div class="opt-calc">\ud83d\udcd0 ${escapeHtml(localizedDetail)}</div>`);
     }
     if (act.codeTag) {
         detailParts.push(`<div class="opt-codetag"><code>${escapeHtml(act.codeTag)}</code></div>`);
     }
     if (detailParts.length > 0) {
-        detailsHtml = `<details class="opt-details"><summary>Technical Details</summary><div class="opt-details-body">${detailParts.join('')}</div></details>`;
+        detailsHtml = `<details class="opt-details"><summary>${t('opt_tech_details')}</summary><div class="opt-details-body">${detailParts.join('')}</div></details>`;
     }
 
-    const tooltipHtml = act.helpText ? `<span class="opt-help" onclick="toggleHelp(this, event)">?</span>` : '';
-    const helpBoxHtml = act.helpText ? `<div class="opt-help-box">${escapeHtml(act.helpText)}</div>` : '';
+    const tooltipHtml = displayHelp ? `<span class="opt-help" onclick="toggleHelp(this, event)">?</span>` : '';
+    const helpBoxHtml = displayHelp ? `<div class="opt-help-box">${escapeHtml(displayHelp)}</div>` : '';
     const tagInteractive = act.savings === 0 ? ' interactive' : '';
     const tagOnclick = act.savings === 0 ? ' onclick="toggleHelp(this, event)"' : '';
 
     const actionButtons = isSkipped 
-        ? `<button class="btn-skip" onclick="handleUnskip('${act.actionId}')">Restore</button>
-           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')">Apply Anyway</button>`
-        : `<button class="btn-skip" onclick="handleSkip(this, '${act.actionId}')">Skip</button>
-           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">Apply</span><span class="confirm-label">Confirm?</span><span class="applying-label">Applying\u2026</span><span class="done-label">\u2713 Applied</span></button>`;
+        ? `<button class="btn-skip" onclick="handleUnskip('${act.actionId}')">${t('opt_btn_restore')}</button>
+           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')">${t('btn_retry')}</button>`
+        : `<button class="btn-skip" onclick="handleSkip(this, '${act.actionId}')">${t('opt_btn_skip')}</button>
+           <button class="btn-mini" onclick="handleOpt(this, '${act.actionId}')"><span class="default-label">${t('opt_btn_apply')}</span><span class="confirm-label">${t('opt_btn_confirm')}</span><span class="applying-label">${t('opt_btn_applying')}</span><span class="done-label">${t('opt_btn_applied')}</span></button>`;
     const metaAttr = Object.keys(initialMeta).length > 0
         ? ' data-meta=\'' + JSON.stringify(initialMeta).replace(/'/g, '&#39;') + '\''
         : '';
@@ -976,14 +1063,14 @@ function renderActionItem(act, isSkipped = false) {
     const itemHtml = `
                 <div class="opt-item ${savingsClass} ${isSkipped ? 'is-skipped' : ''}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
                     <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)} ${tooltipHtml}</span><span class="opt-savings-tag${tagInteractive}" id="savings-tag-${act.actionId}"${tagOnclick}>${savingsStr}</span></div>
-                    <div class="opt-desc">${escapeHtml(act.description || '')}</div>
+                    <div class="opt-desc">${escapeHtml(displayDesc)}</div>
                     ${act._meta && act._meta.type === 'skill-audit' ? renderSkillAuditList(act._meta) : ''}
                     ${helpBoxHtml}
                     ${sideEffectHtml}
                     ${optionsHtml}
                     ${detailsHtml}
                     <div class="opt-action-line" style="justify-content: flex-end; gap: 8px;">
-                        ${act.type === 'advisory' ? '<span class="btn-advisory">ℹ️ Manual Action</span>' : actionButtons}
+                        ${act.type === 'advisory' ? `<span class="btn-advisory">${t('opt_manual_action')}</span>` : actionButtons}
                     </div>
                 </div>`;
 
@@ -998,7 +1085,7 @@ function renderActionItem(act, isSkipped = false) {
             const selectedSavings = parseFloat(radio.getAttribute('data-savings')) || 0;
             itemEl.setAttribute('data-savings', selectedSavings);
             const tag = itemEl.querySelector(`#savings-tag-${act.actionId}`);
-            if (tag) tag.textContent = `-$${selectedSavings.toFixed(2)}/mo`;
+            if (tag) tag.textContent = `-$${selectedSavings.toFixed(2)}${t('unit_per_month')}`;
             const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
             currentMeta.interval = radio.value;
             itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
@@ -1032,7 +1119,7 @@ function renderActionItem(act, isSkipped = false) {
             applyBtn.addEventListener('click', () => {
                 const selected = [];
                 skillCheckboxes.forEach(cb => { if (cb.checked) selected.push(cb.dataset.skillName); });
-                if (selected.length === 0) { showToast('Please select at least one skill to remove'); return; }
+                if (selected.length === 0) { showToast(t('opt_audit_none_selected')); return; }
                 const currentMeta = JSON.parse(itemEl.getAttribute('data-meta') || '{}');
                 currentMeta.selectedSkillNames = selected;
                 itemEl.setAttribute('data-meta', JSON.stringify(currentMeta));
@@ -1055,7 +1142,7 @@ function renderOptimizerList() {
         document.getElementById('main-savings-amount').innerText = '$' + diagnosticsData.totalMonthlySavings.toFixed(2);
         document.getElementById('main-savings-amount').style.fontSize = '56px';
     } else {
-        document.getElementById('main-savings-amount').innerText = '🛡️ Preventative';
+        document.getElementById('main-savings-amount').innerText = t('opt_preventative');
         document.getElementById('main-savings-amount').style.fontSize = '36px';
     }
 
@@ -1082,8 +1169,8 @@ function renderOptimizerList() {
         skippedWrapper.style.marginTop = '30px';
         skippedWrapper.innerHTML = `
             <div class="section-header-small" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; border: 1px dashed var(--border);" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                <span>Skipped Recommendations (${skipped.length})</span>
-                <span style="font-size:10px; opacity:0.6; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">Toggle View</span>
+                <span>${t('opt_skipped_title')} (${skipped.length})</span>
+                <span style="font-size:10px; opacity:0.6; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">${t('opt_toggle_view')}</span>
             </div>
             <div id="skipped-list" class="opt-list" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; opacity: 0.9;"></div>
         `;
@@ -1128,7 +1215,7 @@ async function renderHistoryList() {
     try {
         const res = await fetchAuth(API + '/optimizations/history');
         if (!res.ok) {
-            throw new Error(await readErrorMessage(res, 'Failed to load optimization history'));
+            throw new Error(await readErrorMessage(res, t('err_load_history')));
         }
         const history = await res.json();
         renderHistoryTimeline(document.getElementById('timeline-list'), history);
@@ -1140,12 +1227,67 @@ async function renderHistoryList() {
     }
 }
 
+function localizeConfigChange(text) {
+    if (!text) return '';
+    
+    // Pattern: Moved to backup: skill1, skill2
+    if (text.startsWith('Moved to backup:')) {
+        const skills = text.replace('Moved to backup:', '').trim();
+        return t('hist_moved_to_backup').replace('{n}', skills);
+    }
+    
+    // Pattern: SOUL.md += "Be concise"
+    if (text.includes('SOUL.md += "Be concise"')) {
+        return t('hist_concise_soul');
+    }
+    
+    // Pattern: Restored N keys [+ M skills] [+ SOUL.md] from backup_file.json
+    if (text.startsWith('Restored')) {
+        let result = text;
+        const keysMatch = text.match(/Restored (\d+) keys/);
+        if (keysMatch) {
+            result = result.replace(keysMatch[0], t('hist_restored_keys').replace('{n}', keysMatch[1]));
+        }
+        const skillsMatch = text.match(/(\d+) skills/);
+        if (skillsMatch) {
+            result = result.replace(skillsMatch[0], t('hist_restored_skills').replace('{n}', skillsMatch[1]));
+        }
+        if (result.includes(' + SOUL.md')) {
+            result = result.replace(' + SOUL.md', ' + SOUL.md'); // No translation for filename
+        }
+        const fromMatch = text.match(/from (.*)$/);
+        if (fromMatch) {
+            result = result.replace(fromMatch[0], t('hist_restored_from').replace('{f}', fromMatch[1]));
+        }
+        return result;
+    }
+    
+    // Key-value pairs like heartbeat.every: 30m
+    if (text.includes(':')) {
+        const parts = text.split(':');
+        const key = parts[0].trim();
+        let val = parts[1].trim();
+        
+        // Localize key if found (unlikely for raw keys, but for consistency)
+        const localizedKey = t(key);
+        
+        // Localize values like 30m, 1h, 0m
+        if (val.endsWith('m')) val = t('time_every_m').replace('{n}', parseInt(val)).replace('每 ', '').replace('every ', '');
+        else if (val.endsWith('h')) val = t('time_every_h').replace('{n}', parseInt(val)).replace('每 ', '').replace('every ', '');
+        else if (t(val) !== val) val = t(val);
+        
+        return `${localizedKey}: ${val}`;
+    }
+
+    return text;
+}
+
 function renderHistoryTimeline(list, history) {
     if (!list) return;
     list.innerHTML = '';
 
     if (history.length === 0) {
-        list.innerHTML = '<div style="color:var(--text-dim); font-size:12px;">No recent optimizations found.</div>';
+        list.innerHTML = `<div style="color:var(--text-dim); font-size:12px;">${t('opt_no_history')}</div>`;
         return;
     }
 
@@ -1153,31 +1295,31 @@ function renderHistoryTimeline(list, history) {
         const date = new Date(hist.timestamp);
         const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        let title = hist.title || ('Applied: ' + hist.actionId);
-        if (hist.actionId === 'A01') title = 'Switched to a more efficient Model';
-        if (hist.actionId === 'A02') title = 'Adjusted Heartbeat Interval';
-        if (hist.actionId === 'A03') title = 'Reduced Session Resets';
-        if (hist.actionId === 'A04') title = 'Reviewed Installed Skills';
-        if (hist.actionId === 'A05') title = 'Reduced AI Thinking Allowance';
-        if (hist.actionId === 'A06') title = 'Enabled Prompt Caching';
-        if (hist.actionId === 'A07') title = 'Enabled Compaction Safeguard';
-        if (hist.actionId === 'A09') title = 'Reduced Output Verbosity';
-        if (hist.actionId === 'UNDO') title = '↩️ Rolled back to previous config';
+        let title = hist.title;
+        // Map to localized titles
+        const localizedTitle = t(hist.actionId + '_title');
+        if (localizedTitle !== hist.actionId + '_title') {
+            title = localizedTitle;
+        } else if (hist.actionId === 'UNDO') {
+            title = `↩️ ${t('hist_undo')}`;
+        } else if (!title) {
+            title = ('Applied: ' + hist.actionId);
+        }
 
-        const savingsTag = hist.savings > 0 ? ` — saved $${Number(hist.savings).toFixed(2)}/mo` : '';
+        const savingsTag = hist.savings > 0 ? ` — ${t('hist_saved')} $${Number(hist.savings).toFixed(2)}${t('unit_per_month')}` : '';
 
         const canShowUndo = i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO';
         const isUndoBlockedByNewerChanges = i > 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO';
 
         let undoHtml = '';
         if (canShowUndo) {
-            const undoLabel = hist.actionId === 'A04' ? 'Restore Skills' : 'Undo';
+            const undoLabel = hist.actionId === 'A04' ? t('hist_restore_skills') : t('hist_undo');
             undoHtml = `<button class="btn-undo" data-backup-path="${encodeURIComponent(hist.backupPath)}">${undoLabel}</button>`;
         }
 
         let undoNoticeHtml = '';
         if (isUndoBlockedByNewerChanges) {
-            undoNoticeHtml = '<div class="timeline-note">Undo unavailable after newer changes.</div>';
+            undoNoticeHtml = `<div class="timeline-note">${t('hist_undo_unavailable')}</div>`;
         }
 
         let effectHtml = '';
@@ -1189,7 +1331,8 @@ function renderHistoryTimeline(list, history) {
             effectHtml = `<span class="effect-tag ${effectClass}">7d: $${actualSaving.toFixed(2)}</span>`;
         }
 
-        const detailsHtml = hist.configChanged ? `<div class="timeline-details hidden">${escapeHtml(hist.configChanged)}</div>` : '';
+        const localizedConfigChange = localizeConfigChange(hist.configChanged);
+        const detailsHtml = hist.configChanged ? `<div class="timeline-details hidden">${escapeHtml(localizedConfigChange)}</div>` : '';
         const clickHandler = hist.configChanged ? 'style="cursor:pointer;" onclick="this.querySelector(\'.timeline-details\').classList.toggle(\'hidden\')"' : '';
 
         const div = document.createElement('div');
@@ -1220,7 +1363,7 @@ function setUndoButtonState(button, pending) {
     if (pending) {
         button.disabled = true;
         if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
-        button.textContent = 'Undoing...';
+        button.textContent = t('hist_undoing');
     } else {
         button.disabled = false;
         if (button.dataset.originalLabel) button.textContent = button.dataset.originalLabel;
@@ -1245,17 +1388,17 @@ async function handleUndo(triggerBtn, backupPath) {
                 return;
             }
             if (response.length === 0) {
-                showToast('Select at least one skill to restore');
+                showToast(t('opt_audit_none_selected'));
                 setUndoButtonState(triggerBtn, false);
                 return;
             }
             if (response.length !== preview.restorableSkills.length) selectedSkillNames = response;
-        } else if (!confirm('Undo this optimization? Your config will be restored from the backup.')) {
+        } else if (!confirm(t('opt_btn_confirm'))) {
             setUndoButtonState(triggerBtn, false);
             return;
         }
 
-        showToast('Undo in progress...');
+        showToast(t('opt_toast_undoing'));
         const res = await fetchAuth(API + '/optimizations/undo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1263,15 +1406,14 @@ async function handleUndo(triggerBtn, backupPath) {
         });
         if (res.ok) {
             const result = await res.json();
-            const skillSuffix = result.skillsRestored ? ` and ${result.skillsRestored} skill${result.skillsRestored > 1 ? 's' : ''}` : '';
-            showToast(`✓ Restored ${result.restoredKeys.length} settings${skillSuffix} from ${result.backupFile}`);
+            showToast(t('opt_toast_undone'));
             await renderHistoryList();
             await fetchDiagnostics();
         } else {
-            showToast('Undo failed: ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
+            showToast(t('opt_toast_failed') + ': ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
         }
     } catch (e) {
-        showToast('Undo failed: ' + e.message);
+        showToast(t('opt_toast_failed') + ': ' + e.message);
     } finally {
         setUndoButtonState(triggerBtn, false);
     }
@@ -1288,7 +1430,13 @@ function flipToOptimizer() {
         results.style.display = 'none';
         success.style.display = 'none';
 
-        const steps = ["Reading history...", "Calculating tokens...", "Checking models...", "Cross-referencing config...", "Finalizing measures..."];
+        const steps = [
+            t('opt_step_reading'),
+            t('opt_step_calculating'),
+            t('opt_step_checking'),
+            t('opt_step_referencing'),
+            t('opt_step_finalizing')
+        ];
         let i = 0;
         stepEl.textContent = steps[0];
         clearOptimizerProgressTimer();
@@ -1317,7 +1465,7 @@ function flipToDashboard() {
 }
 
 async function handleSkip(btn, actionId) {
-    if (!confirm('Ignore this recommendation? You can reset ignored items in Settings.')) return;
+    if (!confirm(t('opt_btn_confirm'))) return;
     btn.disabled = true;
     try {
         const res = await fetchAuth(API + '/optimize/' + actionId + '/skip', { method: 'POST' });
@@ -1326,14 +1474,14 @@ async function handleSkip(btn, actionId) {
             item.style.opacity = '0.5';
             item.style.pointerEvents = 'none';
             await fetchDiagnostics();
-            showToast('Recommendation skipped');
+            showToast(t('opt_toast_skipped'));
         } else {
             btn.disabled = false;
-            showToast(await readErrorMessage(res, 'Skip failed'));
+            showToast(await readErrorMessage(res, t('opt_toast_failed')));
         }
     } catch (e) {
         btn.disabled = false;
-        showToast('Network error');
+        showToast(t('retry'));
     }
 }
 
@@ -1342,12 +1490,12 @@ async function handleUnskip(actionId) {
         const res = await fetchAuth(API + '/optimize/' + actionId + '/unskip', { method: 'POST' });
         if (res.ok) {
             await fetchDiagnostics();
-            showToast('Recommendation restored');
+            showToast(t('opt_toast_restored'));
         } else {
-            showToast(await readErrorMessage(res, 'Restore failed'));
+            showToast(await readErrorMessage(res, t('opt_toast_failed')));
         }
     } catch (e) {
-        showToast('Restore failed');
+        showToast(t('opt_toast_failed'));
     }
 }
 
@@ -1392,7 +1540,7 @@ async function handleOpt(btn, actionId) {
                     mainAmount.textContent = '$' + Math.max(0, cur - savingsVal).toFixed(2);
                 }
 
-                showToast(appliedSkippedRecommendation ? 'Skipped recommendation applied' : 'Optimization applied');
+                showToast(appliedSkippedRecommendation ? t('opt_toast_restored') : t('opt_toast_applied'));
 
                 if (actionsApplied >= totalActions) {
                     setTimeout(showSuccess, 1000);
@@ -1400,12 +1548,12 @@ async function handleOpt(btn, actionId) {
             } else {
                 btn.classList.remove('applying');
                 btn.disabled = false;
-                showToast('Optimization failed: ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
+                showToast(t('opt_toast_failed') + ': ' + ((await res.json().catch(() => ({}))).details || 'Unknown error'));
             }
         } catch (e) {
             btn.classList.remove('applying');
             btn.disabled = false;
-            showToast('Network error: ' + e.message);
+            showToast(t('opt_toast_failed') + ': ' + e.message);
         }
     }
 }
@@ -1416,15 +1564,15 @@ if (window.location.hostname.endsWith('trycloudflare.com')) {
 }
 
 async function resetSkips() {
-    if (!confirm('Reset all ignored recommendations?')) return;
+    if (!confirm(t('opt_btn_confirm'))) return;
     try {
         const res = await fetchAuth(API + '/optimize/reset-skips', { method: 'POST' });
         if (res.ok) {
-            showToast('Reset successful');
+            showToast(t('opt_toast_restored'));
             fetchDiagnostics();
         }
     } catch (e) {
-        showToast('Reset failed');
+        showToast(t('opt_toast_failed'));
     }
 }
 
@@ -1551,8 +1699,8 @@ function showSuccess() {
         success.style.display = 'flex';
         renderHistoryList(); // Refresh history
         trigger.classList.add('all-done');
-        triggerText.innerHTML = '<strong>System Optimized.</strong> Token usage is 100% efficient.';
-        triggerBtn.textContent = 'History';
+        triggerText.innerHTML = `<strong>${t('opt_system_optimized')}</strong> ${t('opt_efficient_desc')}`;
+        triggerBtn.textContent = t('opt_btn_history');
     }, 500);
 }
 

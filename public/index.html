@@ -18,58 +18,58 @@
     <h1>
         <img id="app-logo" src="app-icon.png" alt="Logo">
         <span id="status-dot" class="status-dot" style="margin-right:10px;"></span>
-        ClawBridge
+        <span data-i18n="app_name">ClawBridge</span>
     </h1>
 
     <div id="update-alert" class="alert-box"
         style="display:none; background:rgba(34, 197, 94, 0.15); border:1px solid rgba(34, 197, 94, 0.3); color:var(--success);"
         onclick="showUpdateHelp()">
-        ✨ <strong>New Version Available:</strong> <span id="update-ver">v1.1.0</span>
-        <br><span style="text-decoration:underline; font-weight:600;">Tap here to Update</span>
+        ✨ <strong data-i18n="alert_new_ver">New Version Available:</strong> <span id="update-ver">v1.1.0</span>
+        <br><span style="text-decoration:underline; font-weight:600;" data-i18n="alert_tap_update">Tap here to Update</span>
     </div>
 
     <div id="quick-tunnel-alert" class="alert-box"
         style="display:none; background:rgba(234, 197, 94, 0.15); border:1px solid rgba(234, 179, 8, 0.3); color:var(--warning);"
         onclick="showTokenHelp()">
-        <strong>⚠️ Temporary Session:</strong> This URL will expire on restart.
-        <br><span style="text-decoration:underline; font-weight:600;">Tap here to configure a Permanent Domain</span>
+        <strong data-i18n="alert_temp_session">Temporary Session:</strong> <span data-i18n="alert_temp_desc">This URL will expire on restart.</span>
+        <br><span style="text-decoration:underline; font-weight:600;" data-i18n="alert_tap_permanent">Tap here to configure a Permanent Domain</span>
     </div>
 
     <!-- LEGEND MODAL -->
     <div id="legend-modal" class="modal-overlay" onclick="if(event.target===this) toggleLegend(false)">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="modal-title">Activity Legend</span>
+                <span class="modal-title" data-i18n="legend_title">Activity Legend</span>
                 <button class="modal-close" onclick="toggleLegend(false)">×</button>
             </div>
             <div class="legend-grid">
                 <div class="legend-item">
                     <span class="legend-icon">🔧</span>
-                    <div class="legend-text"><strong style="color:#fbbf24">Tool Call</strong><span>External actions
+                    <div class="legend-text"><strong style="color:#fbbf24" data-i18n="legend_tool">Tool Call</strong><span data-i18n="legend_tool_desc">External actions
                             (search, exec, write)</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">🧠</span>
-                    <div class="legend-text"><strong style="color:#60a5fa">Thinking</strong><span>AI reasoning &
+                    <div class="legend-text"><strong style="color:#60a5fa" data-i18n="legend_thinking">Thinking</strong><span data-i18n="legend_thinking_desc">AI reasoning &
                             planning process</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">📜</span>
-                    <div class="legend-text"><strong style="color:#c084fc">Script</strong><span>Background automation
+                    <div class="legend-text"><strong style="color:#c084fc" data-i18n="legend_script">Script</strong><span data-i18n="legend_script_desc">Background automation
                             (Cron jobs)</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">📄</span>
-                    <div class="legend-text"><strong style="color:#4ade80">File IO</strong><span>Workspace file creation
+                    <div class="legend-text"><strong style="color:#4ade80" data-i18n="legend_file">File IO</strong><span data-i18n="legend_file_desc">Workspace file creation
                             or updates</span></div>
                 </div>
                 <div class="legend-item">
                     <span class="legend-icon">⚡</span>
-                    <div class="legend-text"><strong style="color:#f8fafc">System</strong><span>High CPU or resource
+                    <div class="legend-text"><strong style="color:#f8fafc" data-i18n="legend_system">System</strong><span data-i18n="legend_system_desc">High CPU or resource
                             alerts</span></div>
                 </div>
                 <div
-                    style="margin-top:10px; font-size:10px; color:var(--text-dim); line-height:1.4; border-top:1px solid var(--border); padding-top:10px;">
+                    style="margin-top:10px; font-size:10px; color:var(--text-dim); line-height:1.4; border-top:1px solid var(--border); padding-top:10px;" data-i18n="legend_note">
                     <strong>Note:</strong> Monitoring polls every 3 seconds to minimize CPU usage. Extremely short-lived
                     scripts (<3s) may not be captured in real-time logs. </div>
                 </div>
@@ -80,36 +80,36 @@
         <div id="token-modal" class="modal-overlay" onclick="if(event.target===this) toggleTokenHelp(false)">
             <div class="modal-content" style="max-width:400px;">
                 <div class="modal-header">
-                    <span class="modal-title">Configure Permanent Link</span>
+                    <span class="modal-title" data-i18n="modal_cloudflare_title">Configure Permanent Link</span>
                     <button class="modal-close" onclick="toggleTokenHelp(false)">×</button>
                 </div>
                 <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
-                    <p style="margin-top:0">To keep your URL fixed, you need a Cloudflare Tunnel Token.</p>
+                    <p style="margin-top:0" data-i18n="modal_cloudflare_desc">To keep your URL fixed, you need a Cloudflare Tunnel Token.</p>
 
                     <div style="margin-bottom:15px;">
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Where to find your Token?
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_token_find">Where to find your Token?
                         </div>
                         <div style="font-size:12px; color:var(--text-dim); line-height:1.4;">
-                            1. Go to <a href="https://dash.cloudflare.com/?to=/:account/tunnels" target="_blank"
-                                style="color:var(--accent)">Cloudflare Dash</a> > Networking > Tunnels.<br>
-                            2. Create a tunnel, choose "Docker" (easiest to copy) or your OS, and grab the token string
+                            <span data-i18n="modal_token_step1">1. Go to <a href="https://dash.cloudflare.com/?to=/:account/tunnels" target="_blank"
+                                style="color:var(--accent)">Cloudflare Dash</a> > Networking > Tunnels.</span><br>
+                            <span data-i18n="modal_token_step2">2. Create a tunnel, choose "Docker" (easiest to copy) or your OS, and grab the token string
                             (starts with <code
-                                style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">ey...</code>).<br>
-                            3. After install, go to <b>Public Hostname</b> in your Tunnel settings and map your domain
+                                style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">ey...</code>).</span><br>
+                            <span data-i18n="modal_token_step3">3. After install, go to <b>Public Hostname</b> in your Tunnel settings and map your domain
                             to <code
-                                style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">localhost:3000</code>.
+                                style="background:rgba(255,255,255,0.1); padding:1px 3px; border-radius:3px;">localhost:3000</code>.</span>
                         </div>
                     </div>
 
                     <div style="margin-bottom:15px;">
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask your Agent
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_option_agent">Option 1: Ask your Agent
                             (Chat)</div>
-                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">Send this message to
+                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;" data-i18n="modal_option_agent_desc">Send this message to
                             OpenClaw:</div>
                         <div class="copy-box"
                             onclick="copyText(this, 'Run this command to fix my dashboard URL:\ncd skills/clawbridge && ./install.sh --token=YOUR_TOKEN')">
                             <div style="flex:1; font-family:monospace; font-size:11px;">
-                                Run this command to fix my dashboard URL:<br>
+                                <span data-i18n="modal_fix_url_msg">Run this command to fix my dashboard URL:</span><br>
                                 <span style="color:var(--accent)">cd skills/clawbridge && ./install.sh
                                     --token=YOUR_TOKEN</span>
                             </div>
@@ -118,7 +118,7 @@
                     </div>
 
                     <div>
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal Command
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_option_terminal">Option 2: Terminal Command
                         </div>
                         <div class="copy-box"
                             onclick="copyText(this, 'cd ~/skills/clawbridge && ./install.sh --token=YOUR_TOKEN')">
@@ -137,24 +137,24 @@
         <div id="update-modal" class="modal-overlay" onclick="if(event.target===this) toggleUpdateHelp(false)">
             <div class="modal-content" style="max-width:400px;">
                 <div class="modal-header">
-                    <span class="modal-title">Update Available</span>
+                    <span class="modal-title" data-i18n="modal_update_title">Update Available</span>
                     <button class="modal-close" onclick="toggleUpdateHelp(false)">×</button>
                 </div>
                 <div style="font-size:13px; line-height:1.5; color:var(--text-dim);">
-                    <p style="margin-top:0">A new version of ClawBridge is ready.</p>
+                    <p style="margin-top:0" data-i18n="modal_update_desc">A new version of ClawBridge is ready.</p>
 
                     <div style="margin-bottom:15px;">
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 1: Ask Agent</div>
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_update_agent">Option 1: Ask Agent</div>
                         <div class="copy-box"
                             onclick="copyText(this, 'Read https://clawbridge.app/SKILL.md and update ClawBridge to the latest version. Notify me when the service is back online.')">
-                            <div style="flex:1; font-family:monospace; font-size:11px;">"Read SKILL.md and update..."
+                            <div style="flex:1; font-family:monospace; font-size:11px;" data-i18n="modal_update_agent_desc">"Read SKILL.md and update..."
                             </div>
                             <span class="copy-icon">📋</span>
                         </div>
                     </div>
 
                     <div style="margin-bottom:20px;">
-                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;">Option 2: Terminal</div>
+                        <div style="font-weight:600; color:var(--text); margin-bottom:5px;" data-i18n="modal_update_terminal">Option 2: Terminal</div>
                         <div class="copy-box"
                             onclick="copyText(this, 'curl -sL &quot;https://clawbridge.app/install.sh?ref=update&quot; | bash')">
                             <div style="flex:1; font-family:monospace; font-size:11px; word-break:break-all;">curl -sL
@@ -165,7 +165,7 @@
 
                     <button class="btn"
                         style="background:rgba(255,255,255,0.1); color:var(--text-dim); font-size:12px; padding:10px;"
-                        onclick="skipVersion()">
+                        onclick="skipVersion()" data-i18n="modal_btn_skip">
                         Skip this version
                     </button>
                 </div>
@@ -175,20 +175,20 @@
         <div id="undo-skill-modal" class="modal-overlay" onclick="if(event.target===this) closeUndoSkillModal(null)">
             <div class="modal-content" style="max-width:460px;">
                 <div class="modal-header">
-                    <span class="modal-title">Restore Removed Skills</span>
+                    <span class="modal-title" data-i18n="opt_restore_title">Restore Removed Skills</span>
                     <button class="modal-close" onclick="closeUndoSkillModal(null)">×</button>
                 </div>
-                <div class="undo-skill-copy">
+                <div class="undo-skill-copy" data-i18n="undo_skill_desc">
                     Choose which skills to restore from this backup. Leave them all checked to restore everything.
                 </div>
                 <div class="undo-skill-actions">
-                    <button class="skill-audit-action" onclick="setUndoSkillSelection(true)">Select All</button>
-                    <button class="skill-audit-action" onclick="setUndoSkillSelection(false)">Clear All</button>
+                    <button class="skill-audit-action" onclick="setUndoSkillSelection(true)" data-i18n="modal_btn_select_all">Select All</button>
+                    <button class="skill-audit-action" onclick="setUndoSkillSelection(false)" data-i18n="modal_btn_clear_all">Clear All</button>
                 </div>
                 <div id="undo-skill-list" class="undo-skill-list"></div>
                 <div class="undo-skill-footer">
-                    <button class="btn" style="background:rgba(255,255,255,0.08); color:var(--text);" onclick="closeUndoSkillModal(null)">Cancel</button>
-                    <button class="btn" style="background:var(--accent);" onclick="confirmUndoSkillSelection()">Restore Selected</button>
+                    <button class="btn" style="background:rgba(255,255,255,0.08); color:var(--text);" onclick="closeUndoSkillModal(null)" data-i18n="modal_btn_cancel">Cancel</button>
+                    <button class="btn" style="background:var(--accent);" onclick="confirmUndoSkillSelection()" data-i18n="opt_restore_btn">Restore Selected</button>
                 </div>
             </div>
         </div>
@@ -197,22 +197,22 @@
         <div id="view-home" class="view-container active">
             <div class="card">
                 <div class="section-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                    <span style="font-weight:600">System Status</span>
+                    <span style="font-weight:600" data-i18n="sys_status">System Status</span>
                     <small style="font-family:monospace; color:var(--text-dim)" id="heartbeat">--:--:--</small>
                 </div>
 
                 <div class="metrics">
                     <div class="metric-box">
                         <div class="metric-val" id="cpu-val">--%</div>
-                        <div class="metric-label">CPU Load</div>
+                        <div class="metric-label" data-i18n="cpu_load">CPU Load</div>
                     </div>
                     <div class="metric-box">
                         <div class="metric-val" id="mem-val">--%</div>
-                        <div class="metric-label">Memory</div>
+                        <div class="metric-label" data-i18n="ram">Memory</div>
                     </div>
                     <div class="metric-box">
                         <div class="metric-val" id="disk-val">--%</div>
-                        <div class="metric-label">Disk</div>
+                        <div class="metric-label" data-i18n="disk">Disk</div>
                     </div>
                 </div>
 
@@ -220,17 +220,17 @@
                     <div
                         style="font-size:11px; color:var(--text-dim); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <span>LIVE ACTIVITY</span>
+                            <span data-i18n="live_activity">LIVE ACTIVITY</span>
                             <button onclick="toggleLegend(true)"
                                 style="background:none; border:none; color:var(--text-dim); cursor:pointer; padding:0; font-size:12px; opacity:0.5; transition:opacity 0.2s;"
                                 onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">
                                 ⓘ
                             </button>
                         </div>
-                        <span id="activity-status" style="color:var(--success)">● Live</span>
+                        <span id="activity-status" style="color:var(--success)" data-i18n="status_live">● Live</span>
                     </div>
                     <div id="activity-feed">
-                        <div style="color:var(--text-dim); font-style:italic; padding:5px;">Connecting...</div>
+                        <div style="color:var(--text-dim); font-style:italic; padding:5px;" data-i18n="connecting">Connecting...</div>
                     </div>
                 </div>
             </div>
@@ -241,23 +241,22 @@
             <div class="card">
                 <div class="section-header"
                     style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span style="font-weight:600">Memory Timeline</span>
+                    <span style="font-weight:600" data-i18n="memory_timeline">Memory Timeline</span>
                     <select id="memory-selector" onchange="fetchMemory(this.value)"
                         style="background:rgba(255,255,255,0.1); border:none; color:var(--text); padding:4px 8px; border-radius:4px; font-size:12px;">
-                        <option value="">Today</option>
                     </select>
                 </div>
 
                 <div id="memory-content"
-                    style="font-size:14px; line-height:1.6; color:var(--text-dim); white-space: pre-wrap;">
-                    Loading...
+                    style="font-size:14px; line-height:1.6; color:var(--text-dim); white-space: pre-wrap;" data-i18n="memory_loading">
+                    Accessing agent memories...
                 </div>
 
                 <div style="display:flex; justify-content:space-between; margin-top:20px;">
                     <button class="btn" style="width:48%; background:rgba(255,255,255,0.05); color:var(--text);"
-                        onclick="navMemory(-1)">← Previous</button>
+                        onclick="navMemory(-1)" data-i18n="btn_prev">← Previous</button>
                     <button class="btn" style="width:48%; background:rgba(255,255,255,0.05); color:var(--text);"
-                        onclick="navMemory(1)">Next →</button>
+                        onclick="navMemory(1)" data-i18n="btn_next">Next →</button>
                 </div>
             </div>
         </div>
@@ -268,7 +267,7 @@
             <div class="card">
                 <div class="section-header"
                     style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span style="font-weight:600">Mission Control</span>
+                    <span style="font-weight:600" data-i18n="mission_control">Mission Control</span>
                     <button class="refresh-btn" onclick="fetchJobs()">↻</button>
                 </div>
                 <div id="job-list" class="job-list">
@@ -288,9 +287,9 @@
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
                         </div>
-                        <div class="et-text" id="trigger-text">Loading optimization data...</div>
+                        <div class="et-text" id="trigger-text" data-i18n="loading">Loading optimization data...</div>
                     </div>
-                    <button class="et-btn" id="trigger-btn">Optimize</button>
+                    <button class="et-btn" id="trigger-btn" data-i18n="opt_btn_history">Optimize</button>
                 </div>
             </div>
 
@@ -301,15 +300,15 @@
 
                     <div class="section-header"
                         style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                        <span style="font-weight:600">Token Economy</span>
+                        <span style="font-weight:600" data-i18n="token_economy">Token Economy</span>
                         <div style="font-size:12px; color:var(--text-dim)">
-                            Total: <span style="color:var(--text); font-weight:bold" id="grand-total-cost">--</span>
+                            <span data-i18n="total_label">Total</span>: <span style="color:var(--text); font-weight:bold" id="grand-total-cost">--</span>
                         </div>
                     </div>
 
                     <div style="text-align:center; padding: 20px 0;">
                         <div
-                            style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">
+                            style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;" data-i18n="today_cost">
                             Today's Cost</div>
                         <div style="font-size:42px; font-weight:800; color:var(--success); margin:10px 0;"
                             id="token-cost">
@@ -319,13 +318,13 @@
                         <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:5px;">
                             <div
                                 style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
-                                <span style="font-size:11px; color:var(--text-dim);">Est. Monthly</span>
+                                <span style="font-size:11px; color:var(--text-dim);" data-i18n="est_monthly">Est. Monthly</span>
                                 <span style="font-size:12px; font-weight:600; color:var(--accent);"
                                     id="monthly-forecast">--</span>
                             </div>
                             <div
                                 style="background:rgba(255,255,255,0.05); border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:8px;">
-                                <span style="font-size:11px; color:var(--text-dim);">Cache Hit</span>
+                                <span style="font-size:11px; color:var(--text-dim);" data-i18n="cache_hit">Cache Hit</span>
                                 <span style="font-size:12px; font-weight:600; color:var(--success);"
                                     id="token-cache-hit-rate">--%</span>
                             </div>
@@ -336,34 +335,34 @@
                     <div
                         style="background:rgba(255,255,255,0.03); border-radius:8px; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:10px; color:var(--text-dim);">LAST UPDATED</span>
+                            <span style="font-size:10px; color:var(--text-dim);" data-i18n="last_updated">LAST UPDATED</span>
                             <span style="font-size:11px; font-family:monospace;" id="token-updated">Never</span>
                         </div>
                         <button class="btn"
                             style="width:auto; padding:6px 12px; font-size:12px; background:var(--accent);"
                             onclick="refreshTokenStats()">
-                            ↻ Refresh
+                            ↻ <span data-i18n="refresh">Refresh</span>
                         </button>
                     </div>
-                    <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;">
+                    <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-bottom:15px;" data-i18n="recalc_note">
                         System automatically recalculates every hour.
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
                         <div class="metric-box" style="padding:10px;">
-                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">INPUT (READ)
+                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;" data-i18n="input_read">INPUT (READ)
                             </div>
                             <div style="font-size:16px; font-weight:600;" id="token-in">--</div>
                         </div>
                         <div class="metric-box" style="padding:10px;">
-                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;">OUTPUT
+                            <div style="font-size:10px; color:var(--text-dim); margin-bottom:4px;" data-i18n="output_write">OUTPUT
                                 (WRITE)</div>
                             <div style="font-size:16px; font-weight:600;" id="token-out">--</div>
                         </div>
                     </div>
 
                     <div style="margin-top:20px;">
-                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">COST TREND (7
+                        <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px;" data-i18n="cost_trend">COST TREND (7
                             DAYS)</div>
                         <div id="trend-chart"
                             style="display:flex; align-items:flex-end; gap:8px; height:100px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1);">
@@ -377,8 +376,8 @@
                     <div style="margin-top:25px;">
                         <div
                             style="font-size:11px; color:var(--text-dim); margin-bottom:10px; display:flex; justify-content:space-between;">
-                            <span>TOP MODELS</span>
-                            <span>COST</span>
+                            <span data-i18n="top_models">TOP MODELS</span>
+                            <span data-i18n="cost">COST</span>
                         </div>
                         <div id="top-models-list">
                             <!-- Injected via JS -->
@@ -400,13 +399,13 @@
                         </div>
                         <div
                             style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; color:var(--text-dim);">
-                            <div>In: <span id="detail-input"
+                            <div><span data-i18n="detail_in">Input</span>: <span id="detail-input"
                                     style="color:var(--text); font-family:monospace;">--</span></div>
-                            <div>Out: <span id="detail-output"
+                            <div><span data-i18n="detail_out">Output</span>: <span id="detail-output"
                                     style="color:var(--text); font-family:monospace;">--</span></div>
-                            <div>Cache R: <span id="detail-cache-read"
+                            <div><span data-i18n="detail_cache_r">Cache R</span>: <span id="detail-cache-read"
                                     style="color:#22d3ee; font-family:monospace;">--</span></div>
-                            <div>Cache W: <span id="detail-cache-write"
+                            <div><span data-i18n="detail_cache_w">Cache W</span>: <span id="detail-cache-write"
                                     style="color:#22d3ee; font-family:monospace;">--</span></div>
                         </div>
                     </div>
@@ -420,7 +419,7 @@
                                 height="22">
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
-                            Optimizer
+                            <span data-i18n="opt_title">Optimizer</span>
                         </div>
                         <button class="btn-close-back" onclick="flipToDashboard()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"
@@ -434,37 +433,37 @@
                     <!-- Loader State -->
                     <div class="scan-progress" id="scan-progress">
                         <div class="scan-spinner"></div>
-                        <div class="progress-title">Analyzing Usage Patterns</div>
+                        <div class="progress-title" data-i18n="opt_analyzing">Analyzing Usage Patterns</div>
                         <div class="progress-sub" id="scan-step-text">Reading 6 days of history...</div>
                     </div>
 
                     <!-- ACTIVE RESULTS VIEW -->
                     <div class="scan-results" id="scan-results">
                         <div class="savings-hero">
-                            <div class="savings-hero-label">Potential Monthly Savings</div>
+                            <div class="savings-hero-label" data-i18n="opt_savings">Potential Monthly Savings</div>
                             <div class="savings-hero-amount" id="main-savings-amount">--</div>
                         </div>
                         <div class="cost-comparison">
                             <div class="cost-compare-item">
-                                <div class="cost-compare-label">Current</div>
+                                <div class="cost-compare-label" data-i18n="opt_current">Current</div>
                                 <div class="cost-compare-val current">--</div>
                             </div>
                             <div class="cost-compare-arrow">→</div>
                             <div class="cost-compare-item">
-                                <div class="cost-compare-label">Optimized</div>
+                                <div class="cost-compare-label" data-i18n="opt_optimized">Optimized</div>
                                 <div class="cost-compare-val optimized">--</div>
                             </div>
                             <div class="cost-compare-item cache-rate-item" style="display:none;">
-                                <div class="cost-compare-label">Cache Hit</div>
+                                <div class="cost-compare-label" data-i18n="cache_hit">Cache Hit</div>
                                 <div class="cost-compare-val" id="optimizer-cache-hit-rate">—</div>
                             </div>
                         </div>
-                        <div class="result-title">Cost-Saving Actions Found</div>
+                        <div class="result-title" data-i18n="opt_actions_found">Cost-Saving Actions Found</div>
                         <div class="opt-list" id="opt-list">
                             <!-- Dynamically populated by renderOptimizerList() -->
                         </div>
                         <div class="history-section" id="active-history-section">
-                            <div class="history-title">Implemented Optimizations</div>
+                            <div class="history-title" data-i18n="opt_implemented_title">Implemented Optimizations</div>
                             <div class="timeline" id="active-timeline-list">
                                 <!-- Timeline items will be injected here -->
                             </div>
@@ -480,18 +479,18 @@
                                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
                             </svg>
                         </div>
-                        <div class="success-title">Fully Optimized</div>
-                        <div class="success-desc">Great job! Your token consumption is now running at optimal
+                        <div class="success-title" data-i18n="opt_system_optimized">Fully Optimized</div>
+                        <div class="success-desc" data-i18n="opt_efficient_desc">Great job! Your token consumption is now running at optimal
                             efficiency.</div>
                         <div class="history-section">
-                            <div class="history-title">Recent Optimizations</div>
+                            <div class="history-title" data-i18n="opt_history_title">Recent Optimizations</div>
                             <div class="timeline" id="timeline-list">
                                 <!-- Timeline items will be injected here -->
                             </div>
                         </div>
 
                         <div id="success-skipped-section" class="hidden" style="width:100%; margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
-                            <div class="result-title">Skipped Recommendations</div>
+                            <div class="result-title" data-i18n="opt_skipped_title">Skipped Recommendations</div>
                             <div id="success-skipped-list" class="opt-list"></div>
                         </div>
                     </div>
@@ -502,11 +501,11 @@
         <!-- VIEW: SETTINGS -->
                 <div id="view-settings" class="view-container">
                     <div class="card">
-                        <h3 style="margin-top:0">Danger Zone</h3>
+                        <h3 style="margin-top:0" data-i18n="danger_zone">Danger Zone</h3>
                         <div style="display:grid; gap:15px;">
                             <div>
                                 <button class="btn btn-restart" onclick="restartGateway()">
-                                    <span>♻️</span> Restart Gateway Service
+                                    <span>♻️</span> <span data-i18n="restart_gateway">Restart Gateway Service</span>
                                 </button>
                                 <div style="font-size:11px; color:var(--text-dim); margin-top:5px; text-align:center;">
                                     Current PID: <span id="gateway-pid"
@@ -516,7 +515,7 @@
 
                             <div>
                                 <button class="btn btn-danger" onclick="killAll()">
-                                    <span>🛑</span> Emergency Stop All Scripts
+                                    <span>🛑</span> <span data-i18n="kill_all">Emergency Stop All Scripts</span>
                                 </button>
                                 <div id="running-scripts-list"
                                     style="font-size:11px; color:var(--text-dim); margin-top:8px; padding:0 5px;">
@@ -527,34 +526,50 @@
                     </div>
 
                     <div class="card">
-                        <h3 style="margin-top:0">About</h3>
+                        <h3 style="margin-top:0" data-i18n="lang_label">Language</h3>
                         <div class="info-row">
-                            <span class="info-label">ClawBridge Version</span>
+                            <span class="info-label" data-i18n="lang_label">Language</span>
+                            <span class="info-val">
+                                <select onchange="setLanguage(this.value)" id="lang-selector" style="background:rgba(255,255,255,0.1); color:white; border:1px solid var(--border); border-radius:4px; padding:2px 5px; font-size:12px;">
+                                    <option value="en" data-i18n="lang_en">English</option>
+                                    <option value="zh" data-i18n="lang_zh">中文</option>
+                                </select>
+                            </span>
+                        </div>
+                        <div style="margin-top:15px;">
+                            <button class="btn" style="width:100%; background:rgba(255,255,255,0.05); color:var(--text); border:1px solid var(--border);" onclick="logout();" data-i18n="logout">Logout</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="margin-top:0" data-i18n="about">About</h3>
+                        <div class="info-row">
+                            <span class="info-label" data-i18n="version">ClawBridge Version</span>
                             <span class="info-val" id="ver-num">Loading...</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Environment</span>
+                            <span class="info-label" data-i18n="env">Environment</span>
                             <span class="info-val" id="runtime-env">Node.js (Systemd)</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Server Timezone</span>
+                            <span class="info-label" data-i18n="server_tz">Server Timezone</span>
                             <span class="info-val" id="server-tz">--</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">OpenClaw Core</span>
+                            <span class="info-label" data-i18n="oc_core">OpenClaw Core</span>
                             <span class="info-val"><a href="https://github.com/openclaw/openclaw" target="_blank"
                                     style="color:var(--accent); text-decoration:none;" id="ver-core">--</a></span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">ClawBridge Source</span>
+                            <span class="info-label" data-i18n="cb_source">ClawBridge Source</span>
                             <span class="info-val"><a
                                     href="https://github.com/dreamwing/clawbridge-openclaw-mobile-dashboard"
                                     target="_blank" style="color:var(--accent); text-decoration:none;"
-                                    id="ver-dash">View
+                                    id="ver-dash" data-i18n="view_github">View
                                     GitHub</a></span>
                         </div>
 
-                        <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;">
+                        <div style="margin-top:15px; font-size:12px; color:var(--text-dim); line-height:1.5;" data-i18n="about_desc">
                             ClawBridge is the mobile-first dashboard for your AI Agent runtime.
                             <br>Designed for monitoring, cost tracking, and task management.
                         </div>
@@ -567,7 +582,7 @@
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                             </svg></div>
-                        <div>Home</div>
+                        <div data-i18n="tab_status">Home</div>
                     </a>
                     <a class="nav-item" onclick="switchTab('memory')">
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
@@ -578,7 +593,7 @@
                                     d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.48-2.04z">
                                 </path>
                             </svg></div>
-                        <div>Memory</div>
+                        <div data-i18n="tab_memory">Memory</div>
                     </a>
                     <a class="nav-item" onclick="switchTab('tokens')">
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
@@ -588,13 +603,13 @@
                                 <line x1="16" y1="9" x2="20" y2="9"></line>
                                 <line x1="16" y1="15" x2="20" y2="15"></line>
                             </svg></div>
-                        <div>Tokens</div>
+                        <div data-i18n="tab_usage">Cost</div>
                     </a>
                     <a class="nav-item" onclick="switchTab('missions')">
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
                             </svg></div>
-                        <div>Missions</div>
+                        <div data-i18n="tab_jobs">Missions</div>
                     </a>
                     <a class="nav-item" onclick="switchTab('settings')">
                         <div class="nav-icon"><svg viewBox="0 0 24 24">
@@ -603,11 +618,12 @@
                                     d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
                                 </path>
                             </svg></div>
-                        <div>Settings</div>
+                        <div data-i18n="tab_settings">Settings</div>
                     </a>
                 </nav>
 
-                <script src="js/dashboard.js?v=20260315-07" defer></script>
+                <script src="js/i18n.js?v=20260317-03"></script>
+                <script src="js/dashboard.js?v=20260317-03" defer></script>
 </body>
 
 </html>
