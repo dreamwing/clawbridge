@@ -957,7 +957,14 @@ function renderActionItem(act, isSkipped = false) {
     }
 
     // L1: Use plainTitle (beginner-friendly), fallback to title
-    const displayTitle = act.plainTitle || act.title;
+    let displayTitle = act.plainTitle || act.title;
+    let displayDesc = act.description || '';
+
+    // Localize if key exists
+    if (t(act.actionId + '_title') !== act.actionId + '_title') {
+        displayTitle = t(act.actionId + '_title');
+        displayDesc = t(act.actionId + '_desc');
+    }
 
     // A02 with multi-interval options
     let optionsHtml = '';
@@ -1014,7 +1021,7 @@ function renderActionItem(act, isSkipped = false) {
     const itemHtml = `
                 <div class="opt-item ${savingsClass} ${isSkipped ? 'is-skipped' : ''}" data-action="${act.actionId}" data-savings="${act.savings}"${metaAttr}>
                     <div class="opt-header"><span class="opt-title">${escapeHtml(displayTitle)} ${tooltipHtml}</span><span class="opt-savings-tag${tagInteractive}" id="savings-tag-${act.actionId}"${tagOnclick}>${savingsStr}</span></div>
-                    <div class="opt-desc">${escapeHtml(act.description || '')}</div>
+                    <div class="opt-desc">${escapeHtml(displayDesc)}</div>
                     ${act._meta && act._meta.type === 'skill-audit' ? renderSkillAuditList(act._meta) : ''}
                     ${helpBoxHtml}
                     ${sideEffectHtml}
@@ -1191,31 +1198,31 @@ function renderHistoryTimeline(list, history) {
         const date = new Date(hist.timestamp);
         const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        let title = hist.title || ('Applied: ' + hist.actionId);
-        if (hist.actionId === 'A01') title = 'Switched to a more efficient Model';
-        if (hist.actionId === 'A02') title = 'Adjusted Heartbeat Interval';
-        if (hist.actionId === 'A03') title = 'Reduced Session Resets';
-        if (hist.actionId === 'A04') title = 'Reviewed Installed Skills';
-        if (hist.actionId === 'A05') title = 'Reduced AI Thinking Allowance';
-        if (hist.actionId === 'A06') title = 'Enabled Prompt Caching';
-        if (hist.actionId === 'A07') title = 'Enabled Compaction Safeguard';
-        if (hist.actionId === 'A09') title = 'Reduced Output Verbosity';
-        if (hist.actionId === 'UNDO') title = '↩️ Rolled back to previous config';
+        let title = hist.title;
+        // Map to localized titles
+        const localizedTitle = t(hist.actionId + '_title');
+        if (localizedTitle !== hist.actionId + '_title') {
+            title = localizedTitle;
+        } else if (hist.actionId === 'UNDO') {
+            title = `↩️ ${t('hist_undo')}`;
+        } else if (!title) {
+            title = ('Applied: ' + hist.actionId);
+        }
 
-        const savingsTag = hist.savings > 0 ? ` — saved $${Number(hist.savings).toFixed(2)}/mo` : '';
+        const savingsTag = hist.savings > 0 ? ` — ${t('hist_saved')} $${Number(hist.savings).toFixed(2)}/mo` : '';
 
         const canShowUndo = i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO';
         const isUndoBlockedByNewerChanges = i > 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO';
 
         let undoHtml = '';
         if (canShowUndo) {
-            const undoLabel = hist.actionId === 'A04' ? 'Restore Skills' : 'Undo';
+            const undoLabel = hist.actionId === 'A04' ? t('hist_restore_skills') : t('hist_undo');
             undoHtml = `<button class="btn-undo" data-backup-path="${encodeURIComponent(hist.backupPath)}">${undoLabel}</button>`;
         }
 
         let undoNoticeHtml = '';
         if (isUndoBlockedByNewerChanges) {
-            undoNoticeHtml = '<div class="timeline-note">Undo unavailable after newer changes.</div>';
+            undoNoticeHtml = `<div class="timeline-note">${t('hist_undo_unavailable')}</div>`;
         }
 
         let effectHtml = '';
@@ -1258,7 +1265,7 @@ function setUndoButtonState(button, pending) {
     if (pending) {
         button.disabled = true;
         if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
-        button.textContent = 'Undoing...';
+        button.textContent = t('hist_undoing');
     } else {
         button.disabled = false;
         if (button.dataset.originalLabel) button.textContent = button.dataset.originalLabel;

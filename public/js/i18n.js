@@ -111,7 +111,7 @@ const translations = {
         stop_failed: "Failed to stop scripts.",
         confirm_restart: "♻️ RESTART GATEWAY?",
         restart_failed: "Failed to restart gateway.",
-        restart_sent: "Restart signal sent.",
+        schedule_manual: "Manual",
 
         // Scripts/Status
         scripts_running: "Running",
@@ -147,7 +147,58 @@ const translations = {
         opt_current: "Current",
         opt_optimized: "Optimized",
         opt_actions_found: "Cost-Saving Actions Found",
-        opt_implemented_title: "Implemented Optimizations",
+        opt_actions_available: "action(s) available",
+        opt_tap_to_save: "Tap to save",
+        opt_tap_to_review: "Tap to review & protect.",
+        opt_no_data_title: "No usage data yet.",
+        opt_no_data_desc: "Start chatting with your AI agent, then come back to see Token cost analysis and savings.",
+        opt_btn_optimize: "Optimize",
+        opt_no_history: "No optimization history yet.",
+        
+        // Optimizer History
+        hist_saved: "saved",
+        hist_undo: "Undo",
+        hist_restore_skills: "Restore Skills",
+        hist_undo_unavailable: "Undo unavailable after newer changes.",
+        hist_undoing: "Undoing...",
+
+        // Skill Audit
+        opt_audit_summary: "{n} skill(s) selected for removal.",
+        opt_audit_none_selected: "No skills selected for removal.",
+        opt_audit_btn_keep_all: "Keep All",
+        opt_audit_btn_remove_all: "Remove Flagged",
+        opt_audit_group_suggested: "Suggested for Removal",
+        opt_audit_group_manual: "Manual Review Required",
+        opt_audit_choice_remove: "Remove",
+        opt_audit_choice_keep: "Keep",
+
+        // Optimizer Action Mappings
+        'A01_title': "Switch to a cheaper AI model",
+        'A01_desc': "Primary usage is on premium model. Switching to smaller models saves cost.",
+        'A02_title': "Reduce Heartbeat frequency",
+        'A02_desc': "Lowering the background check frequency reduces token consumption.",
+        'A03_title': "Continue existing conversations",
+        'A03_desc': "Reusing context instead of starting new sessions saves input tokens.",
+        'A04_title': "Audit possibly inactive skills",
+        'A04_desc': "Removing unused skills reduces the system prompt size.",
+        'A05_title': "Make the AI think less",
+        'A05_desc': "Minimal thinking mode reduces internal reasoning tokens.",
+        'A06_title': "Turn on Prompt Caching",
+        'A06_desc': "Caching repeated prompts can save up to 90% on input costs.",
+        'A07_title': "Enable Compaction Safeguard",
+        'A07_desc': "Auto-trim long conversations to prevent runaway billing.",
+        'A09_title': "Ask the AI to be concise",
+        'A09_desc': "Shortening responses reduces output token costs.",
+
+        // Time
+        time_s_ago: "{n}s ago",
+        time_m_ago: "{n}m ago",
+        time_h_ago: "{n}h ago",
+        time_d_ago: "{n}d ago",
+        time_just_now: "just now",
+        time_never: "Never",
+        time_in_m: "(in {n}m)",
+        time_in_h: "(in {n}h)",
 
         // Error Messages
         auth_failed: "Authentication Failed. Redirecting...",
@@ -268,7 +319,7 @@ const translations = {
         stop_failed: "停止失败。",
         confirm_restart: "♻️ 重启网关？",
         restart_failed: "重启失败。",
-        restart_sent: "重启信号已发送。",
+        schedule_manual: "手动",
 
         // Scripts/Status
         scripts_running: "运行中",
@@ -304,7 +355,58 @@ const translations = {
         opt_current: "当前",
         opt_optimized: "优化后",
         opt_actions_found: "发现可节省成本的操作",
-        opt_implemented_title: "已实施的优化",
+        opt_actions_available: "项可执行操作",
+        opt_tap_to_save: "点击以每月节省",
+        opt_tap_to_review: "点击以查看并保护系统。",
+        opt_no_data_title: "无使用数据",
+        opt_no_data_desc: "开始与 AI 代理对话，稍后再回来查看成本分析和节省建议。",
+        opt_btn_optimize: "立即优化",
+        opt_no_history: "暂无优化历史。",
+
+        // Optimizer History
+        hist_saved: "已节省",
+        hist_undo: "撤销",
+        hist_restore_skills: "还原技能",
+        hist_undo_unavailable: "由于存在更新的配置变更，无法撤销。",
+        hist_undoing: "正在撤销...",
+
+        // Skill Audit
+        opt_audit_summary: "已选择 {n} 个待移除技能。",
+        opt_audit_none_selected: "未选择待移除技能。",
+        opt_audit_btn_keep_all: "全部保留",
+        opt_audit_btn_remove_all: "移除已选",
+        opt_audit_group_suggested: "建议移除",
+        opt_audit_group_manual: "需手动核对",
+        opt_audit_choice_remove: "移除",
+        opt_audit_choice_keep: "保留",
+
+        // Optimizer Action Mappings
+        'A01_title': "切换到更便宜的 AI 模型",
+        'A01_desc': "主要使用量集中在旗舰模型。切换为小型模型可显著降低成本。",
+        'A02_title': "降低心跳检测频率",
+        'A02_desc': "降低后台检测频率可减少令牌消耗。",
+        'A03_title': "继续现有对话",
+        'A03_desc': "重用上下文而非启动新会话可节省输入令牌。",
+        'A04_title': "审计可能闲置的技能",
+        'A04_desc': "移除未使用的技能可减小系统提示词体积。",
+        'A05_title': "减少 AI 思考开销",
+        'A05_desc': "启用最小思考模式可减少内部推理令牌。",
+        'A06_title': "开启提示词缓存",
+        'A06_desc': "缓存重复提示词可节省高达 90% 的输入成本。",
+        'A07_title': "启用自动压缩保护",
+        'A07_desc': "自动裁剪长对话以防止账单失控。",
+        'A09_title': "要求 AI 言简意赅",
+        'A09_desc': "缩短回复内容可节省输出令牌成本。",
+
+        // Time
+        time_s_ago: "{n}秒前",
+        time_m_ago: "{n}分钟前",
+        time_h_ago: "{n}小时前",
+        time_d_ago: "{n}天前",
+        time_just_now: "刚刚",
+        time_never: "从未",
+        time_in_m: "({n}分钟后)",
+        time_in_h: "({n}小时后)",
 
         // Error Messages
         auth_failed: "认证失败。正在跳转...",
