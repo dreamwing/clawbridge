@@ -162,6 +162,7 @@ const translations = {
         opt_analyzing_title: "Analyzing Usage Patterns",
         opt_analyzing_desc: "Reading history data...",
         opt_implemented_title: "Implemented Optimizations",
+        opt_toast_undoing: "Reverting optimization...",
         
         // Optimizer History
         hist_saved: "saved",
@@ -405,6 +406,7 @@ const translations = {
         opt_analyzing_title: "正在分析使用模式",
         opt_analyzing_desc: "读取历史数据中...",
         opt_implemented_title: "已实施的优化",
+        opt_toast_undoing: "正在撤销优化...",
 
         // Optimizer History
         hist_saved: "已节省",
@@ -442,7 +444,7 @@ const translations = {
         'A04_side_effect': "移除的技能在重新安装前将无法使用。",
         'A05_title': "减少 AI 思考开销",
         'A05_desc': "启用最小思考模式可减少内部推理令牌。",
-        'A05_help': "AI 模型在回答之前可以进行“思考”——就像在数学题上展示解题步骤。这会消耗额外的令牌。最小模式跳过大部分内部推理以节省成本。",
+        'A05_help': "AI 模型在回答之前可以进行“思考”——就像在数学题上展示解题步骤。这会消耗额外的令牌.最小模式跳过大部分内部推理以节省成本。",
         'A05_side_effect': "可能会降低处理难题时的数学或逻辑准确性。",
         'A06_title': "开启提示词缓存",
         'A06_desc': "缓存重复提示词可节省高达 90% 的输入成本。",
@@ -466,8 +468,6 @@ const translations = {
         time_never: "从未",
         time_in_m: "({n}分钟后)",
         time_in_h: "({n}小时后)",
-        time_every_m: "每 {n} 分钟",
-        time_every_h: "每 {n} 小时",
 
         // Login
         login_title: "仪表盘安全登录",
