@@ -255,8 +255,11 @@ function applyTranslations() {
             const currentText = el.textContent.trim();
             // Expanded initial states to include memory_empty and memory_failed
             const initialStates = [
-                t('loading'), t('memory_loading'), t('connecting'),
-                t('memory_empty'), t('memory_failed'),
+                translations.en.loading, translations.zh.loading,
+                translations.en.memory_loading, translations.zh.memory_loading,
+                translations.en.connecting, translations.zh.connecting,
+                translations.en.memory_empty, translations.zh.memory_empty,
+                translations.en.memory_failed, translations.zh.memory_failed,
                 'Loading...', 'Accessing agent memories...', 'Connecting...',
                 'No memory records found for this date.', 'Failed to load memory.'
             ];
