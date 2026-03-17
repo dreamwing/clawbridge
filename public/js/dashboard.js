@@ -396,10 +396,13 @@ function addFeedItem(ts, task, method = 'append') {
     if (feed.children.length > 100) feed.removeChild(feed.children[feed.children.length - 1]);
 }
 
-function logout() {
+async function logout() {
+    try {
+        await fetchAuth(API + '/logout', { method: 'POST' });
+    } catch (e) {
+        console.warn('Backend logout failed', e);
+    }
     localStorage.removeItem('claw_key');
-    // Clear cookies by setting expiry in past
-    document.cookie = "claw_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     location.href = '/';
 }
 
