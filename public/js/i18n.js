@@ -93,8 +93,8 @@ const translations = {
         output_write: "OUTPUT (WRITE)",
         cost_trend: "COST TREND (7 DAYS)",
         top_models: "TOP MODELS",
-        detail_in: "In",
-        detail_out: "Out",
+        detail_in: "Input",
+        detail_out: "Output",
         detail_cache_r: "Cache R",
         detail_cache_w: "Cache W",
 
@@ -156,16 +156,19 @@ const translations = {
         opt_btn_optimize: "Optimize",
         opt_no_history: "No optimization history yet.",
         opt_toast_undone: "Optimization Reverted",
+        opt_toast_undoing: "Reverting optimization...",
         opt_action_singular: "action",
         opt_action_plural: "actions",
         opt_btn_disable: "Disable completely",
-        opt_toast_undoing: "Reverting optimization...",
+        opt_analyzing_title: "Analyzing Usage Patterns",
+        opt_analyzing_desc: "Reading history data...",
+        opt_implemented_title: "Implemented Optimizations",
         opt_step_reading: "Reading history...",
         opt_step_calculating: "Calculating tokens...",
         opt_step_checking: "Checking models...",
         opt_step_referencing: "Cross-referencing config...",
         opt_step_finalizing: "Finalizing measures...",
-
+        
         // Optimizer History
         hist_saved: "saved",
         hist_undo: "Undo",
