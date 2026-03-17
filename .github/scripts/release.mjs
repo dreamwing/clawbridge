@@ -450,7 +450,7 @@ async function run() {
             repo: repoName,
             tag_name: `v${newVersion}`,
             name: `v${newVersion}`,
-            body: processedEnglishContent
+            body: `${processedEnglishContent}\n\n---\n\n${translatedContent}`
         });
         console.log('Release published successfully!');
     } catch (e) {
