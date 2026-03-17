@@ -963,12 +963,6 @@ function renderActionItem(act, isSkipped = false) {
         ? { ...act._meta }
         : {};
 
-    // L2: Side effect in plain language
-    let sideEffectHtml = '';
-    if (act.plainSideEffect || act.sideEffect) {
-        sideEffectHtml = `<div class="opt-sideeffect">${t('opt_side_effect')}: ${escapeHtml(act.plainSideEffect || act.sideEffect)}</div>`;
-    }
-
     // L1: Use plainTitle (beginner-friendly), fallback to title
     let displayTitle = act.plainTitle || act.title;
     let displayDesc = act.description || '';
