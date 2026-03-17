@@ -154,6 +154,7 @@ const translations = {
         opt_no_data_desc: "Start chatting with your AI agent, then come back to see Token cost analysis and savings.",
         opt_btn_optimize: "Optimize",
         opt_no_history: "No optimization history yet.",
+        opt_toast_undone: "Optimization Reverted",
         
         // Optimizer History
         hist_saved: "saved",
@@ -197,6 +198,10 @@ const translations = {
         'A09_title': "Ask the AI to be concise",
         'A09_desc': "Shortening responses reduces output token costs.",
         'A09_side_effect': "Responses become visibly shorter.",
+
+        // Toast Messages
+        opt_toast_undoing: "Reverting optimization...",
+        opt_toast_undone: "Optimization Reverted",
 
         // Time
         time_s_ago: "{n}s ago",
@@ -379,6 +384,7 @@ const translations = {
         opt_no_data_desc: "开始与 AI 代理对话，稍后再回来查看成本分析和节省建议。",
         opt_btn_optimize: "立即优化",
         opt_no_history: "暂无优化历史。",
+        opt_toast_undone: "优化已撤销",
 
         // Optimizer History
         hist_saved: "已节省",
@@ -422,6 +428,10 @@ const translations = {
         'A09_title': "要求 AI 言简意赅",
         'A09_desc': "缩短回复内容可节省输出令牌成本。",
         'A09_side_effect': "回复内容会明显变短。",
+
+        // Toast Messages
+        opt_toast_undoing: "正在撤销优化...",
+        opt_toast_undone: "优化已撤销",
 
         // Time
         time_s_ago: "{n}秒前",

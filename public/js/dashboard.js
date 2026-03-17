@@ -1325,8 +1325,7 @@ async function handleUndo(triggerBtn, backupPath) {
         });
         if (res.ok) {
             const result = await res.json();
-            const skillSuffix = result.skillsRestored ? ` and ${result.skillsRestored} skill${result.skillsRestored > 1 ? 's' : ''}` : '';
-            showToast(t('opt_toast_undone').replace('{n}', result.restoredKeys.length).replace('{file}', result.backupFile));
+            showToast(t('opt_toast_undone'));
             await renderHistoryList();
             await fetchDiagnostics();
         } else {
