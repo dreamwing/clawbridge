@@ -209,6 +209,11 @@ const translations = {
         err_load_diagnostics: "Failed to load diagnostics",
         err_load_history: "Failed to load optimization history",
         err_generic: "An error occurred. Please try again.",
+        hist_moved_to_backup: "Moved to backup: {n}",
+        hist_restored_keys: "Restored {n} keys",
+        hist_restored_skills: "Restored {n} skills",
+        hist_restored_from: "from {f}",
+        hist_concise_soul: "Added concise mode to SOUL.md",
         'A01_title': "Downgrade AI Model",
         'A01_desc': "Primary usage is on a premium model. Switching to a cheaper alternative saves significant costs.",
         'A01_help': "AI models come in different tiers. Premium models are smarter but cost more per message. This switches to a model that's almost as good but significantly cheaper.",
@@ -529,7 +534,12 @@ const translations = {
         err_load_tokens: "成本数据加载失败",
         err_load_diagnostics: "诊断数据加载失败",
         err_load_history: "历史记录加载失败",
-        err_generic: "发生错误，请稍后重试"
+        err_generic: "发生错误，请稍后重试",
+        hist_moved_to_backup: "已移至备份：{n}",
+        hist_restored_keys: "已恢复 {n} 个配置项",
+        hist_restored_skills: "已恢复 {n} 个技能项",
+        hist_restored_from: "自备份文件 {f}",
+        hist_concise_soul: "已在 SOUL.md 中开启简洁模式",
     }
 };
 

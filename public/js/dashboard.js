@@ -1227,6 +1227,61 @@ async function renderHistoryList() {
     }
 }
 
+function localizeConfigChange(text) {
+    if (!text) return '';
+    
+    // Pattern: Moved to backup: skill1, skill2
+    if (text.startsWith('Moved to backup:')) {
+        const skills = text.replace('Moved to backup:', '').trim();
+        return t('hist_moved_to_backup').replace('{n}', skills);
+    }
+    
+    // Pattern: SOUL.md += "Be concise"
+    if (text.includes('SOUL.md += "Be concise"')) {
+        return t('hist_concise_soul');
+    }
+    
+    // Pattern: Restored N keys [+ M skills] [+ SOUL.md] from backup_file.json
+    if (text.startsWith('Restored')) {
+        let result = text;
+        const keysMatch = text.match(/Restored (\d+) keys/);
+        if (keysMatch) {
+            result = result.replace(keysMatch[0], t('hist_restored_keys').replace('{n}', keysMatch[1]));
+        }
+        const skillsMatch = text.match(/(\d+) skills/);
+        if (skillsMatch) {
+            result = result.replace(skillsMatch[0], t('hist_restored_skills').replace('{n}', skillsMatch[1]));
+        }
+        if (result.includes(' + SOUL.md')) {
+            result = result.replace(' + SOUL.md', ' + SOUL.md'); // No translation for filename
+        }
+        const fromMatch = text.match(/from (.*)$/);
+        if (fromMatch) {
+            result = result.replace(fromMatch[0], t('hist_restored_from').replace('{f}', fromMatch[1]));
+        }
+        return result;
+    }
+    
+    // Key-value pairs like heartbeat.every: 30m
+    if (text.includes(':')) {
+        const parts = text.split(':');
+        const key = parts[0].trim();
+        let val = parts[1].trim();
+        
+        // Localize key if found (unlikely for raw keys, but for consistency)
+        const localizedKey = t(key);
+        
+        // Localize values like 30m, 1h, 0m
+        if (val.endsWith('m')) val = t('time_every_m').replace('{n}', parseInt(val)).replace('每 ', '').replace('every ', '');
+        else if (val.endsWith('h')) val = t('time_every_h').replace('{n}', parseInt(val)).replace('每 ', '').replace('every ', '');
+        else if (t(val) !== val) val = t(val);
+        
+        return `${localizedKey}: ${val}`;
+    }
+
+    return text;
+}
+
 function renderHistoryTimeline(list, history) {
     if (!list) return;
     list.innerHTML = '';
@@ -1276,7 +1331,8 @@ function renderHistoryTimeline(list, history) {
             effectHtml = `<span class="effect-tag ${effectClass}">7d: $${actualSaving.toFixed(2)}</span>`;
         }
 
-        const detailsHtml = hist.configChanged ? `<div class="timeline-details hidden">${escapeHtml(hist.configChanged)}</div>` : '';
+        const localizedConfigChange = localizeConfigChange(hist.configChanged);
+        const detailsHtml = hist.configChanged ? `<div class="timeline-details hidden">${escapeHtml(localizedConfigChange)}</div>` : '';
         const clickHandler = hist.configChanged ? 'style="cursor:pointer;" onclick="this.querySelector(\'.timeline-details\').classList.toggle(\'hidden\')"' : '';
 
         const div = document.createElement('div');
