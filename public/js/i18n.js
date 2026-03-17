@@ -105,7 +105,6 @@ const translations = {
         stop_failed: "Failed to stop scripts.",
         confirm_restart: "♻️ RESTART GATEWAY?",
         restart_failed: "Failed to restart gateway.",
-        restart_sent: "Restart signal sent.",
 
         // Scripts/Status
         scripts_running: "Running",
@@ -219,7 +218,6 @@ const translations = {
         stop_failed: "停止失败。",
         confirm_restart: "♻️ 重启网关？",
         restart_failed: "重启失败。",
-        restart_sent: "重启信号已发送。",
 
         // Scripts/Status
         scripts_running: "运行中",
@@ -234,7 +232,7 @@ let currentLang = localStorage.getItem('clawbridge_lang') ||
 
 function t(key) {
     if (!translations[currentLang]) currentLang = 'en';
-    return translations[currentLang][key] || key;
+    return translations[currentLang][key] ?? key;
 }
 
 function setLanguage(lang) {

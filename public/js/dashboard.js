@@ -298,9 +298,9 @@ function addFeedItem(ts, task, method = 'append') {
     const feed = document.getElementById('activity-feed');
     if (feed.children.length === 1) {
         const text = feed.children[0].innerText;
-        const isConnecting = text.includes(translations.en.connecting.replace('...', '')) || 
-                             text.includes(translations.zh.connecting.replace('...', '')) ||
-                             text.includes('Connecting');
+        const isConnecting = Object.values(translations).some(loc => 
+            text.includes(loc.connecting.replace('...', ''))
+        ) || text.includes('Connecting');
         if (isConnecting) feed.innerHTML = '';
     }
 
