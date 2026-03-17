@@ -1017,7 +1017,7 @@ function renderActionItem(act, isSkipped = false) {
     const detailParts = [];
     if (act.configDiff) {
         const d = act.configDiff;
-        detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(d.from)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(d.to)}</span></div>`);
+        detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(d.from)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(t(d.to) !== d.to ? t(d.to) : d.to)}</span></div>`);
     }
     if (act.calcDetail) {
         // Localize 'task(s)', 'tok/run', 'aggregated runs/mo' in calcDetail
