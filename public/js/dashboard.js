@@ -50,13 +50,21 @@ async function fetchAuth(url, options = {}) {
     const headers = options.headers || {};
     headers['x-claw-key'] = API_KEY;
     options.headers = headers;
-    const res = await fetch(url, options);
-    if (res.status === 401) {
-        alert(t('auth_failed'));
-        logout();
-        throw new Error('Auth Failed');
+    try {
+        const res = await fetch(url, options);
+        if (res.status === 401) {
+            alert(t('auth_failed'));
+            logout();
+            throw new Error('Auth Failed');
+        }
+        return res;
+    } catch (e) {
+        if (e.message !== 'Auth Failed') {
+            console.error('[Fetch] Network or unknown error:', e);
+            // Optional: alert(t('err_generic')); 
+        }
+        throw e;
     }
-    return res;
 }
 
 function isUnsupportedMetric(data, key) {
@@ -849,9 +857,11 @@ async function fetchDiagnostics() {
                 const advisoryNote = diagnosticsData.advisorySavings > 0
                     ? ` <span class="opt-advisory-note">+ manual ~$${diagnosticsData.advisorySavings.toFixed(2)}/mo</span>`
                     : '';
-                triggerText.innerHTML = `<strong>${totalActions} ${t(totalActions > 1 ? 'actions' : 'tab_jobs').toLowerCase()}</strong> ${t('opt_actions_available')}. ${t('opt_tap_to_save')} <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.${advisoryNote}`;
+                const actionLabel = totalActions === 1 ? t('opt_action_singular') : t('opt_action_plural');
+                triggerText.innerHTML = `<strong>${totalActions} ${actionLabel}</strong> ${t('opt_actions_available')}. ${t('opt_tap_to_save')} <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.${advisoryNote}`;
             } else {
-                triggerText.innerHTML = `<strong>${totalActions} ${t(totalActions > 1 ? 'actions' : 'tab_jobs').toLowerCase()}</strong> ${t('opt_actions_found')}. ${t('opt_tap_to_review')}`;
+                const actionLabel = totalActions === 1 ? t('opt_action_singular') : t('opt_action_plural');
+                triggerText.innerHTML = `<strong>${totalActions} ${actionLabel}</strong> ${t('opt_actions_found')}. ${t('opt_tap_to_review')}`;
             }
             triggerBtn.textContent = t('opt_btn_optimize');
             isFullyOptimized = false;
@@ -969,7 +979,17 @@ function renderActionItem(act, isSkipped = false) {
         displayDesc = t(act.actionId + '_desc');
     }
 
-    // A02 with multi-interval options
+    // Localize side effects if available in dict
+    let displaySideEffect = act.plainSideEffect || act.sideEffect;
+    if (t(act.actionId + '_side_effect') !== act.actionId + '_side_effect') {
+        displaySideEffect = t(act.actionId + '_side_effect');
+    }
+
+    // L2: Side effect in plain language
+    let sideEffectHtml = '';
+    if (displaySideEffect) {
+        sideEffectHtml = `<div class="opt-sideeffect">${t('opt_side_effect')}: ${escapeHtml(displaySideEffect)}</div>`;
+    }
     let optionsHtml = '';
     if (act.actionId === 'A02' && act.options && act.options.length > 0) {
         const initialOption = act.options[0];

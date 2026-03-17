@@ -154,6 +154,8 @@ const translations = {
         opt_no_data_desc: "Start chatting with your AI agent, then come back to see Token cost analysis and savings.",
         opt_btn_optimize: "Optimize",
         opt_no_history: "No optimization history yet.",
+        opt_action_singular: "action",
+        opt_action_plural: "actions",
         
         // Optimizer History
         hist_saved: "saved",
@@ -189,6 +191,14 @@ const translations = {
         'A07_desc': "Auto-trim long conversations to prevent runaway billing.",
         'A09_title': "Ask the AI to be concise",
         'A09_desc': "Shortening responses reduces output token costs.",
+        'A01_side_effect': "Mild decrease in performance on highly complex reasoning tasks.",
+        'A02_side_effect': "Longer intervals delay cross-agent message delivery.",
+        'A03_side_effect': "Longer conversations may eventually need compaction.",
+        'A04_side_effect': "Removed Skills will no longer be available until re-installed.",
+        'A05_side_effect': "May reduce mathematical or logical accuracy on hard prompts.",
+        'A06_side_effect': "First message per session remains full price.",
+        'A07_side_effect': "May truncate history during massive code translation sessions.",
+        'A09_side_effect': "Responses become visibly shorter.",
 
         // Time
         time_s_ago: "{n}s ago",
@@ -362,6 +372,8 @@ const translations = {
         opt_no_data_desc: "开始与 AI 代理对话，稍后再回来查看成本分析和节省建议。",
         opt_btn_optimize: "立即优化",
         opt_no_history: "暂无优化历史。",
+        opt_action_singular: "项操作",
+        opt_action_plural: "项操作",
 
         // Optimizer History
         hist_saved: "已节省",
@@ -397,6 +409,14 @@ const translations = {
         'A07_desc': "自动裁剪长对话以防止账单失控。",
         'A09_title': "要求 AI 言简意赅",
         'A09_desc': "缩短回复内容可节省输出令牌成本。",
+        'A01_side_effect': "在高度复杂的推理任务中性能可能略有下降。",
+        'A02_side_effect': "较长的间隔会延迟跨代理的消息投递。",
+        'A03_side_effect': "较长的对话最终可能需要进行压缩处理。",
+        'A04_side_effect': "移除的技能在重新安装前将无法使用。",
+        'A05_side_effect': "可能会降低处理难题时的数学或逻辑准确性。",
+        'A06_side_effect': "每个会话的第一条消息仍按原价计算。",
+        'A07_side_effect': "在大规模代码翻译过程中可能会截断历史记录。",
+        'A09_side_effect': "回复内容会明显变短。",
 
         // Time
         time_s_ago: "{n}秒前",
