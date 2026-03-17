@@ -252,7 +252,7 @@ function applyTranslations() {
         const translation = t(key);
         
         // Dynamic content protection
-        if (el.id === 'activity-feed' || el.id === 'memory-content') {
+        if (el.id === 'memory-content') {
             const currentText = el.textContent.trim();
             // Expanded initial states to include memory_empty and memory_failed
             const initialStates = [

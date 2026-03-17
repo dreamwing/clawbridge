@@ -107,7 +107,7 @@ async function initMemory() {
         memoryDates.forEach((d, i) => {
             const opt = document.createElement('option');
             opt.value = d;
-            opt.innerText = d;
+            opt.innerText = i === 0 ? t('today') : d;
             sel.appendChild(opt);
         });
 
@@ -300,7 +300,7 @@ function addFeedItem(ts, task, method = 'append') {
         const text = feed.children[0].innerText;
         const isConnecting = Object.values(translations).some(loc => 
             text.includes(loc.connecting.replace('...', ''))
-        ) || text.includes('Connecting');
+        );
         if (isConnecting) feed.innerHTML = '';
     }
 
