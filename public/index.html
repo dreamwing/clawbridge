@@ -24,15 +24,15 @@
     <div id="update-alert" class="alert-box"
         style="display:none; background:rgba(34, 197, 94, 0.15); border:1px solid rgba(34, 197, 94, 0.3); color:var(--success);"
         onclick="showUpdateHelp()">
-        ✨ <strong>New Version Available:</strong> <span id="update-ver">v1.1.0</span>
-        <br><span style="text-decoration:underline; font-weight:600;">Tap here to Update</span>
+        ✨ <strong data-i18n="alert_new_ver">New Version Available:</strong> <span id="update-ver">v1.1.0</span>
+        <br><span style="text-decoration:underline; font-weight:600;" data-i18n="alert_tap_update">Tap here to Update</span>
     </div>
 
     <div id="quick-tunnel-alert" class="alert-box"
         style="display:none; background:rgba(234, 197, 94, 0.15); border:1px solid rgba(234, 179, 8, 0.3); color:var(--warning);"
         onclick="showTokenHelp()">
-        <strong>⚠️ Temporary Session:</strong> This URL will expire on restart.
-        <br><span style="text-decoration:underline; font-weight:600;">Tap here to configure a Permanent Domain</span>
+        <strong data-i18n="alert_temp_session">Temporary Session:</strong> <span data-i18n="alert_temp_desc">This URL will expire on restart.</span>
+        <br><span style="text-decoration:underline; font-weight:600;" data-i18n="alert_tap_permanent">Tap here to configure a Permanent Domain</span>
     </div>
 
     <!-- LEGEND MODAL -->

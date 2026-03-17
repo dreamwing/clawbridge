@@ -952,7 +952,7 @@ function updateSkillAuditSelection(itemEl) {
 }
 
 function renderActionItem(act, isSkipped = false) {
-    const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}${t('unit_per_month')}` : t('legend_system');
+    const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}${t('unit_per_month')}` : t('opt_preventative');
     const savingsClass = act.savings > 10 ? 'high-savings' : (act.savings > 0 ? 'medium-savings' : 'safety');
     const initialMeta = act._meta && typeof act._meta === 'object' && !Array.isArray(act._meta)
         ? { ...act._meta }

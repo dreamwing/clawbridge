@@ -166,7 +166,6 @@ const translations = {
         opt_step_referencing: "Cross-referencing config...",
         opt_step_finalizing: "Finalizing measures...",
         opt_your_choice: "your choice",
-        'your choice': "your choice",
 
         // Optimizer History
         hist_saved: "saved",
@@ -184,6 +183,8 @@ const translations = {
         opt_audit_group_manual: "Manual Review Required",
         opt_audit_choice_remove: "Remove",
         opt_audit_choice_keep: "Keep",
+        opt_restore_title: "Restore Removed Skills",
+        opt_restore_btn: "Restore Selected",
 
         // Optimizer Action Mappings
         'A01_title': "Switch to a cheaper AI model",
@@ -242,6 +243,32 @@ const translations = {
         login_error_invalid: "Invalid Access Key",
         login_error_network: "Connection lost. Check your network.",
         login_magic_notice: "⚠️ For security reasons, this version of ClawBridge no longer supports direct Magic Link access. Please enter your Access Key manually.",
+
+        // Modals
+        modal_cloudflare_title: "Configure Permanent Link",
+        modal_cloudflare_desc: "To keep your URL fixed, you need a Cloudflare Tunnel Token.",
+        modal_token_find: "Where to find your Token?",
+        modal_token_step1: "1. Go to Cloudflare Dash > Networking > Tunnels.",
+        modal_token_step2: "2. Create a tunnel, choose 'Docker' (easiest to copy) or your OS, and grab the token string (starts with 'ey...').",
+        modal_token_step3: "3. After install, go to Public Hostname in your Tunnel settings and map your domain to localhost:3000.",
+        modal_option_agent: "Option 1: Ask your Agent",
+        modal_option_agent_desc: "Send this message to the chat: 'Connect this session to my Cloudflare Tunnel token: YOUR_TOKEN'",
+        modal_option_terminal: "Option 2: Terminal Command",
+        modal_update_title: "Update Available",
+        modal_update_desc: "A new version of ClawBridge is ready.",
+        modal_update_agent: "Option 1: Ask Agent",
+        modal_update_agent_desc: "Send: 'Update ClawBridge to the latest version'",
+        modal_update_terminal: "Option 2: Terminal",
+        modal_btn_cancel: "Cancel",
+        modal_btn_select_all: "Select All",
+        modal_btn_clear_all: "Clear All",
+
+        // Alerts
+        alert_new_ver: "New Version Available:",
+        alert_tap_update: "Tap here to Update",
+        alert_temp_session: "Temporary Session:",
+        alert_temp_desc: "This URL will expire on restart.",
+        alert_tap_permanent: "Tap here to configure a Permanent Domain",
 
         // Error Messages
         auth_failed: "Authentication Failed. Redirecting...",
@@ -417,7 +444,8 @@ const translations = {
         opt_step_referencing: "交叉引用配置中...",
         opt_step_finalizing: "最终量化评估中...",
         opt_your_choice: "自定义",
-        'your choice': "自定义",
+        opt_restore_title: "恢复已移除的技能",
+        opt_restore_btn: "恢复所选技能",
 
         // Optimizer History
         hist_saved: "已节省",
@@ -493,6 +521,32 @@ const translations = {
         login_error_invalid: "无效的访问密钥",
         login_error_network: "连接已断开，请检查网络。",
         login_magic_notice: "⚠️ 出于安全考虑，此版本的 ClawBridge 不再支持魔法链接（Magic Link）直接访问。请手动输入访问密钥。",
+
+        // Modals
+        modal_cloudflare_title: "配置永久域名",
+        modal_cloudflare_desc: "要保持您的 URL 固定不变，您需要一个 Cloudflare Tunnel Token。",
+        modal_token_find: "在哪里可以找到 Token？",
+        modal_token_step1: "1. 前往 Cloudflare 控制台 > Networking > Tunnels。",
+        modal_token_step2: "2. 创建一个 Tunnel，选择 'Docker'（最容易复制）或您的系统，获取 Token 字符串（以 'ey...' 开头）。",
+        modal_token_step3: "3. 安装后，在 Tunnel 设置中前往 Public Hostname，将您的域名映射到 localhost:3000。",
+        modal_option_agent: "方案 1：询问您的 Agent",
+        modal_option_agent_desc: "在聊天中发送：'将此会话连接到我的 Cloudflare Tunnel token：YOUR_TOKEN'",
+        modal_option_terminal: "方案 2：终端命令",
+        modal_update_title: "发现新版本",
+        modal_update_desc: "新版本的 ClawBridge 已准备就绪。",
+        modal_update_agent: "方案 1：询问 Agent",
+        modal_update_agent_desc: "发送：'Update ClawBridge to the latest version'",
+        modal_update_terminal: "方案 2：终端",
+        modal_btn_cancel: "取消",
+        modal_btn_select_all: "全选",
+        modal_btn_clear_all: "清空",
+
+        // Alerts
+        alert_new_ver: "发现新版本：",
+        alert_tap_update: "点击此处更新",
+        alert_temp_session: "临时会话：",
+        alert_temp_desc: "此 URL 将在重启后失效。",
+        alert_tap_permanent: "点击此处配置永久域名",
 
         // Error Messages
         auth_failed: "认证失败。正在跳转...",
