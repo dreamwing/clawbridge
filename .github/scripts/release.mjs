@@ -57,14 +57,20 @@ async function run() {
     const pkgPath = path.resolve('package.json');
     const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
     const currentVersion = pkg.version;
-    const newVersion = semver.inc(currentVersion, bumpType);
-    if (!newVersion) {
-        console.error('Invalid version bump');
-        process.exit(1);
-    }
+    let newVersion;
 
-    execSync(`npm version ${bumpType} --no-git-tag-version`);
-    console.log(`Bumped version from ${currentVersion} to ${newVersion}`);
+    if (bumpType === 'manual') {
+        newVersion = currentVersion;
+        console.log(`Using manual version: ${newVersion}`);
+    } else {
+        newVersion = semver.inc(currentVersion, bumpType);
+        if (!newVersion) {
+            console.error('Invalid version bump');
+            process.exit(1);
+        }
+        execSync(`npm version ${bumpType} --no-git-tag-version`);
+        console.log(`Bumped version from ${currentVersion} to ${newVersion}`);
+    }
 
     // 2. Read CHANGELOG.md [Unreleased] section
     const changelogPath = path.resolve('CHANGELOG.md');
@@ -410,8 +416,22 @@ async function run() {
     execSync('git config user.email "github-actions[bot]@users.noreply.github.com"');
 
     try {
-        execSync('git add package.json package-lock.json CHANGELOG.md CHANGELOG_CN.md README.md README_CN.md');
-        execSync(`git commit -m "chore(release): v${newVersion}"`);
+        if (bumpType === 'manual') {
+            // In manual mode, assume user already pushed or we don't want to force-push their changes
+            // But we still need to tag and release. 
+            // We'll add the changelogs they might have missed
+            execSync('git add CHANGELOG.md CHANGELOG_CN.md README.md README_CN.md');
+            // If there are no changes to commit, git commit will fail. We handle it.
+            try {
+                execSync(`git commit -m "chore(release): v${newVersion} [skip ci]"`);
+            } catch (e) {
+                console.log('No new changes to commit for metadata.');
+            }
+        } else {
+            execSync('git add package.json package-lock.json CHANGELOG.md CHANGELOG_CN.md README.md README_CN.md');
+            execSync(`git commit -m "chore(release): v${newVersion}"`);
+        }
+        
         execSync(`git tag -a v${newVersion} -m "Release v${newVersion}"`);
         console.log('Pushing to remote...');
         execSync('git push origin master');

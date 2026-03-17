@@ -1,6 +1,11 @@
 name: Custom Release
 
 on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'package.json'
   workflow_dispatch:
     inputs:
       type:
@@ -37,7 +42,32 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Check for version change
+        id: check_version
+        if: github.event_name == 'push'
+        run: |
+          # Compare package.json version with previous commit
+          PREV_VERSION=$(git show HEAD~1:package.json | grep '"version":' | sed -E 's/.*"version": "([^"]+)".*/\1/')
+          CURR_VERSION=$(grep '"version":' package.json | sed -E 's/.*"version": "([^"]+)".*/\1/')
+          
+          if [ "$PREV_VERSION" != "$CURR_VERSION" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Version changed from $PREV_VERSION to $CURR_VERSION"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "Version remains at $CURR_VERSION"
+          fi
+
       - name: Run Release Script
+        if: |
+          (github.event_name == 'workflow_dispatch') || 
+          (github.event_name == 'push' && steps.check_version.outputs.changed == 'true')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node .github/scripts/release.mjs ${{ inputs.type }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TYPE="${{ inputs.type }}"
+          else
+            TYPE="manual"
+          fi
+          node .github/scripts/release.mjs $TYPE
