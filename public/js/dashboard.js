@@ -396,7 +396,7 @@ function logout() {
     localStorage.removeItem('claw_key');
     // Clear cookies by setting expiry in past
     document.cookie = "claw_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    location.href = '/login.html';
+    location.href = '/';
 }
 
 async function fetchHistory() {
