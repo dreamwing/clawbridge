@@ -40,7 +40,7 @@ jobs:
             TAG=${GITHUB_REF#refs/tags/}
             echo "tag=$TAG" >> $GITHUB_OUTPUT
           else
-            TAG=$(git ls-remote --tags --sort=-v:refname origin 'refs/tags/v*' | head -1 | sed 's/.*refs\/tags\///')
+            TAG=$(git ls-remote --tags --sort=-v:refname origin 'refs/tags/v*' | grep -v "\^{}" | head -1 | sed 's/.*refs\/tags\///')
             echo "tag=$TAG" >> $GITHUB_OUTPUT
           fi
 
