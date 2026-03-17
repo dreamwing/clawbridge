@@ -155,6 +155,8 @@ const translations = {
         opt_btn_optimize: "Optimize",
         opt_no_history: "No optimization history yet.",
         opt_toast_undone: "Optimization Reverted",
+        opt_action_singular: "action",
+        opt_action_plural: "actions",
         
         // Optimizer History
         hist_saved: "saved",
@@ -179,6 +181,7 @@ const translations = {
         'A01_side_effect': "Mild decrease in performance on highly complex reasoning tasks.",
         'A02_title': "Reduce Heartbeat frequency",
         'A02_desc': "Lowering the background check frequency reduces token consumption.",
+        'A02_help': "'Heartbeat' is the AI's background refresh. Just like your phone syncing email in the background, every check consumes a few tokens. Lowering the frequency reduces wake-ups, saving significant idle costs by extending 'deep sleep'.",
         'A02_side_effect': "Longer intervals delay cross-agent message delivery.",
         'A03_title': "Continue existing conversations",
         'A03_desc': "Reusing context instead of starting new sessions saves input tokens.",
@@ -199,10 +202,6 @@ const translations = {
         'A09_desc': "Shortening responses reduces output token costs.",
         'A09_side_effect': "Responses become visibly shorter.",
 
-        // Toast Messages
-        opt_toast_undoing: "Reverting optimization...",
-        opt_toast_undone: "Optimization Reverted",
-
         // Time
         time_s_ago: "{n}s ago",
         time_m_ago: "{n}m ago",
@@ -212,6 +211,9 @@ const translations = {
         time_never: "Never",
         time_in_m: "(in {n}m)",
         time_in_h: "(in {n}h)",
+        time_every_m: "Every {n} min",
+        time_every_h: "Every {n} hour",
+        opt_btn_disable: "Disable completely",
 
         // Login
         login_title: "Secure Dashboard Login",
@@ -385,6 +387,8 @@ const translations = {
         opt_btn_optimize: "立即优化",
         opt_no_history: "暂无优化历史。",
         opt_toast_undone: "优化已撤销",
+        opt_action_singular: "项操作",
+        opt_action_plural: "项操作",
 
         // Optimizer History
         hist_saved: "已节省",
@@ -409,6 +413,7 @@ const translations = {
         'A01_side_effect': "在高度复杂的推理任务中性能可能略有下降。",
         'A02_title': "降低心跳检测频率",
         'A02_desc': "降低后台检测频率可减少令牌消耗。",
+        'A02_help': "“心跳”是 AI 的后台刷新机制。就像您的手机在后台同步电子邮件一样，每一次检查都会消耗少量令牌。降低频率可以减少唤醒次数，通过延长“深度睡眠”时间来节省大量的闲置成本。",
         'A02_side_effect': "较长的间隔会延迟跨代理的消息投递。",
         'A03_title': "继续现有对话",
         'A03_desc': "重用上下文而非启动新会话可节省输入令牌。",
@@ -429,10 +434,6 @@ const translations = {
         'A09_desc': "缩短回复内容可节省输出令牌成本。",
         'A09_side_effect': "回复内容会明显变短。",
 
-        // Toast Messages
-        opt_toast_undoing: "正在撤销优化...",
-        opt_toast_undone: "优化已撤销",
-
         // Time
         time_s_ago: "{n}秒前",
         time_m_ago: "{n}分钟前",
@@ -442,6 +443,9 @@ const translations = {
         time_never: "从未",
         time_in_m: "({n}分钟后)",
         time_in_h: "({n}小时后)",
+        time_every_m: "每 {n} 分钟",
+        time_every_h: "每 {n} 小时",
+        opt_btn_disable: "完全禁用",
 
         // Login
         login_title: "仪表盘安全登录",

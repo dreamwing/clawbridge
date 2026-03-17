@@ -995,9 +995,20 @@ function renderActionItem(act, isSkipped = false) {
             const checked = i === 0 ? ' checked' : '';
             const isDisable = opt.value === '0m';
             const labelClass = isDisable ? 'opt-radio-disable' : '';
+            
+            // Localize radio labels
+            let displayLabel = opt.label;
+            if (opt.value === '0m') {
+                displayLabel = t('opt_btn_disable');
+            } else if (opt.value.endsWith('m')) {
+                displayLabel = t('time_every_m').replace('{n}', parseInt(opt.value));
+            } else if (opt.value.endsWith('h')) {
+                displayLabel = t('time_every_h').replace('{n}', parseInt(opt.value));
+            }
+
             return `<label class="opt-radio ${labelClass}">
                 <input type="radio" name="${isSkipped ? 'skip-' : ''}hb-interval-${act.actionId}" value="${opt.value}" data-savings="${opt.savings}"${checked}>
-                <span class="opt-radio-label">${escapeHtml(opt.label)}</span>
+                <span class="opt-radio-label">${escapeHtml(displayLabel)}</span>
                 <span class="opt-radio-savings">${opt.savingsStr}</span>
             </label>`;
         }).join('');
