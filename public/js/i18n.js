@@ -2,7 +2,6 @@ const translations = {
     en: {
         // App Title
         app_name: "ClawBridge",
-        app_tagline: "Mobile-first mission control for OpenClaw agents.",
         about_desc: "ClawBridge is the mobile-first dashboard for your AI Agent runtime.<br>Designed for monitoring, cost tracking, and task management.",
         
         // Navigation / Tabs
@@ -105,67 +104,16 @@ const translations = {
         stop_failed: "Failed to stop scripts.",
         confirm_restart: "♻️ RESTART GATEWAY?",
         restart_failed: "Failed to restart gateway.",
+        restart_sent: "Restart signal sent.",
 
         // Scripts/Status
         scripts_running: "Running",
         scripts_none: "No scripts running",
-        docker_unavailable: "Unavailable in Docker Mode",
-        gateway_stopped: "Stopped / Not Found",
-        schedule_manual: "Manual",
-        analyzing: "⏳ Analyzing...",
-        in_progress: "⏳ In progress...",
-
-        // Optimizer
-        opt_no_data_title: "No usage data yet.",
-        opt_no_data_desc: "Start chatting with your AI agent, then come back to see Token cost analysis and savings.",
-        opt_system_optimized: "System Optimized.",
-        opt_efficient_desc: "Token usage is highly efficient.",
-        opt_actions_available: "available",
-        opt_actions_found: "found",
-        opt_tap_to_save: "Tap to save",
-        opt_tap_to_review: "Tap to review & protect.",
-        opt_btn_history: "History",
-        opt_btn_optimize: "Optimize",
-        opt_preventative: "🛡️ Preventative",
-        opt_skipped_title: "Skipped Recommendations",
-        opt_toggle_view: "Toggle View",
-        opt_no_history: "No recent optimizations found.",
-        opt_tech_details: "Technical Details",
-        opt_side_effect: "Side Effect",
-        opt_btn_skip: "Skip",
-        opt_btn_apply: "Apply",
-        opt_btn_restore: "Restore",
-        opt_btn_confirm: "Confirm?",
-        opt_btn_applying: "Applying...",
-        opt_btn_applied: "✓ Applied",
-        opt_manual_action: "ℹ️ Manual Action",
-        opt_toast_skipped: "Recommendation skipped",
-        opt_toast_restored: "Recommendation restored",
-        opt_toast_applied: "Optimization applied",
-        opt_toast_undoing: "Undo in progress...",
-        opt_toast_undone: "✓ Restored {n} settings from {file}",
-        opt_toast_failed: "Operation failed",
-        opt_audit_summary: "Checked = remove. Unchecked = keep. {n} suggested for removal by default.",
-        opt_audit_none_selected: "Nothing is pre-selected by default.",
-        opt_audit_btn_keep_all: "Keep All",
-        opt_audit_btn_remove_all: "Remove All",
-        opt_audit_group_suggested: "Suggested Remove",
-        opt_audit_group_manual: "Review Manually",
-        opt_audit_choice_remove: "Remove",
-        opt_audit_choice_keep: "Keep",
-
-        // Time
-        time_never: "Never",
-        time_s_ago: "{n}s ago",
-        time_m_ago: "{n}m ago",
-        time_h_ago: "{n}h ago",
-        time_in_m: "(in {n}m)",
-        time_in_h: "(in {n}h)"
+        docker_unavailable: "Unavailable in Docker Mode"
     },
     zh: {
         // App Title
         app_name: "ClawBridge",
-        app_tagline: "移动优先的 OpenClaw Agent 任务控制中心。",
         about_desc: "ClawBridge 是移动优先的 AI Agent 运行环境仪表盘。<br>专为监控、成本追踪和任务管理而设计。",
         
         // Navigation / Tabs
@@ -268,62 +216,12 @@ const translations = {
         stop_failed: "停止失败。",
         confirm_restart: "♻️ 重启网关？",
         restart_failed: "重启失败。",
+        restart_sent: "重启信号已发送。",
 
         // Scripts/Status
         scripts_running: "运行中",
         scripts_none: "暂无运行中的脚本",
-        docker_unavailable: "Docker 模式下不可用",
-        gateway_stopped: "已停止 / 未找到",
-        schedule_manual: "手动",
-        analyzing: "⏳ 分析中...",
-        in_progress: "⏳ 进行中...",
-
-        // Optimizer
-        opt_no_data_title: "暂无使用数据。",
-        opt_no_data_desc: "开始与 AI Agent 对话，稍后再来查看令牌成本分析和优化建议。",
-        opt_system_optimized: "系统已优化。",
-        opt_efficient_desc: "令牌使用效率极高。",
-        opt_actions_available: "项建议可用",
-        opt_actions_found: "项建议待处理",
-        opt_tap_to_save: "点击可节省",
-        opt_tap_to_review: "点击查看并保护系统。",
-        opt_btn_history: "历史",
-        opt_btn_optimize: "优化",
-        opt_preventative: "🛡️ 预防性措施",
-        opt_skipped_title: "已跳过的建议",
-        opt_toggle_view: "切换视图",
-        opt_no_history: "未找到最近的优化记录。",
-        opt_tech_details: "技术细节",
-        opt_side_effect: "副作用",
-        opt_btn_skip: "跳过",
-        opt_btn_apply: "应用",
-        opt_btn_restore: "还原",
-        opt_btn_confirm: "确认？",
-        opt_btn_applying: "应用中...",
-        opt_btn_applied: "✓ 已应用",
-        opt_manual_action: "ℹ️ 手动操作",
-        opt_toast_skipped: "建议已跳过",
-        opt_toast_restored: "建议已还原",
-        opt_toast_applied: "优化已应用",
-        opt_toast_undoing: "撤销中...",
-        opt_toast_undone: "✓ 已从 {file} 还原 {n} 项设置",
-        opt_toast_failed: "操作失败",
-        opt_audit_summary: "勾选 = 移除。未勾选 = 保留。默认建议移除 {n} 项。",
-        opt_audit_none_selected: "默认不预选任何项。",
-        opt_audit_btn_keep_all: "全部保留",
-        opt_audit_btn_remove_all: "移除全部",
-        opt_audit_group_suggested: "建议移除",
-        opt_audit_group_manual: "手动核对",
-        opt_audit_choice_remove: "移除",
-        opt_audit_choice_keep: "保留",
-
-        // Time
-        time_never: "从未运行",
-        time_s_ago: "{n}秒前",
-        time_m_ago: "{n}分前",
-        time_h_ago: "{n}小时前",
-        time_in_m: "({n}分后)",
-        time_in_h: "({n}小时后)"
+        docker_unavailable: "Docker 模式下不可用"
     }
 };
 
@@ -339,7 +237,6 @@ function setLanguage(lang) {
     if (translations[lang]) {
         currentLang = lang;
         localStorage.setItem('clawbridge_lang', lang);
-        document.documentElement.lang = lang;
         applyTranslations();
         
         // Custom events for dynamic components to re-render
@@ -348,24 +245,28 @@ function setLanguage(lang) {
 }
 
 function applyTranslations() {
+    // Update document lang
     document.documentElement.lang = currentLang;
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        const translation = t(key);
         
         // Dynamic content protection
-        if (el.id === 'memory-content') {
+        if (el.id === 'activity-feed' || el.id === 'memory-content') {
             const currentText = el.textContent.trim();
             // Expanded initial states to include memory_empty and memory_failed
-            const initialStates = [
-                translations.en.loading, translations.zh.loading,
-                translations.en.memory_loading, translations.zh.memory_loading,
-                translations.en.connecting, translations.zh.connecting,
-                translations.en.memory_empty, translations.zh.memory_empty,
-                translations.en.memory_failed, translations.zh.memory_failed,
-                'Loading...', 'Accessing agent memories...', 'Connecting...',
-                'No memory records found for this date.', 'Failed to load memory.'
-            ];
+            const initialStates = Object.keys(translations).flatMap(l => [
+                translations[l].loading, 
+                translations[l].memory_loading, 
+                translations[l].connecting,
+                translations[l].memory_empty, 
+                translations[l].memory_failed,
+                'Loading...', 
+                'Accessing agent memories...', 
+                'Connecting...',
+                'No memory records found for this date.', 
+                'Failed to load memory.'
+            ]);
             
             const isInitial = initialStates.some(s => currentText === s);
             if (!isInitial) return;
@@ -373,6 +274,7 @@ function applyTranslations() {
 
         if (el.classList.contains('job-list')) return;
 
+        const translation = t(key);
         if (translation !== key) {
             if (key === 'about_desc') {
                 el.innerHTML = translation;
@@ -391,4 +293,6 @@ function applyTranslations() {
     if (selector) selector.value = currentLang;
 }
 
+// Initial application (Immediate call before DOMContentLoaded to reduce flash)
+applyTranslations();
 document.addEventListener('DOMContentLoaded', applyTranslations);

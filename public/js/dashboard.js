@@ -5,7 +5,11 @@ window.addEventListener('clawbridge-lang-change', () => {
     fetchTokens();
     fetchJobs();
     fetchStatus();
-    initMemory();
+    
+    // Only re-init memory if we are on the memory tab to save API calls
+    if (document.getElementById('view-memory').classList.contains('active')) {
+        initMemory();
+    }
 });
 
 // --- Utility: HTML Escape ---
@@ -292,6 +296,7 @@ async function fetchStatus() {
         }
     } catch (e) {
         document.getElementById('status-dot').className = 'status-dot error';
+        document.getElementById('activity-status').innerText = t('status_error');
     }
 }
 
