@@ -165,6 +165,10 @@ const translations = {
         opt_step_referencing: "Cross-referencing config...",
         opt_step_finalizing: "Finalizing measures...",
         opt_your_choice: "your choice",
+        hist_saved: "saved",
+        hist_undo: "Undo",
+        hist_undo_unavailable: "Undo unavailable due to newer changes.",
+        hist_restore_skills: "Restore Skills",
 
         // Login
         login_title: "Secure Dashboard Login",
@@ -417,6 +421,10 @@ const translations = {
         opt_step_referencing: "交叉引用配置中...",
         opt_step_finalizing: "最终量化评估中...",
         opt_your_choice: "自定义",
+        hist_saved: "已节省",
+        hist_undo: "撤销",
+        hist_undo_unavailable: "由于存在更新的配置变更，无法撤销。",
+        hist_restore_skills: "还原技能",
 
         // Skill Audit
         opt_audit_summary: "已选择 {n} 个待移除技能。",
