@@ -256,7 +256,7 @@ async function fetchStatus() {
         } else if (data.gatewayPid) {
             document.getElementById('gateway-pid').innerText = data.gatewayPid;
         } else {
-            document.getElementById('gateway-pid').innerText = t('status_error');
+            document.getElementById('gateway-pid').innerText = t('gateway_stopped');
         }
         // Update Scripts List
         const scriptList = document.getElementById('running-scripts-list');
@@ -296,8 +296,12 @@ async function fetchStatus() {
 
 function addFeedItem(ts, task, method = 'append') {
     const feed = document.getElementById('activity-feed');
-    if (feed.children.length === 1 && feed.children[0].innerText.includes(t('connecting').replace('...', ''))) {
-        feed.innerHTML = '';
+    if (feed.children.length === 1) {
+        const text = feed.children[0].innerText;
+        const isConnecting = text.includes(translations.en.connecting.replace('...', '')) || 
+                             text.includes(translations.zh.connecting.replace('...', '')) ||
+                             text.includes('Connecting');
+        if (isConnecting) feed.innerHTML = '';
     }
 
     // Deduplication Logic

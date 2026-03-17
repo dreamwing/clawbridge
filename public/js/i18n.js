@@ -110,7 +110,8 @@ const translations = {
         // Scripts/Status
         scripts_running: "Running",
         scripts_none: "No scripts running",
-        docker_unavailable: "Unavailable in Docker Mode"
+        docker_unavailable: "Unavailable in Docker Mode",
+        gateway_stopped: "Stopped / Not Found"
     },
     zh: {
         // App Title
@@ -223,7 +224,8 @@ const translations = {
         // Scripts/Status
         scripts_running: "运行中",
         scripts_none: "暂无运行中的脚本",
-        docker_unavailable: "Docker 模式下不可用"
+        docker_unavailable: "Docker 模式下不可用",
+        gateway_stopped: "已停止 / 未找到"
     }
 };
 
@@ -249,6 +251,7 @@ function setLanguage(lang) {
 function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
+        const translation = t(key);
         
         // Dynamic content protection
         if (el.id === 'activity-feed' || el.id === 'memory-content') {
@@ -270,7 +273,6 @@ function applyTranslations() {
 
         if (el.classList.contains('job-list')) return;
 
-        const translation = t(key);
         if (translation !== key) {
             if (key === 'about_desc') {
                 el.innerHTML = translation;
