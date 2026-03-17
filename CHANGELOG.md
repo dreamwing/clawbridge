@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-03-17
+
+### Added
+- automate release trigger on package.json version change
+- complete localization, fix logout security, and address final review comments (PR #31)
+- complete localization for Missions and System Settings (PR #31)
+- complete localization for main dashboard views (Home, Memory, Tokens, Settings) (PR #31)
+- implement i18n infrastructure and basic Chinese translations (PR #31)
+
+### Fixed
+- resolve persistent gitlink warnings (PR #31)
+- remove stubborn embedded gitlink from index (PR #31)
+- permanently remove embedded git repository reference (PR #31)
+- remove accidental gitlink and restore clean working directory (PR #31)
+
 ## [1.2.0] - 2026-03-16
 
 ### Added
