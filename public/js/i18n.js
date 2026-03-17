@@ -154,8 +154,6 @@ const translations = {
         opt_no_data_desc: "Start chatting with your AI agent, then come back to see Token cost analysis and savings.",
         opt_btn_optimize: "Optimize",
         opt_no_history: "No optimization history yet.",
-        opt_action_singular: "action",
-        opt_action_plural: "actions",
         
         // Optimizer History
         hist_saved: "saved",
@@ -177,27 +175,27 @@ const translations = {
         // Optimizer Action Mappings
         'A01_title': "Switch to a cheaper AI model",
         'A01_desc': "Primary usage is on premium model. Switching to smaller models saves cost.",
+        'A01_side_effect': "Mild decrease in performance on highly complex reasoning tasks.",
         'A02_title': "Reduce Heartbeat frequency",
         'A02_desc': "Lowering the background check frequency reduces token consumption.",
+        'A02_side_effect': "Longer intervals delay cross-agent message delivery.",
         'A03_title': "Continue existing conversations",
         'A03_desc': "Reusing context instead of starting new sessions saves input tokens.",
+        'A03_side_effect': "Longer conversations may eventually need compaction.",
         'A04_title': "Audit possibly inactive skills",
         'A04_desc': "Removing unused skills reduces the system prompt size.",
+        'A04_side_effect': "Removed Skills will no longer be available until re-installed.",
         'A05_title': "Make the AI think less",
         'A05_desc': "Minimal thinking mode reduces internal reasoning tokens.",
+        'A05_side_effect': "May reduce mathematical or logical accuracy on hard prompts.",
         'A06_title': "Turn on Prompt Caching",
         'A06_desc': "Caching repeated prompts can save up to 90% on input costs.",
+        'A06_side_effect': "First message per session remains full price.",
         'A07_title': "Enable Compaction Safeguard",
         'A07_desc': "Auto-trim long conversations to prevent runaway billing.",
+        'A07_side_effect': "May truncate history during massive code translation sessions.",
         'A09_title': "Ask the AI to be concise",
         'A09_desc': "Shortening responses reduces output token costs.",
-        'A01_side_effect': "Mild decrease in performance on highly complex reasoning tasks.",
-        'A02_side_effect': "Longer intervals delay cross-agent message delivery.",
-        'A03_side_effect': "Longer conversations may eventually need compaction.",
-        'A04_side_effect': "Removed Skills will no longer be available until re-installed.",
-        'A05_side_effect': "May reduce mathematical or logical accuracy on hard prompts.",
-        'A06_side_effect': "First message per session remains full price.",
-        'A07_side_effect': "May truncate history during massive code translation sessions.",
         'A09_side_effect': "Responses become visibly shorter.",
 
         // Time
@@ -209,6 +207,15 @@ const translations = {
         time_never: "Never",
         time_in_m: "(in {n}m)",
         time_in_h: "(in {n}h)",
+
+        // Login
+        login_title: "Secure Dashboard Login",
+        login_key_placeholder: "Access Key",
+        login_btn: "Sign In",
+        login_verifying: "Verifying Identity...",
+        login_error_invalid: "Invalid Access Key",
+        login_error_network: "Connection lost. Check your network.",
+        login_magic_notice: "⚠️ For security reasons, this version of ClawBridge no longer supports direct Magic Link access. Please enter your Access Key manually.",
 
         // Error Messages
         auth_failed: "Authentication Failed. Redirecting...",
@@ -372,8 +379,6 @@ const translations = {
         opt_no_data_desc: "开始与 AI 代理对话，稍后再回来查看成本分析和节省建议。",
         opt_btn_optimize: "立即优化",
         opt_no_history: "暂无优化历史。",
-        opt_action_singular: "项操作",
-        opt_action_plural: "项操作",
 
         // Optimizer History
         hist_saved: "已节省",
@@ -395,27 +400,27 @@ const translations = {
         // Optimizer Action Mappings
         'A01_title': "切换到更便宜的 AI 模型",
         'A01_desc': "主要使用量集中在旗舰模型。切换为小型模型可显著降低成本。",
+        'A01_side_effect': "在高度复杂的推理任务中性能可能略有下降。",
         'A02_title': "降低心跳检测频率",
         'A02_desc': "降低后台检测频率可减少令牌消耗。",
+        'A02_side_effect': "较长的间隔会延迟跨代理的消息投递。",
         'A03_title': "继续现有对话",
         'A03_desc': "重用上下文而非启动新会话可节省输入令牌。",
+        'A03_side_effect': "较长的对话最终可能需要进行压缩处理。",
         'A04_title': "审计可能闲置的技能",
         'A04_desc': "移除未使用的技能可减小系统提示词体积。",
+        'A04_side_effect': "移除的技能在重新安装前将无法使用。",
         'A05_title': "减少 AI 思考开销",
         'A05_desc': "启用最小思考模式可减少内部推理令牌。",
+        'A05_side_effect': "可能会降低处理难题时的数学或逻辑准确性。",
         'A06_title': "开启提示词缓存",
         'A06_desc': "缓存重复提示词可节省高达 90% 的输入成本。",
+        'A06_side_effect': "每个会话的第一条消息仍按原价计算。",
         'A07_title': "启用自动压缩保护",
         'A07_desc': "自动裁剪长对话以防止账单失控。",
+        'A07_side_effect': "在大规模代码翻译过程中可能会截断历史记录。",
         'A09_title': "要求 AI 言简意赅",
         'A09_desc': "缩短回复内容可节省输出令牌成本。",
-        'A01_side_effect': "在高度复杂的推理任务中性能可能略有下降。",
-        'A02_side_effect': "较长的间隔会延迟跨代理的消息投递。",
-        'A03_side_effect': "较长的对话最终可能需要进行压缩处理。",
-        'A04_side_effect': "移除的技能在重新安装前将无法使用。",
-        'A05_side_effect': "可能会降低处理难题时的数学或逻辑准确性。",
-        'A06_side_effect': "每个会话的第一条消息仍按原价计算。",
-        'A07_side_effect': "在大规模代码翻译过程中可能会截断历史记录。",
         'A09_side_effect': "回复内容会明显变短。",
 
         // Time
@@ -427,6 +432,15 @@ const translations = {
         time_never: "从未",
         time_in_m: "({n}分钟后)",
         time_in_h: "({n}小时后)",
+
+        // Login
+        login_title: "仪表盘安全登录",
+        login_key_placeholder: "访问密钥",
+        login_btn: "登录",
+        login_verifying: "身份验证中...",
+        login_error_invalid: "无效的访问密钥",
+        login_error_network: "连接已断开，请检查网络。",
+        login_magic_notice: "⚠️ 出于安全考虑，此版本的 ClawBridge 不再支持魔法链接（Magic Link）直接访问。请手动输入访问密钥。",
 
         // Error Messages
         auth_failed: "认证失败。正在跳转...",

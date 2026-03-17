@@ -270,6 +270,7 @@
             color: var(--text);
         }
     </style>
+    <script src="js/i18n.js?v=20260317-01"></script>
 </head>
 
 <body>
@@ -279,7 +280,7 @@
         <div class="blob blob-3"></div>
     </div>
 
-    <div id="magicLinkNotice" class="notice-overlay">
+    <div id="magicLinkNotice" class="notice-overlay" data-i18n="login_magic_notice">
         ⚠️ For security reasons, this version of ClawBridge no longer supports direct Magic Link access. Please
         enter your Access Key manually.
     </div>
@@ -293,11 +294,11 @@
                         " />
             </div>
             <h1>ClawBridge</h1>
-            <p>Secure Dashboard Login</p>
+            <p data-i18n="login_title">Secure Dashboard Login</p>
             <form id="loginForm">
-                <input type="password" id="keyInput" placeholder="Access Key" autocomplete="current-password" required
+                <input type="password" id="keyInput" placeholder="Access Key" data-i18n-placeholder="login_key_placeholder" autocomplete="current-password" required
                     autofocus />
-                <button type="submit" id="loginBtn">Sign In</button>
+                <button type="submit" id="loginBtn" data-i18n="login_btn">Sign In</button>
                 <div class="error" id="errorMsg"></div>
             </form>
             <div class="footer">&copy; 2026 <a href="https://clawbridge.app" target="_blank"
@@ -320,7 +321,7 @@
             const key = document.getElementById('keyInput').value;
 
             btn.disabled = true;
-            btn.textContent = 'Verifying Identity...';
+            btn.textContent = typeof t === 'function' ? t('login_verifying') : 'Verifying Identity...';
             err.style.display = 'none';
 
             try {
@@ -334,17 +335,18 @@
                     window.location.reload();
                 } else {
                     const data = await res.json();
-                    err.textContent = '❌ ' + (data.error || 'Invalid Access Key');
+                    const errMsg = data.error || 'Invalid Access Key';
+                    err.textContent = '❌ ' + (typeof t === 'function' ? t('login_error_invalid') : errMsg);
                     err.style.display = 'block';
                     btn.disabled = false;
-                    btn.textContent = 'Sign In';
+                    btn.textContent = typeof t === 'function' ? t('login_btn') : 'Sign In';
                     document.getElementById('keyInput').value = '';
                 }
             } catch (e) {
-                err.textContent = '❌ Connection lost. Check your network.';
+                err.textContent = '❌ ' + (typeof t === 'function' ? t('login_error_network') : 'Connection lost. Check your network.');
                 err.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = 'Sign In';
+                btn.textContent = typeof t === 'function' ? t('login_btn') : 'Sign In';
             }
         });
     </script>
