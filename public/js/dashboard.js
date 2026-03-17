@@ -850,10 +850,10 @@ async function fetchDiagnostics() {
             trigger.classList.remove('all-done');
             if (diagnosticsData.monthlySavings > 0) {
                 const advisoryNote = diagnosticsData.advisorySavings > 0
-                    ? ` <span class="opt-advisory-note">+ manual ~$${diagnosticsData.advisorySavings.toFixed(2)}/mo</span>`
+                    ? ` <span class="opt-advisory-note">+ manual ~$${diagnosticsData.advisorySavings.toFixed(2)}${t('unit_per_month')}</span>`
                     : '';
                 const actionLabel = totalActions === 1 ? t('opt_action_singular') : t('opt_action_plural');
-                triggerText.innerHTML = `<strong>${totalActions} ${actionLabel}</strong> ${t('opt_actions_available')}. ${t('opt_tap_to_save')} <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}/mo</span>.${advisoryNote}`;
+                triggerText.innerHTML = `<strong>${totalActions} ${actionLabel}</strong> ${t('opt_actions_available')}. ${t('opt_tap_to_save')} <span class="et-savings" id="trigger-savings">\$${diagnosticsData.monthlySavings.toFixed(2)}${t('unit_per_month')}</span>.${advisoryNote}`;
             } else {
                 const actionLabel = totalActions === 1 ? t('opt_action_singular') : t('opt_action_plural');
                 triggerText.innerHTML = `<strong>${totalActions} ${actionLabel}</strong> ${t('opt_actions_found')}. ${t('opt_tap_to_review')}`;
@@ -952,7 +952,7 @@ function updateSkillAuditSelection(itemEl) {
 }
 
 function renderActionItem(act, isSkipped = false) {
-    const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}/mo` : t('legend_system');
+    const savingsStr = act.savings > 0 ? `-$${act.savings.toFixed(2)}${t('unit_per_month')}` : t('legend_system');
     const savingsClass = act.savings > 10 ? 'high-savings' : (act.savings > 0 ? 'medium-savings' : 'safety');
     const initialMeta = act._meta && typeof act._meta === 'object' && !Array.isArray(act._meta)
         ? { ...act._meta }
@@ -1234,7 +1234,7 @@ function renderHistoryTimeline(list, history) {
             title = ('Applied: ' + hist.actionId);
         }
 
-        const savingsTag = hist.savings > 0 ? ` — ${t('hist_saved')} $${Number(hist.savings).toFixed(2)}/mo` : '';
+        const savingsTag = hist.savings > 0 ? ` — ${t('hist_saved')} $${Number(hist.savings).toFixed(2)}${t('unit_per_month')}` : '';
 
         const canShowUndo = i === 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO';
         const isUndoBlockedByNewerChanges = i > 0 && hist.backupPath && hist.undoable && hist.actionId !== 'UNDO';

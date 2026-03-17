@@ -70,6 +70,7 @@ const translations = {
         actions: "Actions",
         show_all: "Show all",
         show_less: "Show less",
+        unit_per_month: "/mo",
 
         // New Status / Home Entries
         sys_status: "System Status",
@@ -157,6 +158,10 @@ const translations = {
         opt_toast_undone: "Optimization Reverted",
         opt_action_singular: "action",
         opt_action_plural: "actions",
+        opt_btn_disable: "Disable completely",
+        opt_analyzing_title: "Analyzing Usage Patterns",
+        opt_analyzing_desc: "Reading history data...",
+        opt_implemented_title: "Implemented Optimizations",
         
         // Optimizer History
         hist_saved: "saved",
@@ -178,6 +183,7 @@ const translations = {
         // Optimizer Action Mappings
         'A01_title': "Switch to a cheaper AI model",
         'A01_desc': "Primary usage is on premium model. Switching to smaller models saves cost.",
+        'A01_help': "AI models come in different tiers. Premium models are smarter but cost more per message. This switches to a model that's almost as good but significantly cheaper.",
         'A01_side_effect': "Mild decrease in performance on highly complex reasoning tasks.",
         'A02_title': "Reduce Heartbeat frequency",
         'A02_desc': "Lowering the background check frequency reduces token consumption.",
@@ -219,7 +225,6 @@ const translations = {
         time_in_h: "(in {n}h)",
         time_every_m: "Every {n} min",
         time_every_h: "Every {n} hour",
-        opt_btn_disable: "Disable completely",
 
         // Login
         login_title: "Secure Dashboard Login",
@@ -308,6 +313,7 @@ const translations = {
         actions: "操作",
         show_all: "显示全部",
         show_less: "收起",
+        unit_per_month: "/月",
 
         // New Status / Home Entries
         sys_status: "系统状态",
@@ -385,7 +391,7 @@ const translations = {
         opt_current: "当前",
         opt_optimized: "优化后",
         opt_actions_found: "发现可节省成本的操作",
-        opt_actions_available: "项可执行操作",
+        opt_actions_available: "项操作待处理",
         opt_tap_to_save: "点击以每月节省",
         opt_tap_to_review: "点击以查看并保护系统。",
         opt_no_data_title: "无使用数据",
@@ -393,8 +399,12 @@ const translations = {
         opt_btn_optimize: "立即优化",
         opt_no_history: "暂无优化历史。",
         opt_toast_undone: "优化已撤销",
-        opt_action_singular: "项操作",
-        opt_action_plural: "项操作",
+        opt_action_singular: "项",
+        opt_action_plural: "项",
+        opt_btn_disable: "完全禁用",
+        opt_analyzing_title: "正在分析使用模式",
+        opt_analyzing_desc: "读取历史数据中...",
+        opt_implemented_title: "已实施的优化",
 
         // Optimizer History
         hist_saved: "已节省",
@@ -458,7 +468,6 @@ const translations = {
         time_in_h: "({n}小时后)",
         time_every_m: "每 {n} 分钟",
         time_every_h: "每 {n} 小时",
-        opt_btn_disable: "完全禁用",
 
         // Login
         login_title: "仪表盘安全登录",
