@@ -1020,7 +1020,12 @@ function renderActionItem(act, isSkipped = false) {
         detailParts.push(`<div class="opt-diff"><span class="diff-key">${escapeHtml(d.key)}:</span> <span class="diff-from">${escapeHtml(d.from)}</span> <span class="diff-arrow">\u2192</span> <span class="diff-to">${escapeHtml(d.to)}</span></div>`);
     }
     if (act.calcDetail) {
-        detailParts.push(`<div class="opt-calc">\ud83d\udcd0 ${escapeHtml(act.calcDetail)}</div>`);
+        // Localize 'task(s)', 'tok/run', 'aggregated runs/mo' in calcDetail
+        const localizedDetail = act.calcDetail
+            .replace('task(s)', t('unit_tasks'))
+            .replace('tok/run', t('unit_tok_run'))
+            .replace('aggregated runs/mo', t('unit_agg_runs_mo'));
+        detailParts.push(`<div class="opt-calc">\ud83d\udcd0 ${escapeHtml(localizedDetail)}</div>`);
     }
     if (act.codeTag) {
         detailParts.push(`<div class="opt-codetag"><code>${escapeHtml(act.codeTag)}</code></div>`);
@@ -1357,7 +1362,13 @@ function flipToOptimizer() {
         results.style.display = 'none';
         success.style.display = 'none';
 
-        const steps = ["Reading history...", "Calculating tokens...", "Checking models...", "Cross-referencing config...", "Finalizing measures..."];
+        const steps = [
+            t('opt_step_reading'),
+            t('opt_step_calculating'),
+            t('opt_step_checking'),
+            t('opt_step_referencing'),
+            t('opt_step_finalizing')
+        ];
         let i = 0;
         stepEl.textContent = steps[0];
         clearOptimizerProgressTimer();

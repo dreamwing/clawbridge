@@ -93,8 +93,8 @@ const translations = {
         output_write: "OUTPUT (WRITE)",
         cost_trend: "COST TREND (7 DAYS)",
         top_models: "TOP MODELS",
-        detail_in: "Input",
-        detail_out: "Output",
+        detail_in: "In",
+        detail_out: "Out",
         detail_cache_r: "Cache R",
         detail_cache_w: "Cache W",
 
@@ -159,11 +159,13 @@ const translations = {
         opt_action_singular: "action",
         opt_action_plural: "actions",
         opt_btn_disable: "Disable completely",
-        opt_analyzing_title: "Analyzing Usage Patterns",
-        opt_analyzing_desc: "Reading history data...",
-        opt_implemented_title: "Implemented Optimizations",
         opt_toast_undoing: "Reverting optimization...",
-        
+        opt_step_reading: "Reading history...",
+        opt_step_calculating: "Calculating tokens...",
+        opt_step_checking: "Checking models...",
+        opt_step_referencing: "Cross-referencing config...",
+        opt_step_finalizing: "Finalizing measures...",
+
         // Optimizer History
         hist_saved: "saved",
         hist_undo: "Undo",
@@ -215,7 +217,7 @@ const translations = {
         'A09_help': "AI responses include explanations, examples, and formatting. \"Concise mode\" tells the AI to skip the fluff and give direct answers — saving output tokens.",
         'A09_side_effect': "Responses become visibly shorter.",
 
-        // Time
+        // Time & Units
         time_s_ago: "{n}s ago",
         time_m_ago: "{n}m ago",
         time_h_ago: "{n}h ago",
@@ -226,6 +228,9 @@ const translations = {
         time_in_h: "(in {n}h)",
         time_every_m: "Every {n} min",
         time_every_h: "Every {n} hour",
+        unit_tasks: "task(s)",
+        unit_tok_run: "tok/run",
+        unit_agg_runs_mo: "aggregated runs/mo",
 
         // Login
         login_title: "Secure Dashboard Login",
@@ -403,10 +408,12 @@ const translations = {
         opt_action_singular: "项",
         opt_action_plural: "项",
         opt_btn_disable: "完全禁用",
-        opt_analyzing_title: "正在分析使用模式",
-        opt_analyzing_desc: "读取历史数据中...",
-        opt_implemented_title: "已实施的优化",
         opt_toast_undoing: "正在撤销优化...",
+        opt_step_reading: "读取历史记录中...",
+        opt_step_calculating: "计算令牌消耗中...",
+        opt_step_checking: "核对模型配置中...",
+        opt_step_referencing: "交叉引用配置中...",
+        opt_step_finalizing: "最终量化评估中...",
 
         // Optimizer History
         hist_saved: "已节省",
@@ -459,7 +466,7 @@ const translations = {
         'A09_help': "AI 的回复包括解释、示例和格式化。“简洁模式”告诉 AI 跳过虚饰，直接给出答案——节省输出令牌。",
         'A09_side_effect': "回复内容会明显变短。",
 
-        // Time
+        // Time & Units
         time_s_ago: "{n}秒前",
         time_m_ago: "{n}分钟前",
         time_h_ago: "{n}小时前",
@@ -468,6 +475,11 @@ const translations = {
         time_never: "从未",
         time_in_m: "({n}分钟后)",
         time_in_h: "({n}小时后)",
+        time_every_m: "每 {n} 分钟",
+        time_every_h: "每 {n} 小时",
+        unit_tasks: "个任务",
+        unit_tok_run: "令牌/运行",
+        unit_agg_runs_mo: "月度累计运行次数",
 
         // Login
         login_title: "仪表盘安全登录",
