@@ -6,6 +6,10 @@ window.addEventListener('clawbridge-lang-change', () => {
     fetchJobs();
     fetchStatus();
     
+    // Update Optimizer and History if localized
+    if (typeof renderOptimizerList === 'function') renderOptimizerList();
+    if (typeof renderHistoryList === 'function') renderHistoryList();
+
     // Only re-init memory if we are on the memory tab to save API calls
     if (document.getElementById('view-memory').classList.contains('active')) {
         initMemory();
