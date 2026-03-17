@@ -159,12 +159,16 @@ const translations = {
         opt_action_singular: "action",
         opt_action_plural: "actions",
         opt_btn_disable: "Disable completely",
+        opt_analyzing_title: "Analyzing Usage Patterns",
+        opt_analyzing_desc: "Reading history data...",
+        opt_implemented_title: "Implemented Optimizations",
         opt_toast_undoing: "Reverting optimization...",
         opt_step_reading: "Reading history...",
         opt_step_calculating: "Calculating tokens...",
         opt_step_checking: "Checking models...",
         opt_step_referencing: "Cross-referencing config...",
         opt_step_finalizing: "Finalizing measures...",
+        opt_your_choice: "your choice",
 
         // Optimizer History
         hist_saved: "saved",
@@ -405,8 +409,8 @@ const translations = {
         opt_btn_optimize: "立即优化",
         opt_no_history: "暂无优化历史。",
         opt_toast_undone: "优化已撤销",
-        opt_action_singular: "",
-        opt_action_plural: "",
+        opt_action_singular: "项",
+        opt_action_plural: "项",
         opt_btn_disable: "完全禁用",
         opt_toast_undoing: "正在撤销优化...",
         opt_step_reading: "读取历史记录中...",
@@ -414,6 +418,7 @@ const translations = {
         opt_step_checking: "核对模型配置中...",
         opt_step_referencing: "交叉引用配置中...",
         opt_step_finalizing: "最终量化评估中...",
+        opt_your_choice: "自定义",
 
         // Optimizer History
         hist_saved: "已节省",
