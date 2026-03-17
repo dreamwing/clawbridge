@@ -190,8 +190,9 @@ const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const wsUrl = protocol + '//' + window.location.host;
 let ws;
 function connectWS() {
-    const wsAuthUrl = wsUrl + '?key=' + encodeURIComponent(API_KEY || '');
-    ws = new WebSocket(wsAuthUrl);
+    // Browser WebSocket connections automatically include the dashboard's
+    // session cookie, so avoid echoing the long-lived access key into the URL.
+    ws = new WebSocket(wsUrl);
     ws.onopen = () => console.log('WS Connected');
     ws.onclose = () => setTimeout(connectWS, 3000);
     ws.onmessage = (event) => {

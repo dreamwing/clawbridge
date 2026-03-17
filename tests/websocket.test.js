@@ -66,8 +66,10 @@ describe('WebSocket Authentication', () => {
         ws.on('error', done);
     });
 
-    test('correct x-claw-key in query string → connected (receives heartbeat)', done => {
-        const ws = new WebSocket(`ws://127.0.0.1:${port}?key=testkey123`);
+    test('correct x-claw-key header → connected (receives heartbeat)', done => {
+        const ws = new WebSocket(`ws://127.0.0.1:${port}`, {
+            headers: { 'x-claw-key': 'testkey123' },
+        });
         ws.on('message', (data) => {
             const msg = JSON.parse(data.toString());
             expect(msg).toHaveProperty('type', 'heartbeat');
