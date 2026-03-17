@@ -1008,7 +1008,7 @@ function renderActionItem(act, isSkipped = false) {
             return `<label class="opt-radio ${labelClass}">
                 <input type="radio" name="${isSkipped ? 'skip-' : ''}hb-interval-${act.actionId}" value="${opt.value}" data-savings="${opt.savings}"${checked}>
                 <span class="opt-radio-label">${escapeHtml(displayLabel)}</span>
-                <span class="opt-radio-savings">${opt.savingsStr}</span>
+                <span class="opt-radio-savings">${escapeHtml(opt.savingsStr).replace('/mo', t('unit_per_month'))}</span>
             </label>`;
         }).join('');
         optionsHtml = `<div class="opt-interval-selector" style="margin:8px 0;display:flex;flex-direction:column;gap:4px;">${optItems}</div>`;
