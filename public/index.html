@@ -69,7 +69,7 @@
                             alerts</span></div>
                 </div>
                 <div
-                    style="margin-top:10px; font-size:10px; color:var(--text-dim); line-height:1.4; border-top:1px solid var(--border); padding-top:10px;">
+                    style="margin-top:10px; font-size:10px; color:var(--text-dim); line-height:1.4; border-top:1px solid var(--border); padding-top:10px;" data-i18n="legend_note">
                     <strong>Note:</strong> Monitoring polls every 3 seconds to minimize CPU usage. Extremely short-lived
                     scripts (<3s) may not be captured in real-time logs. </div>
                 </div>
@@ -287,9 +287,9 @@
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
                         </div>
-                        <div class="et-text" id="trigger-text">Loading optimization data...</div>
+                        <div class="et-text" id="trigger-text" data-i18n="loading">Loading optimization data...</div>
                     </div>
-                    <button class="et-btn" id="trigger-btn">Optimize</button>
+                    <button class="et-btn" id="trigger-btn" data-i18n="opt_btn_history">Optimize</button>
                 </div>
             </div>
 
@@ -399,13 +399,13 @@
                         </div>
                         <div
                             style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px; color:var(--text-dim);">
-                            <div>In: <span id="detail-input"
+                            <div><span data-i18n="detail_in">In</span>: <span id="detail-input"
                                     style="color:var(--text); font-family:monospace;">--</span></div>
-                            <div>Out: <span id="detail-output"
+                            <div><span data-i18n="detail_out">Out</span>: <span id="detail-output"
                                     style="color:var(--text); font-family:monospace;">--</span></div>
-                            <div>Cache R: <span id="detail-cache-read"
+                            <div><span data-i18n="detail_cache_r">Cache R</span>: <span id="detail-cache-read"
                                     style="color:#22d3ee; font-family:monospace;">--</span></div>
-                            <div>Cache W: <span id="detail-cache-write"
+                            <div><span data-i18n="detail_cache_w">Cache W</span>: <span id="detail-cache-write"
                                     style="color:#22d3ee; font-family:monospace;">--</span></div>
                         </div>
                     </div>
@@ -526,18 +526,18 @@
                     </div>
 
                     <div class="card">
-                        <h3 style="margin-top:0" data-i18n="tab_settings">Settings</h3>
+                        <h3 style="margin-top:0" data-i18n="lang_label">Language</h3>
                         <div class="info-row">
                             <span class="info-label" data-i18n="lang_label">Language</span>
                             <span class="info-val">
                                 <select onchange="setLanguage(this.value)" id="lang-selector" style="background:rgba(255,255,255,0.1); color:white; border:1px solid var(--border); border-radius:4px; padding:2px 5px; font-size:12px;">
-                                    <option value="en">English</option>
-                                    <option value="zh">中文</option>
+                                    <option value="en" data-i18n="lang_en">English</option>
+                                    <option value="zh" data-i18n="lang_zh">中文</option>
                                 </select>
                             </span>
                         </div>
                         <div style="margin-top:15px;">
-                            <button class="btn" style="width:100%; background:rgba(239, 68, 68, 0.1); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.2);" onclick="localStorage.removeItem('claw_key'); location.reload();" data-i18n="logout">Logout</button>
+                            <button class="btn" style="width:100%; background:rgba(255,255,255,0.05); color:var(--text); border:1px solid var(--border);" onclick="logout();" data-i18n="logout">Logout</button>
                         </div>
                     </div>
 

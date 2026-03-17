@@ -388,6 +388,13 @@ function addFeedItem(ts, task, method = 'append') {
     if (feed.children.length > 100) feed.removeChild(feed.children[feed.children.length - 1]);
 }
 
+function logout() {
+    localStorage.removeItem('claw_key');
+    // Clear cookies by setting expiry in past
+    document.cookie = "claw_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    location.href = '/login.html';
+}
+
 async function fetchHistory() {
     try {
         const res = await fetchAuth(API + '/logs?limit=100');
@@ -520,7 +527,7 @@ async function refreshTokenStats() {
     if (btn.disabled) return;
 
     // Set Loading State
-    btn.innerText = t('analyzing');
+    btn.innerText = t('loading');
     btn.disabled = true;
     btn.style.opacity = '0.7';
 
