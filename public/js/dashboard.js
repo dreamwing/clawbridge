@@ -51,7 +51,11 @@ async function fetchAuth(url, options = {}) {
     headers['x-claw-key'] = API_KEY;
     options.headers = headers;
     const res = await fetch(url, options);
-    if (res.status === 401) throw new Error('Auth Failed');
+    if (res.status === 401) {
+        alert(t('auth_failed'));
+        logout();
+        throw new Error('Auth Failed');
+    }
     return res;
 }
 
@@ -581,7 +585,7 @@ async function fetchTokens() {
         // Use API, not static file
         const res = await fetchAuth(API + '/tokens');
         if (!res.ok) {
-            throw new Error(await readErrorMessage(res, 'Failed to load token stats'));
+            throw new Error(await readErrorMessage(res, t('err_load_tokens')));
         }
         const data = await res.json();
         document.getElementById('token-card').style.display = 'block';
@@ -819,7 +823,7 @@ async function fetchDiagnostics() {
     try {
         const res = await fetchAuth(API + '/diagnostics?nocache=' + Date.now());
         if (!res.ok) {
-            throw new Error(await readErrorMessage(res, 'Failed to load diagnostics'));
+            throw new Error(await readErrorMessage(res, t('err_load_diagnostics')));
         }
         diagnosticsData = await res.json();
         // Normalize field name (backend sends totalMonthlySavings)
@@ -1162,7 +1166,7 @@ async function renderHistoryList() {
     try {
         const res = await fetchAuth(API + '/optimizations/history');
         if (!res.ok) {
-            throw new Error(await readErrorMessage(res, 'Failed to load optimization history'));
+            throw new Error(await readErrorMessage(res, t('err_load_history')));
         }
         const history = await res.json();
         renderHistoryTimeline(document.getElementById('timeline-list'), history);

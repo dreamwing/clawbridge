@@ -142,7 +142,19 @@ const translations = {
         opt_manual_action: "Manual Action Required",
         opt_history_title: "Recent Optimizations",
         opt_toast_applied: "Optimization Applied",
-        opt_toast_failed: "Operation Failed"
+        opt_toast_failed: "Operation Failed",
+        opt_analyzing: "Analyzing Usage Patterns",
+        opt_current: "Current",
+        opt_optimized: "Optimized",
+        opt_actions_found: "Cost-Saving Actions Found",
+        opt_implemented_title: "Implemented Optimizations",
+
+        // Error Messages
+        auth_failed: "Authentication Failed. Redirecting...",
+        err_load_tokens: "Failed to load token stats",
+        err_load_diagnostics: "Failed to load diagnostics",
+        err_load_history: "Failed to load optimization history",
+        err_generic: "An error occurred. Please try again."
     },
     zh: {
         // App Title
@@ -287,7 +299,19 @@ const translations = {
         opt_manual_action: "需要手动操作",
         opt_history_title: "最近的优化",
         opt_toast_applied: "优化已应用",
-        opt_toast_failed: "操作失败"
+        opt_toast_failed: "操作失败",
+        opt_analyzing: "分析使用模式中",
+        opt_current: "当前",
+        opt_optimized: "优化后",
+        opt_actions_found: "发现可节省成本的操作",
+        opt_implemented_title: "已实施的优化",
+
+        // Error Messages
+        auth_failed: "认证失败。正在跳转...",
+        err_load_tokens: "成本数据加载失败",
+        err_load_diagnostics: "诊断数据加载失败",
+        err_load_history: "历史记录加载失败",
+        err_generic: "发生错误，请稍后重试"
     }
 };
 

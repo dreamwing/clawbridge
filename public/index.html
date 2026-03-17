@@ -419,7 +419,7 @@
                                 height="22">
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
-                            Optimizer
+                            <span data-i18n="opt_title">Optimizer</span>
                         </div>
                         <button class="btn-close-back" onclick="flipToDashboard()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"
@@ -433,37 +433,37 @@
                     <!-- Loader State -->
                     <div class="scan-progress" id="scan-progress">
                         <div class="scan-spinner"></div>
-                        <div class="progress-title">Analyzing Usage Patterns</div>
+                        <div class="progress-title" data-i18n="opt_analyzing">Analyzing Usage Patterns</div>
                         <div class="progress-sub" id="scan-step-text">Reading 6 days of history...</div>
                     </div>
 
                     <!-- ACTIVE RESULTS VIEW -->
                     <div class="scan-results" id="scan-results">
                         <div class="savings-hero">
-                            <div class="savings-hero-label">Potential Monthly Savings</div>
+                            <div class="savings-hero-label" data-i18n="opt_savings">Potential Monthly Savings</div>
                             <div class="savings-hero-amount" id="main-savings-amount">--</div>
                         </div>
                         <div class="cost-comparison">
                             <div class="cost-compare-item">
-                                <div class="cost-compare-label">Current</div>
+                                <div class="cost-compare-label" data-i18n="opt_current">Current</div>
                                 <div class="cost-compare-val current">--</div>
                             </div>
                             <div class="cost-compare-arrow">→</div>
                             <div class="cost-compare-item">
-                                <div class="cost-compare-label">Optimized</div>
+                                <div class="cost-compare-label" data-i18n="opt_optimized">Optimized</div>
                                 <div class="cost-compare-val optimized">--</div>
                             </div>
                             <div class="cost-compare-item cache-rate-item" style="display:none;">
-                                <div class="cost-compare-label">Cache Hit</div>
+                                <div class="cost-compare-label" data-i18n="cache_hit">Cache Hit</div>
                                 <div class="cost-compare-val" id="optimizer-cache-hit-rate">—</div>
                             </div>
                         </div>
-                        <div class="result-title">Cost-Saving Actions Found</div>
+                        <div class="result-title" data-i18n="opt_actions_found">Cost-Saving Actions Found</div>
                         <div class="opt-list" id="opt-list">
                             <!-- Dynamically populated by renderOptimizerList() -->
                         </div>
                         <div class="history-section" id="active-history-section">
-                            <div class="history-title">Implemented Optimizations</div>
+                            <div class="history-title" data-i18n="opt_implemented_title">Implemented Optimizations</div>
                             <div class="timeline" id="active-timeline-list">
                                 <!-- Timeline items will be injected here -->
                             </div>
@@ -479,18 +479,18 @@
                                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
                             </svg>
                         </div>
-                        <div class="success-title">Fully Optimized</div>
-                        <div class="success-desc">Great job! Your token consumption is now running at optimal
+                        <div class="success-title" data-i18n="opt_system_optimized">Fully Optimized</div>
+                        <div class="success-desc" data-i18n="opt_efficient_desc">Great job! Your token consumption is now running at optimal
                             efficiency.</div>
                         <div class="history-section">
-                            <div class="history-title">Recent Optimizations</div>
+                            <div class="history-title" data-i18n="opt_history_title">Recent Optimizations</div>
                             <div class="timeline" id="timeline-list">
                                 <!-- Timeline items will be injected here -->
                             </div>
                         </div>
 
                         <div id="success-skipped-section" class="hidden" style="width:100%; margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
-                            <div class="result-title">Skipped Recommendations</div>
+                            <div class="result-title" data-i18n="opt_skipped_title">Skipped Recommendations</div>
                             <div id="success-skipped-list" class="opt-list"></div>
                         </div>
                     </div>
