@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- resolve unclickable navigation icon issue (#36)
+- expose i18n helpers globally (#38)
+- allow i18n assets before auth
+
+### Changed
+- bump frontend asset cache keys
+
 ## [1.2.2] - 2026-03-17
 
 ### Added
