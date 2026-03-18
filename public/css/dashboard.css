@@ -38,7 +38,7 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(5px);
-            z-index: 2000;
+            z-index: 6000;
             display: none;
             opacity: 0;
             transition: opacity 0.2s;
@@ -163,6 +163,8 @@
             max-width: 480px;
             display: none;
             animation: fadeIn 0.2s ease-out;
+            padding-bottom: 80px;
+            box-sizing: border-box;
         }
 
         #view-tokens {
@@ -453,7 +455,8 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            z-index: 1000;
+            z-index: 5000;
+            pointer-events: auto;
             padding: 0 8px;
             padding-bottom: env(safe-area-inset-bottom);
         }
