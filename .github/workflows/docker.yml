@@ -31,23 +31,35 @@ jobs:
       id-token: write
 
     steps:
-      - name: Get latest tag
-        id: get_tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ inputs.tag }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            TAG=${GITHUB_REF#refs/tags/}
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-          else
-            TAG=$(git ls-remote --tags --sort=-v:refname origin 'refs/tags/v*' | grep -v "\^{}" | head -1 | sed 's/.*refs\/tags\///')
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
+
+      - name: Resolve release tag
+        id: get_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG="$(git tag --list 'v*' --sort=-v:refname | head -1)"
+          fi
+
+          if [ -z "$TAG" ]; then
+            echo "Failed to resolve release tag" >&2
+            exit 1
+          fi
+
+          echo "Resolved tag: $TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout release ref
+        uses: actions/checkout@v4
+        with:
           ref: ${{ steps.get_tag.outputs.tag }}
+          fetch-depth: 0
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -62,6 +74,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            type=raw,value=${{ steps.get_tag.outputs.tag }}
             type=semver,pattern={{version}},value=${{ steps.get_tag.outputs.tag }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.get_tag.outputs.tag }}
             type=semver,pattern={{major}},value=${{ steps.get_tag.outputs.tag }}
