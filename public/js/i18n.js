@@ -667,6 +667,11 @@ function applyTranslations() {
     if (selector) selector.value = currentLang;
 }
 
+// Expose i18n helpers for deferred scripts and inline handlers.
+window.t = t;
+window.setLanguage = setLanguage;
+window.applyTranslations = applyTranslations;
+
 // Initial application
 applyTranslations();
 document.addEventListener('DOMContentLoaded', applyTranslations);
