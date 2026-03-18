@@ -33,7 +33,7 @@ function authMiddleware(req, res, next) {
     }
 
     // 4. Static assets passthrough
-    if (req.path.match(/\.(png|jpg|jpeg|svg|gif|ico|css)$/)) return next();
+    if (req.path.match(/\.(js|png|jpg|jpeg|svg|gif|ico|css)$/)) return next();
     if (req.path === '/manifest.json') return next();
     if (req.path === '/login.html') return res.redirect(302, '/');
 

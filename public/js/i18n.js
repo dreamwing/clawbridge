@@ -671,6 +671,7 @@ function applyTranslations() {
 window.t = t;
 window.setLanguage = setLanguage;
 window.applyTranslations = applyTranslations;
+window.translations = translations;
 
 // Initial application
 applyTranslations();
