@@ -12,6 +12,7 @@ router.use(require('./process'));
 router.use(require('./config'));
 router.use(require('./diagnostics'));
 router.use(require('./optimize'));
+router.use(require('./athena'));
 router.use(require('./optimizations'));
 
 module.exports = router;
