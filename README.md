@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=dreamwing&project=clawbridge&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 <div align="center">
   <img src="public/app-icon.png" width="120" alt="ClawBridge Logo" />
   <h1>ClawBridge Dashboard</h1>
