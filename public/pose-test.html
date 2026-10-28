@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediaPipe Pose 姿勢偵測</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; color: white; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
+    h2 { color: #f97316; margin-bottom: 10px; font-size: 22px; }
+    #result { font-size: 20px; margin: 10px 0; font-weight: bold; }
+    #result.success { color: #4ade80; }
+    #result.error { color: #ef4444; }
+    #result.pending { color: #fbbf24; }
+    #stats { font-size: 13px; color: #94a3b8; margin: 5px 0; }
+    canvas { border: 3px solid #4ade80; border-radius: 8px; max-width: 100%; margin: 10px 0; }
+    .info { color: #94a3b8; font-size: 13px; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h2>🏸 MediaPipe Pose 姿勢偵測</h2>
+  <div id="result" class="pending">姿勢偵測中...</div>
+  <div id="stats"></div>
+  <canvas id="canvas"></canvas>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+  
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const result = document.getElementById('result');
+    const stats = document.getElementById('stats');
+    
+    // 測試圖片（老闆上傳的羽球影片截圖）
+    const TEST_IMAGE = 'https://clawbridge.myclawdomain.ccwu.cc/test-badminton5.jpg';
+    
+    result.textContent = '⏳ 姿勢模型載入中...';
+    
+    function waitForAll() {
+      return new Promise((resolve) => {
+        let checks = 0;
+        const needed = ['Pose', 'drawConnectors', 'drawLandmarks', 'POSE_CONNECTIONS'];
+        function check() {
+          checks++;
+          const pending = needed.filter(n => typeof window[n] === 'undefined');
+          if (pending.length === 0) {
+            resolve();
+          } else if (checks > 40) {
+            result.textContent = '❌ 依賴載入逾時';
+            result.className = 'error';
+          } else {
+            setTimeout(check, 500);
+          }
+        }
+        setTimeout(check, 500);
+      });
+    }
+    
+    waitForAll().then(() => {
+      result.textContent = '⏳ 姿勢偵測中...';
+      
+      const pose = new Pose({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+      });
+      
+      pose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        enableSegmentation: false,
+        enableMultiplePoses: true,
+        maxPoses: 4,
+        minDetectionConfidence: 0.3,
+        minTrackingConfidence: 0.3
+      });
+      
+      pose.onResults((results) => {
+        // 繪製原始圖片
+        if (results.image) {
+          canvas.width = results.image.width;
+          canvas.height = results.image.height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(results.image, 0, 0);
+        }
+        
+        const single = results.poseLandmarks ? 1 : 0;
+        const multi = results.multiPoseLandmarks ? results.multiPoseLandmarks.length : 0;
+        const total = single + multi;
+        
+        stats.textContent = `單人模式: ${single}人 | 多人模式: ${multi}人 | 總計: ${total}人`;
+        
+        if (total > 0) {
+          // 繪製單人模式
+          if (results.poseLandmarks) {
+            const color = '#00FF00';
+            const radius = 4;
+            drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS, { color, lineWidth: 3 });
+            drawLandmarks(ctx, results.poseLandmarks, { color: '#FF0000', lineWidth: 1, radius });
+          }
+          
+          // 繪製多人模式
+          if (results.multiPoseLandmarks) {
+            const colors = ['#00FFFF', '#FFFF00', '#FF00FF', '#00FF00'];
+            results.multiPoseLandmarks.forEach((landmarks, i) => {
+              if (!landmarks) return;
+              const color = colors[i % colors.length];
+              drawConnectors(ctx, landmarks, POSE_CONNECTIONS, { color, lineWidth: 3 });
+              drawLandmarks(ctx, landmarks, { color, lineWidth: 1, radius: 4 });
+            });
+          }
+          
+          result.textContent = `✅ 偵測到 ${total} 人！`;
+          result.className = 'success';
+        } else {
+          result.textContent = '❌ 未偵測到人體姿勢';
+          result.className = 'error';
+        }
+      });
+      
+      // 載入測試圖片
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = async () => {
+        result.textContent = `⏳ 偵測 ${img.width}×${img.height}...`;
+        try {
+          await pose.send({ image: img });
+        } catch(e) {
+          result.textContent = '❌ 偵測錯誤: ' + e.message;
+          result.className = 'error';
+        }
+      };
+      img.onerror = () => {
+        result.textContent = '❌ 圖片載入失敗';
+        result.className = 'error';
+      };
+      img.src = TEST_IMAGE;
+    });
+  </script>
+</body>
+</html>

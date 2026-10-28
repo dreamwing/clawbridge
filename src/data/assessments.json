@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "userId": "test",
+    "date": "2026-08-23",
+    "timestamp": "2026-08-23T11:11:29.618Z",
+    "level": 8,
+    "total": 78,
+    "wristPower": 72,
+    "posture": 68,
+    "footwork": 65,
+    "stability": 70,
+    "shotCount": 15,
+    "levelScore": 9
+  }
+]

@@ -65,7 +65,7 @@ class DiagnosticsEngine {
             await fs.writeFile(this.skipPath, JSON.stringify(nextList, null, 2), 'utf8');
             this.invalidateCache();
         });
-        _skipWriteQueue = operation.catch(() => { });
+        _skipWriteQueue = operation.catch((e) => { console.error('[Diagnostics] Skip list write error:', e.message); });
         await operation;
     }
 

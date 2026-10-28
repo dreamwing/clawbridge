@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九容瑜伽 - 管理後台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1c1917;
+            --ink-mid: #3d3a36;
+            --ink-light: #78716c;
+            --paper: #FAF8F5;
+            --paper-warm: #F2EDE3;
+            --paper-deep: #E8E0D2;
+            --border: #e2ddd5;
+            --vermilion: #b91c1c;
+            --jade: #0d6b61;
+            --gold-dark: #92702e;
+            --gold: #C4A77D;
+            --serif: 'Noto Serif TC', serif;
+            --sans: 'Noto Sans TC', sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.75; min-height: 100vh; }
+        html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+        /* ── Auth Overlay (fullscreen gate) ── */
+        #auth-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--paper);
+            display: flex; align-items: center; justify-content: center;
+        }
+        #auth-screen.hidden { display: none; }
+        .auth-wrap {
+            text-align: center; width: 90%; max-width: 340px;
+        }
+        .auth-logo {
+            font-family: var(--serif); font-size: 32px; font-weight: 400;
+            letter-spacing: 14px; color: var(--ink); margin-bottom: 4px;
+        }
+        .auth-logo-en {
+            font-family: var(--serif); font-size: 13px; font-weight: 300;
+            letter-spacing: 6px; color: var(--ink-light); margin-bottom: 40px;
+        }
+        .auth-input {
+            width: 100%; padding: 14px 20px;
+            border: 1.5px solid var(--border); border-radius: 40px;
+            font-size: 14px; font-family: var(--sans); color: var(--ink);
+            background: #fff; letter-spacing: 3px; text-align: center;
+            margin-bottom: 12px; transition: border-color 0.2s;
+        }
+        .auth-input:focus { outline: none; border-color: var(--vermilion); }
+        .auth-input::placeholder { color: var(--ink-light); }
+        .auth-btn {
+            width: 100%; padding: 14px; border-radius: 40px;
+            border: none; background: var(--ink); color: #fff;
+            font-size: 14px; letter-spacing: 5px; font-family: var(--sans);
+            cursor: pointer; transition: background 0.2s, transform 0.15s;
+        }
+        .auth-btn:hover { background: var(--vermilion); transform: translateY(-1px); }
+        .auth-btn:active { transform: translateY(0); }
+        .auth-err {
+            margin-top: 14px; font-size: 12px; letter-spacing: 2px;
+            color: var(--vermilion); min-height: 20px;
+        }
+
+        /* ── App Shell (hidden until auth) ── */
+        #app-shell { display: none; }
+        #app-shell.visible { display: block; }
+
+        /* ── Header ── */
+        .app-header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(250, 248, 245, 0.96); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        .header-inner {
+            max-width: 960px; margin: 0 auto; padding: 0 24px;
+            height: 56px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-brand { display: flex; align-items: baseline; gap: 8px; }
+        .header-brand .kanji { font-family: var(--serif); font-size: 17px; font-weight: 400; letter-spacing: 8px; }
+        .header-brand .sep { font-size: 10px; color: var(--ink-light); }
+        .header-brand .en { font-family: var(--serif); font-size: 11px; font-weight: 300; letter-spacing: 4px; color: var(--ink-mid); }
+        .header-nav { display: flex; gap: 4px; }
+        .header-nav button {
+            background: none; border: 1.5px solid transparent;
+            color: var(--ink-light); padding: 6px 14px;
+            border-radius: 40px; cursor: pointer;
+            font-size: 11px; letter-spacing: 3px; font-family: var(--sans);
+            transition: all 0.2s;
+        }
+        .header-nav button:hover { border-color: var(--border); color: var(--ink); background: var(--paper-warm); }
+        .header-nav button.active { border-color: var(--vermilion); color: var(--vermilion); background: rgba(185,28,28,0.04); }
+
+        /* ── Page ── */
+        .page { max-width: 960px; margin: 0 auto; padding: 28px 24px 72px; }
+        .page-tab { display: none; }
+        .page-tab.active { display: block; }
+
+        /* ── Stats Row ── */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+        .stat-card {
+            background: #fff; border: 1px solid var(--border); border-radius: 14px;
+            padding: 20px 16px; text-align: center;
+        }
+        .stat-card .n { font-family: var(--serif); font-size: 30px; font-weight: 400; color: var(--gold-dark); }
+        .stat-card .l { font-size: 10px; letter-spacing: 3px; color: var(--ink-light); margin-top: 6px; }
+
+        /* ── Panel ── */
+        .panel { background: #fff; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        .panel-head {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 22px; border-bottom: 1px solid var(--border);
+        }
+        .panel-title { font-family: var(--serif); font-size: 15px; letter-spacing: 5px; }
+        .panel-search {
+            padding: 8px 14px; border: 1px solid var(--border); border-radius: 40px;
+            font-size: 11px; letter-spacing: 2px; font-family: var(--sans); color: var(--ink);
+            background: var(--paper); width: 180px; transition: border-color 0.2s;
+        }
+        .panel-search:focus { outline: none; border-color: var(--vermilion); }
+        .panel-search::placeholder { color: var(--ink-light); }
+
+        /* ── Table ── */
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: var(--paper-warm); }
+        th {
+            padding: 11px 16px; text-align: left; font-size: 10px; letter-spacing: 3px;
+            font-weight: 500; color: var(--ink-light); white-space: nowrap;
+        }
+        td { padding: 14px 16px; font-size: 13px; color: var(--ink-mid); border-top: 1px solid var(--border); vertical-align: middle; }
+        tbody tr:first-child td { border-top: none; }
+        tbody tr:hover td { background: rgba(242,237,227,0.4); }
+
+        /* ── Badge ── */
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; letter-spacing: 1px; }
+        .b-pending { background: #FFF3E0; color: #c2410c; }
+        .b-confirmed { background: #f0fdf4; color: #15803d; }
+        .b-completed { background: #eff6ff; color: #1d4ed8; }
+        .b-cancelled { background: #fef2f2; color: #b91c1c; }
+        .b-active { background: #f0fdf4; color: #15803d; }
+        .b-inactive { background: #fef2f2; color: #b91c1c; }
+        .b-beginner { background: #f0fdf4; color: #15803d; }
+        .b-intermediate { background: #FFF3E0; color: #c2410c; }
+        .b-advanced { background: #fef2f2; color: #b91c1c; }
+
+        /* ── Buttons ── */
+        .btn { display: inline-block; padding: 7px 14px; border-radius: 40px; border: none; cursor: pointer; font-size: 11px; letter-spacing: 2px; font-family: var(--sans); transition: all 0.2s; }
+        .btn-sm { padding: 5px 11px; font-size: 10px; }
+        .btn-danger { background: #fef2f2; color: #b91c1c; }
+        .btn-danger:hover { background: #fee2e2; }
+        .btn-success { background: #f0fdf4; color: #15803d; }
+        .btn-success:hover { background: #dcfce7; }
+        .btn-primary { background: var(--ink); color: #fff; }
+        .btn-primary:hover { background: var(--vermilion); transform: translateY(-1px); }
+        .btn-warning { background: #FFF3E0; color: #c2410c; }
+        .btn-warning:hover { background: #ffedd5; }
+        .btn-ghost { background: var(--paper-warm); color: var(--ink-mid); border: 1px solid var(--border); }
+        .btn-ghost:hover { border-color: var(--ink-mid); color: var(--ink); }
+
+        /* ── Empty State ── */
+        .empty { text-align: center; padding: 52px 24px; color: var(--ink-light); font-size: 13px; letter-spacing: 2px; }
+        .empty-icon { font-size: 36px; margin-bottom: 14px; }
+
+        /* ── Modal ── */
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-bg.show { display: flex; }
+        .modal-card {
+            background: #fff; border-radius: 20px; width: 100%; max-width: 460px;
+            max-height: 88vh; overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.14);
+        }
+        .modal-head {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 22px 26px 18px; border-bottom: 1px solid var(--border);
+        }
+        .modal-head h3 { font-family: var(--serif); font-size: 16px; letter-spacing: 5px; }
+        .modal-close { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--ink-light); padding: 4px; border-radius: 4px; }
+        .modal-close:hover { color: var(--ink); }
+        .modal-body { padding: 22px 26px 28px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 10px; letter-spacing: 3px; color: var(--ink-mid); margin-bottom: 7px; font-weight: 500; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px 13px;
+            border: 1px solid var(--border); border-radius: 10px;
+            font-size: 13px; color: var(--ink); background: var(--paper);
+            font-family: var(--sans); transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--vermilion); }
+        .form-group input::placeholder { color: var(--ink-light); }
+        .form-group textarea { resize: vertical; min-height: 72px; }
+        .modal-foot { text-align: right; padding: 0 26px 22px; }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed; bottom: 28px; right: 24px;
+            background: var(--ink); color: var(--paper);
+            padding: 11px 18px; border-radius: 40px;
+            font-size: 12px; letter-spacing: 2px;
+            opacity: 0; transform: translateY(12px); transition: all 0.3s; z-index: 9999;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background: var(--jade); }
+        .toast.error { background: var(--vermilion); }
+
+        /* ── Stats Detail ── */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .stats-card { background: var(--paper-warm); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+        .stats-card h4 { font-family: var(--serif); font-size: 13px; letter-spacing: 4px; margin-bottom: 14px; color: var(--ink-mid); }
+        .stats-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+        .stats-row:last-child { border-bottom: none; }
+        .stats-row span { color: var(--ink-mid); letter-spacing: 1px; }
+        .stats-row strong { color: var(--ink); font-weight: 500; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .header-inner { padding: 0 16px; }
+            .header-nav button { padding: 5px 10px; font-size: 10px; }
+            .page { padding: 20px 16px 60px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid { grid-template-columns: 1fr; }
+            .panel-head { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .form-row { grid-template-columns: 1fr; }
+            .table { font-size: 12px; }
+            th, td { padding: 10px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Auth Gate ── -->
+    <div id="auth-screen">
+        <div class="auth-wrap">
+            <div class="auth-logo">九容</div>
+            <div class="auth-logo-en">JIURONG YOGA</div>
+            <input type="password" id="pw" class="auth-input" placeholder="請輸入管理密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+            <button class="auth-btn" id="loginBtn" onclick="doLogin()">登入</button>
+            <div class="auth-err" id="authErr"></div>
+        </div>
+    </div>
+
+    <!-- ── App Shell ── -->
+    <div id="app-shell">
+        <header class="app-header">
+            <div class="header-inner">
+                <div class="header-brand">
+                    <span class="kanji">九容</span>
+                    <span class="sep">·</span>
+                    <span class="en">瑜伽</span>
+                </div>
+                <nav class="header-nav">
+                    <button class="active" onclick="showTab('bookings')" id="btn-bookings">預約</button>
+                    <button onclick="showTab('courses')" id="btn-courses">課程</button>
+                    <button onclick="showTab('teachers')" id="btn-teachers">老師</button>
+                    <button onclick="showTab('stats')" id="btn-stats">統計</button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="page">
+            <!-- 預約 -->
+            <div id="tab-bookings" class="page-tab active">
+                <div class="stats-row" id="stat-bookings"></div>
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">預約列表</div>
+                        <input class="panel-search" placeholder="搜尋姓名或電話…" onkeyup="filterBookings(this.value)">
+                    </div>
+                    <div class="table-scroll"><div id="list-bookings"></div></div>
+                </div>
+            </div>
+
+            <!-- 課程 -->
+            <div id="tab-courses" class="page-tab">
+                <div class="stats-row" id="stat-courses"></div>
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">課程列表</div>
+                        <button class="btn btn-primary" onclick="openCourse()">+ 新增課程</button>
+                    </div>
+                    <div class="table-scroll"><div id="list-courses"></div></div>
+                </div>
+            </div>
+
+            <!-- 老師 -->
+            <div id="tab-teachers" class="page-tab">
+                <div class="stats-row" id="stat-teachers"></div>
+                <div class="panel">
+                    <div class="panel-head">
+                        <div class="panel-title">老師列表</div>
+                        <button class="btn btn-primary" onclick="openTeacher()">+ 新增老師</button>
+                    </div>
+                    <div class="table-scroll"><div id="list-teachers"></div></div>
+                </div>
+            </div>
+
+            <!-- 統計 -->
+            <div id="tab-stats" class="page-tab">
+                <div class="panel">
+                    <div class="panel-head"><div class="panel-title">統計資料</div></div>
+                    <div class="page" style="padding:20px 22px"><div id="stats-detail"></div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ── Course Modal ── -->
+    <div class="modal-bg" id="modal-course">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 id="course-modal-title">新增課程</h3>
+                <button class="modal-close" onclick="closeCourse()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="course-id">
+                <div class="form-group"><label>課程名稱</label><input id="course-name" placeholder="例如：晨間瑜伽"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>授課老師</label><select id="course-teacher"></select></div>
+                    <div class="form-group"><label>課程時間</label><input id="course-time" placeholder="例如：08:00–09:00"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>人數上限</label><input type="number" id="course-cap" value="10"></div>
+                    <div class="form-group"><label>星期</label>
+                        <select id="course-weekday">
+                            <option value="0">週日</option><option value="1">週一</option>
+                            <option value="2">週二</option><option value="3">週三</option>
+                            <option value="4">週四</option><option value="5">週五</option>
+                            <option value="6">週六</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>難度</label>
+                    <select id="course-level">
+                        <option value="beginner">初階</option>
+                        <option value="intermediate">中階</option>
+                        <option value="advanced">高階</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>狀態</label>
+                    <select id="course-status">
+                        <option value="active">啟用</option>
+                        <option value="inactive">停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-foot"><button class="btn btn-primary" style="width:100%" onclick="saveCourse()">儲存</button></div>
+        </div>
+    </div>
+
+    <!-- ── Teacher Modal ── -->
+    <div class="modal-bg" id="modal-teacher">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 id="teacher-modal-title">新增老師</h3>
+                <button class="modal-close" onclick="closeTeacher()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="teacher-id">
+                <div class="form-group"><label>老師名稱</label><input id="teacher-name" placeholder="例如：小美老師"></div>
+                <div class="form-group"><label>專長</label><input id="teacher-specialty" placeholder="例如：陰瑜伽、哈達瑜伽"></div>
+                <div class="form-group"><label>簡介</label><textarea id="teacher-bio" placeholder="老師的簡短介紹…"></textarea></div>
+                <div class="form-group"><label>照片 URL</label><input id="teacher-photo" placeholder="http://…"></div>
+                <div class="form-group"><label>狀態</label>
+                    <select id="teacher-status">
+                        <option value="active">啟用</option>
+                        <option value="inactive">停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-foot"><button class="btn btn-primary" style="width:100%" onclick="saveTeacher()">儲存</button></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let D = { bookings: [], courses: [], teachers: [] };
+
+        async function loadAll() {
+            try {
+                const r = await fetch('/api/admin/all');
+                D = await r.json();
+                renderAll();
+            } catch(e) { toast('載入失敗', 'error'); }
+        }
+
+        function renderAll() {
+            renderBookingStats(); renderBookings();
+            renderCourseStats(); renderCourses();
+            renderTeacherStats(); renderTeachers();
+            renderStats();
+        }
+
+        // ── Auth ──
+        async function doLogin() {
+            const btn = document.getElementById('loginBtn');
+            const err = document.getElementById('authErr');
+            const key = document.getElementById('pw').value;
+            if (!key) { err.textContent = '請輸入密碼'; return; }
+            btn.disabled = true; btn.textContent = '驗證中…'; err.textContent = '';
+            try {
+                const r = await fetch('/api/auth', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key })
+                });
+                if (r.ok) {
+                    document.getElementById('auth-screen').classList.add('hidden');
+                    document.getElementById('app-shell').classList.add('visible');
+                    loadAll();
+                } else {
+                    err.textContent = '密碼錯誤';
+                    btn.disabled = false; btn.textContent = '登入';
+                    document.getElementById('pw').value = '';
+                }
+            } catch(e) {
+                err.textContent = '連線錯誤';
+                btn.disabled = false; btn.textContent = '登入';
+            }
+        }
+
+        // ── Tab ──
+        function showTab(tab) {
+            document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.header-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tab)?.classList.add('active');
+            document.getElementById('btn-' + tab)?.classList.add('active');
+        }
+
+        // ── Booking Stats ──
+        function renderBookingStats() {
+            const b = D.bookings || [];
+            const today = new Date().toDateString();
+            document.getElementById('stat-bookings').innerHTML = `
+                <div class="stat-card"><div class="n">${b.length}</div><div class="l">總預約</div></div>
+                <div class="stat-card"><div class="n">${b.filter(x=>x.status==='pending').length}</div><div class="l">待確認</div></div>
+                <div class="stat-card"><div class="n">${b.filter(x=>x.status==='confirmed').length}</div><div class="l">已確認</div></div>
+                <div class="stat-card"><div class="n">${b.filter(x=>new Date(x.date).toDateString()===today).length}</div><div class="l">今日</div></div>`;
+        }
+
+        function renderBookings(f = '') {
+            const el = document.getElementById('list-bookings');
+            let list = D.bookings || [];
+            if (f) { const ff = f.toLowerCase(); list = list.filter(b => (b.name||'').toLowerCase().includes(ff) || (b.phone||'').includes(ff)); }
+            if (!list.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🌿</div>尚無預約資料</div>'; return; }
+            const sm = {pending:'待確認', confirmed:'已確認', completed:'已完成', cancelled:'已取消'};
+            let h = '<table><thead><tr><th>日期</th><th>姓名</th><th>電話</th><th>課程</th><th>老師</th><th>狀態</th><th>操作</th></tr></thead><tbody>';
+            list.forEach(b => {
+                const sc = b.status||'pending';
+                h += `<tr>
+                    <td>${new Date(b.date).toLocaleDateString('zh-TW')}<br><small style="color:var(--ink-light)">${b.time||''}</small></td>
+                    <td>${b.name||'–'}</td>
+                    <td>${b.phone||'–'}</td>
+                    <td>${b.course||'–'}</td>
+                    <td>${b.teacher||'–'}</td>
+                    <td><span class="badge b-${sc}">${sm[sc]||'待確認'}</span></td>
+                    <td>
+                        ${sc==='pending'?`<button class="btn btn-success btn-sm" onclick="updBk('${b.id}','confirmed')">確認</button>`:''}
+                        ${sc!=='cancelled'&&sc!=='completed'?`<button class="btn btn-danger btn-sm" onclick="updBk('${b.id}','cancelled')">取消</button>`:''}
+                    </td>
+                </tr>`;
+            });
+            el.innerHTML = h + '</tbody></table>';
+        }
+
+        function filterBookings(v) { renderBookings(v); }
+        async function updBk(id, s) {
+            await pact('/api/admin/bookings/'+id, {status:s});
+            toast('更新成功', 'success'); loadAll();
+        }
+
+        // ── Course ──
+        function renderCourseStats() {
+            const c = D.courses||[];
+            document.getElementById('stat-courses').innerHTML = `
+                <div class="stat-card"><div class="n">${c.length}</div><div class="l">總課程</div></div>
+                <div class="stat-card"><div class="n">${c.filter(x=>x.status==='active').length}</div><div class="l">啟用中</div></div>
+                <div class="stat-card"><div class="n">${c.reduce((s,x)=>s+(x.booked||0),0)}</div><div class="l">已報名</div></div>
+                <div class="stat-card"><div class="n">${c.filter(x=>x.status==='inactive').length}</div><div class="l">停用</div></div>`;
+        }
+
+        function renderCourses() {
+            const el = document.getElementById('list-courses');
+            const c = D.courses||[];
+            if (!c.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🧘</div>尚無課程資料</div>'; return; }
+            const wd = ['週日','週一','週二','週三','週四','週五','週六'];
+            const lm = {beginner:'初階',intermediate:'中階',advanced:'高階'};
+            let h = '<table><thead><tr><th>課程名稱</th><th>老師</th><th>時間</th><th>人數</th><th>星期</th><th>難度</th><th>狀態</th><th>操作</th></tr></thead><tbody>';
+            c.forEach(x => {
+                h += `<tr>
+                    <td>${x.name}</td><td>${x.teacher||'–'}</td><td>${x.time||'–'}</td>
+                    <td>${x.booked||0}/${x.cap||10}</td><td>${wd[x.weekday]||'–'}</td>
+                    <td><span class="badge b-${x.level}">${lm[x.level]||'–'}</span></td>
+                    <td><span class="badge b-${x.status}">${x.status==='active'?'啟用':'停用'}</span></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editCourse('${x.id}')">編輯</button>
+                        <button class="btn btn-danger btn-sm" onclick="delCourse('${x.id}')">刪除</button>
+                    </td>
+                </tr>`;
+            });
+            el.innerHTML = h + '</tbody></table>';
+        }
+
+        function openCourse(c = null) {
+            document.getElementById('course-modal-title').textContent = c ? '編輯課程' : '新增課程';
+            document.getElementById('course-id').value = c?.id||'';
+            document.getElementById('course-name').value = c?.name||'';
+            document.getElementById('course-time').value = c?.time||'';
+            document.getElementById('course-cap').value = c?.cap||10;
+            document.getElementById('course-weekday').value = c?.weekday??1;
+            document.getElementById('course-level').value = c?.level||'beginner';
+            document.getElementById('course-status').value = c?.status||'active';
+            const sel = document.getElementById('course-teacher');
+            sel.innerHTML = D.teachers.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+            if (c?.teacher) sel.value = c.teacher;
+            document.getElementById('modal-course').classList.add('show');
+        }
+        function closeCourse() { document.getElementById('modal-course').classList.remove('show'); }
+        function editCourse(id) { const c = D.courses.find(x=>x.id==id); if (c) openCourse(c); }
+        async function saveCourse() {
+            const id = document.getElementById('course-id').value;
+            const c = {
+                name: document.getElementById('course-name').value,
+                teacher: document.getElementById('course-teacher').value,
+                time: document.getElementById('course-time').value,
+                cap: parseInt(document.getElementById('course-cap').value),
+                weekday: parseInt(document.getElementById('course-weekday').value),
+                level: document.getElementById('course-level').value,
+                status: document.getElementById('course-status').value,
+                booked: 0
+            };
+            if (!c.name) { toast('請填寫課程名稱', 'error'); return; }
+            if (id) await pact('/api/admin/courses/'+id, c);
+            else { c.id = Date.now().toString(); await post('/api/admin/courses', c); }
+            closeCourse(); toast('儲存成功', 'success'); loadAll();
+        }
+        async function delCourse(id) {
+            if (!confirm('確定刪除？')) return;
+            await del('/api/admin/courses/'+id);
+            toast('已刪除', 'success'); loadAll();
+        }
+
+        // ── Teacher ──
+        function renderTeacherStats() {
+            const t = D.teachers||[];
+            document.getElementById('stat-teachers').innerHTML = `
+                <div class="stat-card"><div class="n">${t.length}</div><div class="l">總老師</div></div>
+                <div class="stat-card"><div class="n">${t.filter(x=>x.status==='active').length}</div><div class="l">啟用中</div></div>
+                <div class="stat-card"><div class="n">${t.filter(x=>x.status==='inactive').length}</div><div class="l">停用</div></div>
+                <div class="stat-card"><div class="n">–</div><div class="l">其他</div></div>`;
+        }
+
+        function renderTeachers() {
+            const el = document.getElementById('list-teachers');
+            const t = D.teachers||[];
+            if (!t.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🌿</div>尚無老師資料</div>'; return; }
+            let h = '<table><thead><tr><th>姓名</th><th>專長</th><th>簡介</th><th>狀態</th><th>操作</th></tr></thead><tbody>';
+            t.forEach(x => {
+                h += `<tr>
+                    <td>${x.name}</td><td>${x.specialty||'–'}</td>
+                    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.bio||'–'}</td>
+                    <td><span class="badge b-${x.status}">${x.status==='active'?'啟用':'停用'}</span></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editTeacher('${x.id}')">編輯</button>
+                        <button class="btn btn-danger btn-sm" onclick="delTeacher('${x.id}')">刪除</button>
+                    </td>
+                </tr>`;
+            });
+            el.innerHTML = h + '</tbody></table>';
+        }
+
+        function openTeacher(t = null) {
+            document.getElementById('teacher-modal-title').textContent = t ? '編輯老師' : '新增老師';
+            document.getElementById('teacher-id').value = t?.id||'';
+            document.getElementById('teacher-name').value = t?.name||'';
+            document.getElementById('teacher-specialty').value = t?.specialty||'';
+            document.getElementById('teacher-bio').value = t?.bio||'';
+            document.getElementById('teacher-photo').value = t?.photo||'';
+            document.getElementById('teacher-status').value = t?.status||'active';
+            document.getElementById('modal-teacher').classList.add('show');
+        }
+        function closeTeacher() { document.getElementById('modal-teacher').classList.remove('show'); }
+        function editTeacher(id) { const t = D.teachers.find(x=>x.id==id); if (t) openTeacher(t); }
+        async function saveTeacher() {
+            const id = document.getElementById('teacher-id').value;
+            const t = {
+                name: document.getElementById('teacher-name').value,
+                specialty: document.getElementById('teacher-specialty').value,
+                bio: document.getElementById('teacher-bio').value,
+                photo: document.getElementById('teacher-photo').value,
+                status: document.getElementById('teacher-status').value
+            };
+            if (!t.name) { toast('請填寫名稱', 'error'); return; }
+            if (id) await pact('/api/admin/teachers/'+id, t);
+            else { t.id = Date.now().toString(); await post('/api/admin/teachers', t); }
+            closeTeacher(); toast('儲存成功', 'success'); loadAll();
+        }
+        async function delTeacher(id) {
+            if (!confirm('確定刪除？')) return;
+            await del('/api/admin/teachers/'+id);
+            toast('已刪除', 'success'); loadAll();
+        }
+
+        // ── Stats ──
+        function renderStats() {
+            const el = document.getElementById('stats-detail');
+            const b = D.bookings||[];
+            const byS={}, byC={}, byT={}, byD={};
+            b.forEach(x => {
+                byS[x.status]=(byS[x.status]||0)+1;
+                byC[x.course]=(byC[x.course]||0)+1;
+                byT[x.teacher]=(byT[x.teacher]||0)+1;
+                byD[new Date(x.date).toLocaleDateString('zh-TW')]=(byD[new Date(x.date).toLocaleDateString('zh-TW')]||0)+1;
+            });
+            const sl = {pending:'待確認',confirmed:'已確認',completed:'已完成',cancelled:'已取消'};
+            let h = '<div class="stats-grid">';
+            h += `<div class="stats-card"><h4>預約狀態</h4>`;
+            Object.entries(byS).forEach(([k,v]) => h+=`<div class="stats-row"><span>${sl[k]||k}</span><strong>${v}</strong></div>`);
+            if (!Object.keys(byS).length) h+=`<div class="stats-row"><span>尚無資料</span><strong>–</strong></div>`;
+            h += '</div>';
+            h += `<div class="stats-card"><h4>熱門課程</h4>`;
+            Object.entries(byC).sort((a,b)=>b[1]-a[1]).slice(0,6).forEach(([k,v]) => h+=`<div class="stats-row"><span>${k||'–'}</span><strong>${v}</strong></div>`);
+            if (!Object.keys(byC).length) h+=`<div class="stats-row"><span>尚無資料</span><strong>–</strong></div>`;
+            h += '</div>';
+            h += `<div class="stats-card"><h4>老師報名數</h4>`;
+            Object.entries(byT).forEach(([k,v]) => h+=`<div class="stats-row"><span>${k||'–'}</span><strong>${v}</strong></div>`);
+            if (!Object.keys(byT).length) h+=`<div class="stats-row"><span>尚無資料</span><strong>–</strong></div>`;
+            h += '</div>';
+            h += `<div class="stats-card"><h4>近期預約</h4>`;
+            Object.entries(byD).slice(0,8).forEach(([k,v]) => h+=`<div class="stats-row"><span>${k}</span><strong>${v}</strong></div>`);
+            if (!Object.keys(byD).length) h+=`<div class="stats-row"><span>尚無資料</span><strong>–</strong></div>`;
+            h += '</div></div>';
+            el.innerHTML = h;
+        }
+
+        // ── API ──
+        async function post(url, body) {
+            const r = await fetch(url, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+            if (!r.ok) throw new Error(await r.text()); return r.json();
+        }
+        async function pact(url, body) {
+            const r = await fetch(url, {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+            if (!r.ok) throw new Error(await r.text()); return r.json();
+        }
+        async function del(url) {
+            const r = await fetch(url, {method:'DELETE'});
+            if (!r.ok) throw new Error(await r.text()); return r.json();
+        }
+        function toast(msg, type='') {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.className = 'toast show ' + type;
+            setTimeout(() => t.className = 'toast', 3000);
+        }
+
+        // focus pw on load
+        document.getElementById('pw')?.focus();
+    </script>
+</body>
+</html>

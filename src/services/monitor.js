@@ -29,6 +29,16 @@ let cachedVersionsTs = 0;
 const VERSION_CACHE_TTL = 5 * 60 * 1000;
 const DOCKER_UNSUPPORTED_MONITORING = ['cpu', 'mem', 'disk', 'gatewayPid', 'scripts'];
 
+// --- Poll state ---
+// The dashboard polls every 3s. A poll must never overlap the previous one
+// (slow `ps`, stalled pipe): stacked children + pipes eat file descriptors,
+// and launchd gives this daemon a 256-fd soft limit.
+let pollInFlight = false;
+let lastDiskUsage = '--%';
+let lastGatewayPid = null;
+let lastPsOutput = '';
+let spawnFailures = 0;
+
 function getVersions() {
     if (cachedVersions && Date.now() - cachedVersionsTs < VERSION_CACHE_TTL) {
         return cachedVersions;
@@ -180,18 +190,53 @@ function checkSystemStatus(callback) {
 
     const osType = os.type();
     const mergedCmd = osType === 'Darwin'
-        ? `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f '[o]penclaw.*gateway' | head -n 1 || true; echo "===PS==="; ps -Ao pid,pcpu,comm,args -r | head -n 21`
-        : `echo "===DISK==="; df -h / | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f '[o]penclaw.*gateway' | head -n 1 || true; echo "===PS==="; ps -eo pid,pcpu,comm,args --sort=-pcpu | head -n 20`;
+        ? `echo "===DISK==="; df -h /System/Volumes/Data | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f '[o]penclaw.*gateway' | head -n 1 || true; echo "===PS==="; ps -Ao pid,pcpu,comm,args -r | head -n 21`
+        : `echo "===DISK==="; df -h /System/Volumes/Data | awk 'NR==2 {print $5}'; echo "===GWPID==="; pgrep -f '[o]penclaw.*gateway' | head -n 1 || true; echo "===PS==="; ps -eo pid,pcpu,comm,args --sort=-pcpu | head -n 20`;
 
-    exec(mergedCmd, (err, stdout) => {
-        const sections = stdout ? stdout.split(/===\w+===\n?/) : [];
-        finalizeStatus({
-            err,
-            diskUsage: sections[1] ? sections[1].trim() || '--%' : '--%',
-            gatewayPid: sections[2] ? sections[2].trim() || null : null,
-            psOutput: sections[3] || '',
+    // Overlap guard: if the previous child is still alive, serve the last known
+    // snapshot instead of stacking another shell + pipes (fd budget is 256).
+    if (pollInFlight) {
+        return finalizeStatus({
+            diskUsage: lastDiskUsage,
+            gatewayPid: lastGatewayPid,
+            psOutput: lastPsOutput,
         });
-    });
+    }
+    pollInFlight = true;
+
+    const onDone = (err, stdout) => {
+        pollInFlight = false;
+        const sections = stdout ? stdout.split(/===\w+===\n?/) : [];
+        lastDiskUsage = sections[1] ? sections[1].trim() || '--%' : '--%';
+        lastGatewayPid = sections[2] ? sections[2].trim() || null : null;
+        lastPsOutput = sections[3] || '';
+        if (!err) spawnFailures = 0;
+        try {
+            finalizeStatus({
+                err,
+                diskUsage: lastDiskUsage,
+                gatewayPid: lastGatewayPid,
+                psOutput: lastPsOutput,
+            });
+        } catch (e) {
+            console.error('[Monitor] finalizeStatus failed:', (e && e.message) || e);
+            try { callback({ status: 'error', task: 'Monitor Error' }); } catch (_) { /* ignore */ }
+        }
+    };
+
+    // spawn() can fail synchronously: uv_spawn returns EBADF/ENOSPC when the
+    // system cannot create the child (e.g. volume full). Node throws that error
+    // straight out of exec(); uncaught it kills the daemon, launchd restarts it,
+    // the dying instance still holds the port -> EADDRINUSE -> crash loop.
+    try {
+        exec(mergedCmd, { timeout: 10000, maxBuffer: 1024 * 1024 }, onDone);
+    } catch (e) {
+        spawnFailures++;
+        if (spawnFailures === 1 || spawnFailures % 20 === 0) {
+            console.error(`[Monitor] System status probe failed to spawn (${spawnFailures}x):`, (e && e.code) || (e && e.message) || e);
+        }
+        onDone(e, '');
+    }
 }
 
 module.exports = { checkSystemStatus, getVersions };

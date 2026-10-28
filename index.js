@@ -4,7 +4,7 @@
  * This is the thin orchestrator that loads config, creates the server,
  * wires up modules, and starts listening.
  */
-require('dotenv').config();
+require('dotenv').config({ path: '/Users/openclaw0712/.openclaw/workspace/clawbridge/.env' });
 
 const { createServer } = require('http');
 const { WebSocketServer } = require('ws');
@@ -30,11 +30,38 @@ setWss(wss);
 
 // --- Background Tasks ---
 setInterval(() => {
-    checkSystemStatus(() => { });
+    try {
+        checkSystemStatus(() => { });
+    } catch (e) {
+        console.error('[Dashboard] checkSystemStatus failed:', e && e.message ? e.message : e);
+    }
 }, 3000);
+
+// --- Process-level safety net ---
+// Background work (monitor, analyzer, websocket) must not be able to take the
+// dashboard down: an uncaught exception kills the process, launchd restarts it
+// immediately and the dying instance still holds port 3847 -> EADDRINUSE ->
+// crash loop. Log loudly, keep serving.
+process.on('uncaughtException', (err) => {
+    console.error('[Dashboard] Uncaught exception (daemon kept alive):', err);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('[Dashboard] Unhandled rejection (daemon kept alive):', reason);
+});
+
 if (!disableAnalyzer) {
-    runAnalyzer();
-    setInterval(runAnalyzer, 60 * 60 * 1000);
+    try {
+        runAnalyzer();
+    } catch (e) {
+        console.error('[Dashboard] runAnalyzer failed:', e && e.message ? e.message : e);
+    }
+    setInterval(() => {
+        try {
+            runAnalyzer();
+        } catch (e) {
+            console.error('[Dashboard] runAnalyzer failed:', e && e.message ? e.message : e);
+        }
+    }, 60 * 60 * 1000);
 }
 
 // --- Startup ---
@@ -46,6 +73,20 @@ async function main() {
         /* expected: file may not exist */
     }
 
+    // Handle EADDRINUSE gracefully — exponential backoff (capped at 60s) so a
+    // stale instance holding the port cannot turn into a 5s-interval log storm.
+    let bindRetryDelay = 5000;
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`[Dashboard] Port ${PORT} in use, retrying in ${Math.round(bindRetryDelay / 1000)}s...`);
+            setTimeout(() => server.listen(PORT, '::'), bindRetryDelay);
+            bindRetryDelay = Math.min(bindRetryDelay * 2, 60000);
+            return;
+        }
+        if (err.code === 'ERR_SERVER_NOT_RUNNING') return;
+        console.error('[Dashboard] Server error:', err);
+        process.exit(1);
+    });
     server.listen(PORT, '::', async () => {
         console.log(`[Dashboard] Local: http://[::]:${PORT}`);
         console.log(`[Init] Workspace: ${WORKSPACE_DIR}`);

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>📥 雅典娜檔案下載</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000; color: #e0e0e0; min-height: 100vh; padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 20px)); }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { text-align: center; margin: 24px 0 20px; font-size: 22px; font-weight: 700; color: #fff; }
+        h1 span { font-size: 28px; }
+        .hint { text-align: center; font-size: 12px; color: #666; margin-bottom: 16px; }
+
+        /* FILE LIST */
+        .file-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .file-item { background: #1c1c1e; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; transition: border-color 0.2s; }
+        .file-item:active { border-color: #0a84ff; }
+        .file-link { display: flex; align-items: center; padding: 14px 16px; text-decoration: none; color: #fff; gap: 12px; }
+        .file-icon { font-size: 26px; flex-shrink: 0; }
+        .file-name { flex: 1; font-size: 15px; font-weight: 500; word-break: break-all; }
+        .file-arrow { color: #555; font-size: 18px; }
+        .empty { text-align: center; color: #555; padding: 48px 0; font-size: 14px; }
+
+        /* UPLOAD */
+        .upload-zone { background: #1c1c1e; border: 2px dashed rgba(255,255,255,0.12); border-radius: 16px; padding: 32px 20px; text-align: center; margin-top: 24px; transition: border-color 0.2s; }
+        .upload-zone.dragover { border-color: #0a84ff; background: rgba(10,132,255,0.05); }
+        .upload-icon { font-size: 40px; margin-bottom: 12px; }
+        .upload-zone h2 { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+        .upload-zone p { font-size: 13px; color: #666; }
+        input[type="file"] { display: none; }
+        .upload-btn { display: inline-block; margin-top: 14px; padding: 10px 24px; background: #0a84ff; color: #fff; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .upload-btn:active { background: #0070e0; }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #30d158; color: #000; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+        .toast.show { opacity: 1; }
+        .toast.error { background: #ff375f; color: #fff; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1><span>📥</span><br>雅典娜檔案下載</h1>
+    <p class="hint">把想下載的檔案放到 Mac 的分享資料夾就會顯示在這裡</p>
+
+    <ul class="file-list" id="fileList">
+        <li class="empty" id="loading">載入中...</li>
+    </ul>
+
+    <div class="upload-zone" id="dropZone">
+        <div class="upload-icon">☁️</div>
+        <h2>上傳檔案到分享資料夾</h2>
+        <p>從手機選擇檔案上傳</p>
+        <label class="upload-btn" for="fileInput">選擇檔案</label>
+        <input type="file" id="fileInput" multiple>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api/share-upload';
+const LIST_API = '/api/share-list';
+const DOWNLOAD_API = '/api/share-download?file=';
+
+const icons = { pdf:'📄', zip:'📦', apk:'📱', mp3:'🎵', mp4:'🎬', png:'🖼️', jpg:'🖼️', jpeg:'🖼️', txt:'📝', js:'💻', json:'📋', html:'🌐', css:'🎨', md:'📘', doc:'📝', docx:'📝', xls:'📊', xlsx:'📊', ppt:'📽️', pptx:'📽️' };
+
+function getIcon(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    return icons[ext] || '📎';
+}
+
+function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function loadFiles() {
+    const list = document.getElementById('fileList');
+    try {
+        const res = await fetch(LIST_API);
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        const files = data.files || [];
+        list.innerHTML = '';
+        if (files.length === 0) {
+            list.innerHTML = '<li class="empty">目前沒有檔案<br><br>用上方按鈕上傳，或把檔案放到 Mac 分享資料夾</li>';
+            return;
+        }
+        files.sort().forEach(name => {
+            const li = document.createElement('li');
+            li.className = 'file-item';
+            li.innerHTML = `<a class="file-link" href="${DOWNLOAD_API}${encodeURIComponent(name)}" download="${name}">
+                <span class="file-icon">${getIcon(name)}</span>
+                <span class="file-name">${name}</span>
+                <span class="file-arrow">↓</span>
+            </a>`;
+            list.appendChild(li);
+        });
+    } catch (e) {
+        list.innerHTML = '<li class="empty">⚠️ 無法載入檔案列表<br>請確認分享資料夾正常運作</li>';
+    }
+}
+
+async function uploadFile(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch(API, { method: 'POST', body: fd });
+    if (res.ok) {
+        showToast('✅ ' + file.name + ' 上傳成功');
+        loadFiles();
+    } else {
+        showToast('❌ 上傳失敗', true);
+    }
+}
+
+document.getElementById('fileInput').addEventListener('change', e => {
+    [...e.target.files].forEach(uploadFile);
+    e.target.value = '';
+});
+
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    [...e.dataTransfer.files].forEach(uploadFile);
+});
+
+loadFiles();
+</script>
+</body>
+</html>

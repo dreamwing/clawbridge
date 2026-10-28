@@ -57,19 +57,27 @@ function runAnalyzer() {
     _state.lastTriggeredAt = new Date().toISOString();
 
     const nodePath = process.execPath;
-    exec(`"${nodePath}" "${ANALYZE_SCRIPT}"`, { timeout: ANALYZER_TIMEOUT_MS }, (err, stdout, stderr) => {
-        _state.running = false;
+    try {
+        exec(`"${nodePath}" "${ANALYZE_SCRIPT}"`, { timeout: ANALYZER_TIMEOUT_MS }, (err, stdout, stderr) => {
+            _state.running = false;
 
-        if (err) {
-            _state.lastError = stderr || err.message;
-            console.error('[Analyzer] Error:', _state.lastError);
-            broadcast({ type: 'analysis_error', error: _state.lastError, ts: Date.now() });
-        } else {
-            _state.lastCompletedAt = new Date().toISOString();
-            if (stdout) console.log('[Analyzer]', stdout.trim());
-            broadcast({ type: 'analysis_complete', ts: Date.now() });
-        }
-    });
+            if (err) {
+                _state.lastError = stderr || err.message;
+                console.error('[Analyzer] Error:', _state.lastError);
+                broadcast({ type: 'analysis_error', error: _state.lastError, ts: Date.now() });
+            } else {
+                _state.lastCompletedAt = new Date().toISOString();
+                if (stdout) console.log('[Analyzer]', stdout.trim());
+                broadcast({ type: 'analysis_complete', ts: Date.now() });
+            }
+        });
+    } catch (e) {
+        // A failed spawn must never leave the analyzer stuck in "running" state.
+        _state.running = false;
+        _state.lastError = e && e.message ? e.message : String(e);
+        console.error('[Analyzer] Error:', _state.lastError);
+        broadcast({ type: 'analysis_error', error: _state.lastError, ts: Date.now() });
+    }
 
     return { triggered: true, running: true, message: 'Analysis started.' };
 }

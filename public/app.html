@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Athena Voice App 下載</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #f0f0f0;
+    }
+    .container {
+      text-align: center;
+      padding: 40px;
+    }
+    .icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+    .subtitle {
+      color: #a0a0c0;
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+    .download-btn {
+      display: inline-block;
+      padding: 18px 48px;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 8px 32px rgba(59,130,246,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(59,130,246,0.5);
+    }
+    .download-btn:active {
+      transform: translateY(0);
+    }
+    .info {
+      margin-top: 30px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+    .version {
+      display: inline-block;
+      background: rgba(59,130,246,0.2);
+      color: #93c5fd;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🎙️</div>
+    <span class="version">v5.0 🎭</span>
+    <h1>Athena 虛擬人物版</h1>
+    <p class="subtitle">AI 語音助理 · 短髮大叔陪你聊天</p>
+    <a class="download-btn" id="downloadBtn" href="athena-v6.apk" download="athena-v6.apk">
+      ⬇️ 點我下載安裝
+    </a>
+    <p class="info">
+      檔案大小：約 179 MB · Android 系統<br>
+      首次安裝需允許「未知來源」應用程式
+    </p>
+  </div>
+  <script>
+    // Detect device and redirect to appropriate file
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const btn = document.getElementById('downloadBtn');
+    if (!isAndroid) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        alert('此 APK 檔案僅適用於 Android 系統');
+      });
+    }
+  </script>
+</body>
+</html>

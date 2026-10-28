@@ -6,6 +6,11 @@ const fs = require('fs');
 const { TOKEN_FILE } = require('../config');
 const { runAnalyzer, getAnalyzerState } = require('../services/analyzer');
 
+// Simple cache: 30-second TTL for token data
+let _tokenCache = null;
+let _tokenCacheTime = 0;
+const TOKEN_CACHE_TTL = 30 * 1000;
+
 router.get('/api/tokens', (req, res) => {
     if (!fs.existsSync(TOKEN_FILE)) {
         // Return safe defaults instead of empty object
@@ -18,8 +23,15 @@ router.get('/api/tokens', (req, res) => {
             recentCosts: { last7dAvg: 0, last30dAvg: 0 },
         });
     }
+    // Use cache if fresh enough
+    const now = Date.now();
+    if (_tokenCache && (now - _tokenCacheTime) < TOKEN_CACHE_TTL) {
+        return res.json(_tokenCache);
+    }
     try {
         const data = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf8'));
+        _tokenCache = data;
+        _tokenCacheTime = now;
         res.json(data);
     } catch (e) {
         res.status(500).json({ error: 'Read failed' });

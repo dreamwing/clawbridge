@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iPAS AI 模擬考（完整題庫 790 題）</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #4F46E5;
+  --primary-dark: #4338CA;
+  --success: #10B981;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --bg: #F8FAFC;
+  --card: #FFFFFF;
+  --text: #1E293B;
+  --text-muted: #64748B;
+  --border: #E2E8F0;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.container { width: 100%; max-width: 680px; padding: 20px; }
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.header h1 { font-size: 18px; font-weight: 700; color: var(--primary); }
+.header .stats { display: flex; gap: 16px; font-size: 13px; color: var(--text-muted); }
+.header .stats span { display: flex; align-items: center; gap: 4px; }
+
+/* Card */
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+/* Progress bar */
+.progress-bar { height: 4px; background: var(--border); }
+.progress-fill { height: 100%; background: var(--primary); transition: width 0.4s ease; }
+
+/* Section headers */
+.section-header {
+  padding: 16px 20px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Mode grid */
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px 16px; }
+.mode-card {
+  padding: 16px 12px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.mode-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.mode-card .icon { font-size: 28px; margin-bottom: 6px; }
+.mode-card .title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.mode-card .desc { font-size: 11px; color: var(--text-muted); }
+.mode-card .badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+/* Past exam selector */
+.round-list { padding: 0 20px 16px; display: flex; flex-direction: column; gap: 8px; }
+.round-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 14px;
+}
+.round-item:hover { border-color: var(--primary); background: #EEF2FF; }
+.round-item .left { display: flex; align-items: center; gap: 10px; }
+.round-item .icon { font-size: 20px; }
+.round-item .name { font-weight: 600; }
+.round-item .count { font-size: 12px; color: var(--text-muted); }
+.round-item .arrow { color: var(--text-muted); font-size: 18px; }
+
+/* Past exam count select */
+.round-config {
+  display: none;
+  padding: 0 20px 16px;
+}
+.round-config.show { display: block; }
+.round-config-inner {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 16px;
+}
+.round-config-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.count-btns { display: flex; gap: 8px; justify-content: center; }
+.count-btn {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  cursor: pointer;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.count-btn:hover { border-color: var(--primary); }
+.count-btn.selected { border-color: var(--primary); background: var(--primary); color: #fff; }
+.count-btn .num { font-size: 20px; font-weight: 800; }
+.count-btn .label { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.go-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.go-btn:hover { background: var(--primary-dark); }
+
+/* Question header */
+.q-header {
+  padding: 16px 20px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.q-num { font-size: 13px; font-weight: 700; color: var(--primary); }
+.q-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.q-timer {
+  background: var(--bg);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  display: none;
+}
+.q-timer.active { display: block; }
+
+/* Question body */
+.q-body { padding: 20px; }
+.q-text { font-size: 16px; line-height: 1.7; color: var(--text); margin-bottom: 20px; }
+
+/* Options */
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.option:hover:not(.disabled) { border-color: var(--primary); background: #EEF2FF; }
+.option.selected { border-color: var(--primary); background: #EEF2FF; }
+.option.correct { border-color: var(--success); background: #D1FAE5; }
+.option.wrong { border-color: var(--danger); background: #FEE2E2; }
+.option.disabled { cursor: default; }
+.option .opt-label {
+  min-width: 28px; height: 28px; border-radius: 8px;
+  background: var(--bg); display: flex; align-items: center;
+  justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0;
+}
+.option.selected .opt-label { background: var(--primary); color: #fff; }
+.option.correct .opt-label { background: var(--success); color: #fff; }
+.option.wrong .opt-label { background: var(--danger); color: #fff; }
+.option .opt-text { flex: 1; padding-top: 2px; }
+
+/* Explanation */
+.explanation {
+  margin: 0 20px 20px;
+  padding: 16px;
+  background: #FFFBEB;
+  border-left: 4px solid var(--warning);
+  border-radius: 0 12px 12px 0;
+  font-size: 14px;
+  line-height: 1.7;
+  display: none;
+}
+.explanation.show { display: block; }
+
+/* Actions */
+.actions {
+  padding: 16px 20px;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+}
+.btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+/* Topic filter */
+.topic-filter {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.topic-chip {
+  padding: 4px 10px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 20px;
+  font-size: 11px; cursor: pointer; transition: all 0.15s;
+}
+.topic-chip:hover { border-color: var(--primary); }
+.topic-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Result screen */
+.result-card { text-align: center; padding: 32px 20px; }
+.result-score { font-size: 64px; font-weight: 800; color: var(--primary); line-height: 1; }
+.result-label { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+.result-bar { height: 12px; background: var(--border); border-radius: 6px; margin: 20px 0; overflow: hidden; }
+.result-bar-fill { height: 100%; border-radius: 6px; background: var(--primary); transition: width 1s ease; }
+.result-detail { display: flex; justify-content: center; gap: 24px; font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
+.result-detail strong { color: var(--text); }
+.result-msg { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+.result-btns { display: flex; gap: 10px; padding: 0 20px 24px; }
+.result-btns .btn { flex: 1; }
+
+/* Loading */
+.loading { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Round badge */
+.round-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--warning);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+/* 夜晚模式 */
+body.dark, html.dark body {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --border: rgba(255,255,255,0.08);
+  --primary: #818cf8;
+  --primary-dark: #6366f1;
+  --bg-card-hover: rgba(255,255,255,0.05);
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #fbbf24;
+  --warning-bg: rgba(251,191,36,0.1);
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+body.dark, html.dark body {
+  background: var(--bg);
+  color: var(--text);
+}
+body.dark .container, html.dark body .container { background: var(--bg); }
+body.dark .card, html.dark body .card {
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+body.dark .header, html.dark body .header {
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+body.dark .header h1, html.dark body .header h1 { color: var(--primary); }
+body.dark .stats, html.dark body .stats { color: var(--text-muted); }
+body.dark .section-header, html.dark body .section-header { color: var(--text-muted); }
+body.dark .mode-card, html.dark body .mode-card {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--border);
+}
+body.dark .mode-card:hover, html.dark body .mode-card:hover {
+  border-color: var(--primary);
+  background: rgba(129,140,248,0.1);
+}
+body.dark .mode-card .desc, html.dark body .mode-card .desc { color: var(--text-muted); }
+body.dark .round-item, html.dark body .round-item {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--border);
+}
+body.dark .round-item:hover, html.dark body .round-item:hover {
+  border-color: var(--primary);
+  background: rgba(129,140,248,0.1);
+}
+body.dark .round-item .count, html.dark body .round-item .count { color: var(--text-muted); }
+body.dark .round-item .arrow, html.dark body .round-item .arrow { color: var(--text-muted); }
+body.dark .round-config-inner, html.dark body .round-config-inner { background: rgba(255,255,255,0.04); }
+body.dark .q-meta, html.dark body .q-meta { color: var(--text-muted); }
+body.dark .q-timer, html.dark body .q-timer { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+body.dark .q-timer.active, html.dark body .q-timer.active { color: #f87171; }
+body.dark .topic-chip, html.dark body .topic-chip { background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-muted); }
+body.dark .topic-chip:hover, html.dark body .topic-chip:hover { border-color: var(--primary); }
+body.dark .topic-chip.active, html.dark body .topic-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+body.dark .btn-secondary, html.dark body .btn-secondary { background: rgba(255,255,255,0.06); color: var(--text); border-color: var(--border); }
+body.dark .btn-secondary:hover, html.dark body .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+body.dark .loading, html.dark body .loading { color: var(--text-muted); }
+body.dark .spinner, html.dark body .spinner { border-color: var(--border); border-top-color: var(--primary); }
+body.dark .tips-btn, html.dark body .tips-btn { background: rgba(251,191,36,0.15); border-color: #d97706; color: #fbbf24; }
+body.dark .tips-btn:hover, html.dark body .tips-btn:hover { background: rgba(251,191,36,0.25); }
+body.dark .modal-overlay, html.dark body .modal-overlay { background: rgba(0,0,0,0.75); }
+body.dark .modal-content, html.dark body .modal-content { background: #1e293b; }
+body.dark .modal-header, html.dark body .modal-header { border-bottom-color: var(--border); background: #1e293b; }
+body.dark .modal-header h2, html.dark body .modal-header h2 { color: var(--text); }
+body.dark .modal-close, html.dark body .modal-close { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+body.dark .modal-close:hover, html.dark body .modal-close:hover { background: rgba(255,255,255,0.15); }
+body.dark .tips-tabs, html.dark body .tips-tabs { border-bottom-color: var(--border); }
+body.dark .tips-tab, html.dark body .tips-tab { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+body.dark .tips-tab.active, html.dark body .tips-tab.active { color: var(--primary); background: rgba(129,140,248,0.15); border-bottom-color: var(--primary); }
+body.dark .tips-body, html.dark body .tips-body { background: #1e293b; }
+body.dark .tips-section h3, html.dark body .tips-section h3 { color: var(--primary); }
+body.dark .tips-section li, html.dark body .tips-section li { color: #cbd5e1; }
+body.dark .tips-section li strong, html.dark body .tips-section li strong { color: #f1f5f9; }
+body.dark .explanation, html.dark body .explanation { background: rgba(251,191,36,0.1); border-left-color: var(--warning); }
+body.dark .result-label, html.dark body .result-label { color: var(--text-muted); }
+body.dark .result-detail, html.dark body .result-detail { color: var(--text-muted); }
+body.dark .result-detail strong, html.dark body .result-detail strong { color: var(--text); }
+body.dark .result-msg, html.dark body .result-msg { color: var(--text-muted); }
+body.dark .progress-bar, html.dark body .progress-bar { background: rgba(255,255,255,0.1); }
+body.dark .count-btn, html.dark body .count-btn { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text); }
+body.dark .count-btn:hover, html.dark body .count-btn:hover { border-color: var(--primary); }
+body.dark .round-badge, html.dark body .round-badge { background: var(--warning); color: #1e293b; }
+body.dark .q-header, html.dark body .q-header { border-bottom-color: var(--border); }
+body.dark .actions, html.dark body .actions { border-top-color: var(--border); }
+body.dark .topic-filter, html.dark body .topic-filter { border-bottom-color: var(--border); }
+body.dark .result-bar, html.dark body .result-bar { background: rgba(255,255,255,0.1); }
+
+/* Responsive */
+@media (max-width: 480px) {
+  .container { padding: 12px; }
+  .mode-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .result-btns { flex-direction: column; }
+}
+
+/* 考點精華 Modal */
+.header-actions { display: flex; gap: 8px; }
+
+/* 🌙 夜晚模式切換按鈕 */
+.dark-mode-btn {
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text-muted, #64748B);
+}
+.dark-mode-btn:hover { background: rgba(255,255,255,0.12); }
+body.dark .dark-mode-btn, html.dark body .dark-mode-btn { background: rgba(255,255,255,0.08); color: #f8fafc; }
+
+.tips-btn {
+  padding: 6px 12px; background: #FEF3C7; border: 1.5px solid #F59E0B;
+  border-radius: 8px; font-size: 12px; font-weight: 600; color: #92400E;
+  cursor: pointer; transition: all 0.15s;
+}
+.tips-btn:hover { background: #FDE68A; }
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 1000;
+  display: none; align-items: flex-start; justify-content: center;
+  padding: 20px; overflow-y: auto;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+  background: #fff; border-radius: 16px; width: 100%; max-width: 640px;
+  max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; border-bottom: 1px solid #E2E8F0;
+  position: sticky; top: 0; background: #fff; z-index: 1; border-radius: 16px 16px 0 0;
+}
+.modal-header h2 { font-size: 16px; color: #1E293B; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 8px; border: none;
+  background: #F1F5F9; cursor: pointer; font-size: 14px; color: #64748B;
+}
+.modal-close:hover { background: #E2E8F0; }
+.tips-tabs { display: flex; padding: 12px 20px 0; gap: 8px; border-bottom: 1px solid #E2E8F0; }
+.tips-tab {
+  padding: 8px 16px; border: none; border-radius: 8px 8px 0 0;
+  font-size: 13px; font-weight: 600; cursor: pointer; background: #F8FAFC;
+  color: #64748B; border-bottom: 2px solid transparent; transition: all 0.15s;
+}
+.tips-tab.active { color: #4F46E5; border-bottom-color: #4F46E5; background: #EEF2FF; }
+.tips-body { padding: 16px 20px 24px; }
+.tips-section { margin-bottom: 16px; }
+.tips-section h3 { font-size: 13px; color: #4F46E5; margin-bottom: 6px; font-weight: 700; }
+.tips-section ul { padding-left: 16px; }
+.tips-section li { font-size: 13px; color: #334155; line-height: 1.7; margin-bottom: 4px; }
+.tips-section li strong { color: #1E293B; }
+.tips-highlight { background: #FEF9C3; padding: 2px 4px; border-radius: 4px; font-size: 12px; }
+.tips-warning { color: #DC2626; }
+@media (max-width: 480px) {
+  .modal-overlay { padding: 10px; }
+  .tips-body { padding: 12px; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📝 iPAS AI 模擬考</h1>
+    <div class="header-actions">
+      <!-- 月亮 icon 已移除 (2026-08-30) -->
+      <button class="tips-btn" onclick="showTipsModal()">📋 考點精華</button>
+    </div>
+    <div class="stats" id="stats" style="display:none">
+      <span>✅ <strong id="correctCount">0</strong></span>
+      <span>❌ <strong id="wrongCount">0</strong></span>
+      <span>📊 <strong id="accuracy">0%</strong></span>
+    </div>
+  </div>
+
+  <div class="card" id="mainCard">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <!-- Loading -->
+    <div id="loadingView" class="loading">
+      <div class="spinner"></div>
+      <div>題庫載入中...</div>
+    </div>
+
+    <!-- Mode select -->
+    <div id="modeSelect" style="display:none">
+      <div class="section-header">一般練習</div>
+      <div class="mode-grid">
+        <div class="mode-card" onclick="showRoundConfig('L11', 20)">
+          <div class="icon">🧠</div>
+          <div class="title">L11 練習</div>
+          <div class="desc">人工智慧基礎概論</div>
+        </div>
+        <div class="mode-card" onclick="showRoundConfig('L12', 20)">
+          <div class="icon">⚡</div>
+          <div class="title">L12 練習</div>
+          <div class="desc">生成式 AI 應用與規劃</div>
+        </div>
+        <div class="mode-card" onclick="showRoundConfig('ALL', 30)">
+          <div class="icon">🎲</div>
+          <div class="title">隨機 30 題</div>
+          <div class="desc">L11 + L12 混合</div>
+        </div>
+        <div class="mode-card" onclick="reviewWrong()">
+          <div class="icon">📋</div>
+          <div class="title">錯題複習</div>
+          <div class="desc">加強薄弱環節</div>
+        </div>
+      </div>
+
+      <div class="section-header">📋 歷屆試題（4 試卷）</div>
+      <div class="round-list" id="roundList"></div>
+
+      <div class="round-config" id="roundConfig">
+        <div class="round-config-inner">
+          <div class="round-config-title" id="roundConfigTitle">選擇題數</div>
+          <div class="count-btns">
+            <div class="count-btn selected" onclick="selectCount(10)" id="countBtn-10">
+              <div class="num">10</div>
+              <div class="label">題</div>
+            </div>
+            <div class="count-btn" onclick="selectCount(20)" id="countBtn-20">
+              <div class="num">20</div>
+              <div class="label">題</div>
+            </div>
+            <div class="count-btn" onclick="selectCount(50)" id="countBtn-50">
+              <div class="num">50</div>
+              <div class="label">題</div>
+            </div>
+          </div>
+          <button class="go-btn" id="goBtn" onclick="startSelectedQuiz()">開始答題 ✅</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question view -->
+    <div id="questionView" style="display:none">
+      <div class="q-header">
+        <div>
+          <div class="q-num" id="qNum">第 1/20 題</div>
+          <div class="q-meta" id="qMeta">AI治理 · 初級</div>
+        </div>
+        <div class="q-timer" id="qTimer">75:00</div>
+      </div>
+      <div class="topic-filter" id="topicFilter"></div>
+      <div class="q-body">
+        <div class="q-text" id="qText"></div>
+        <div class="options" id="options"></div>
+      </div>
+      <div class="explanation" id="explanation"></div>
+      <div class="actions">
+        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>下一題 →</button>
+        <button class="btn btn-secondary" onclick="quitQuiz()">結束</button>
+      </div>
+    </div>
+
+    <!-- Result view -->
+    <div id="resultView" style="display:none">
+      <div class="result-card">
+        <div class="result-score" id="resultScore">85%</div>
+        <div class="result-label">正確率</div>
+        <div class="result-bar"><div class="result-bar-fill" id="resultBarFill" style="width:0%"></div></div>
+        <div class="result-detail">
+          <span>✅ 答對 <strong id="resultCorrect">17</strong> 題</span>
+          <span>❌ 答錯 <strong id="resultWrong">3</strong> 題</span>
+        </div>
+        <div class="result-msg" id="resultMsg"></div>
+      </div>
+      <div class="result-btns">
+        <button class="btn btn-primary" onclick="restartQuiz()">再考一次</button>
+        <button class="btn btn-secondary" onclick="backToModes()">返回首頁</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/questions.json';
+const LS_KEY = 'ipas_progress';
+const WRONG_KEY = 'ipas_wrong';
+
+let allQuestions = [];
+let quizQuestions = [];
+let currentIndex = 0;
+let correct = 0;
+let wrong = 0;
+let answered = false;
+let currentSubject = 'L11';
+let currentRound = null;
+let totalQuestions = 20;
+let wrongList = [];        // 當次練習的錯題
+let allWrongList = [];     // 所有練習累積的錯題（持久化）
+let timerInterval = null;
+let isReviewMode = false;  // 是否為錯題複習模式
+
+// Round config state
+let pendingSubject = null;
+let pendingRound = null;
+let selectedCount = 20;
+
+const ROUNDS = [
+  { id: '114-4', name: '114年第四次', icon: '📗', count: 0 },
+  { id: '115-1', name: '115年第一次', icon: '📙', count: 0 },
+  { id: '115-2', name: '115年第二次', icon: '📕', count: 0 },
+  { id: 'study', name: '學習指引', icon: '📖', count: 0 },
+];
+
+function getRoundFilter(id) {
+  if (id === 'study') return r => r && r.startsWith('學習指引');
+  const map = {
+    '114-4': '114年第四次',
+    '115-1': '115年第一次',
+    '115-2': '115年第二次',
+  };
+  return map[id] || null;
+}
+
+async function init() {
+  try {
+    const res = await fetch(API);
+    allQuestions = (await res.json()).questions;
+    // Count per round
+    ROUNDS.forEach(r => {
+      const filterFn = getRoundFilter(r.id);
+    r.count = allQuestions.filter(q => typeof filterFn === 'function' ? filterFn(q.round) : q.round === filterFn).length;
+    });
+    // 載入累積錯題
+    try {
+      allWrongList = JSON.parse(localStorage.getItem(WRONG_KEY) || '[]');
+    } catch(e) { allWrongList = []; }
+    renderRoundList();
+    document.getElementById('modeSelect').style.display = 'block';
+    document.getElementById('loadingView').style.display = 'none';
+  } catch(e) {
+    document.querySelector('.loading').innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger)">題庫載入失敗，請稍後再試</div>';
+  }
+}
+
+function renderRoundList() {
+  const el = document.getElementById('roundList');
+  el.innerHTML = ROUNDS.filter(r => r.count > 0).map(r => `
+    <div class="round-item" onclick="showRoundConfig(null, null, '${r.id}')">
+      <div class="left">
+        <span class="icon">${r.icon}</span>
+        <div>
+          <div class="name">${r.name}</div>
+          <div class="count">${r.count} 題可用</div>
+        </div>
+      </div>
+      <span class="arrow">→</span>
+    </div>
+  `).join('');
+}
+
+function showRoundConfig(subject, count, roundId) {
+  pendingSubject = subject;
+  pendingRound = roundId || null;
+  selectedCount = count || 20;
+
+  // Update title
+  let title = '選擇題數';
+  if (roundId) {
+    const r = ROUNDS.find(x => x.id === roundId);
+    title = `${r.icon} ${r.name} — 選擇題數`;
+  } else if (subject === 'L11') {
+    title = '🧠 L11 練習 — 選擇題數';
+  } else if (subject === 'L12') {
+    title = '⚡ L12 練習 — 選擇題數';
+  } else if (subject === 'ALL') {
+    title = '🎲 隨機混合 — 選擇題數';
+  }
+  document.getElementById('roundConfigTitle').textContent = title;
+
+  // Update count buttons
+  document.querySelectorAll('.count-btn').forEach((btn, i) => {
+    const nums = [10, 20, 50];
+    btn.classList.toggle('selected', nums[i] === selectedCount);
+  });
+
+  document.getElementById('roundConfig').classList.add('show');
+}
+
+function selectCount(n) {
+  selectedCount = n;
+  [10, 20, 50].forEach(c => {
+    document.getElementById('countBtn-' + c)?.classList.toggle('selected', c === n);
+  });
+}
+
+function startSelectedQuiz() {
+  document.getElementById('roundConfig').classList.remove('show');
+  startQuiz(pendingSubject, selectedCount, pendingRound);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getSubjectFilter(subject) {
+  if (subject === 'L11') return q => q.source && q.source.includes('AI基礎概論');
+  if (subject === 'L12') return q => q.source && (q.source.includes('生成式AI') || q.source.includes('歷屆試題 L12'));
+  return null;
+}
+
+function startQuiz(subject, count, roundId) {
+  currentSubject = subject;
+  currentRound = roundId;
+  totalQuestions = count;
+  currentIndex = 0;
+  correct = 0;
+  wrong = 0;
+  answered = false;
+  wrongList = [];
+
+  let pool = [...allQuestions];
+
+  // Filter by round
+  if (roundId) {
+    const rf = getRoundFilter(roundId);
+    pool = pool.filter(q => typeof rf === 'function' ? rf(q.round) : q.round === rf);
+  }
+
+  // Filter by subject
+  if (subject && subject !== 'ALL') {
+    const sf = getSubjectFilter(subject);
+    if (sf) pool = pool.filter(sf);
+  }
+
+  quizQuestions = shuffle(pool).slice(0, Math.min(count, pool.length));
+
+  document.getElementById('modeSelect').style.display = 'none';
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('questionView').style.display = 'block';
+  document.getElementById('stats').style.display = 'flex';
+
+  // Timer for exam mode
+  const timer = document.getElementById('qTimer');
+  if (count >= 50) {
+    timer.classList.add('active');
+    startTimer(75 * 60);
+  } else {
+    timer.classList.remove('active');
+    if (timerInterval) clearInterval(timerInterval);
+  }
+
+  updateTopics();
+  isReviewMode = false;
+  showQuestion();
+}
+
+function startTimer(seconds) {
+  if (timerInterval) clearInterval(timerInterval);
+  let remaining = seconds;
+  const timerEl = document.getElementById('qTimer');
+  timerEl.style.color = '';
+  timerInterval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) { clearInterval(timerInterval); showResult(); return; }
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    if (remaining < 300) timerEl.style.color = 'var(--danger)';
+  }, 1000);
+}
+
+function updateTopics() {
+  const topics = [...new Set(quizQuestions.map(q => q.source || ''))].filter(Boolean);
+  document.getElementById('topicFilter').innerHTML = topics.map(t =>
+    `<span class="topic-chip" onclick="jumpToTopic('${t}')">${t}</span>`
+  ).join('');
+}
+
+function jumpToTopic(topic) {
+  let idx = quizQuestions.findIndex((q, i) => i >= currentIndex && q.source === topic);
+  if (idx === -1) idx = quizQuestions.findIndex(q => q.source === topic);
+  if (idx !== -1) { currentIndex = idx; answered = false; showQuestion(); }
+}
+
+function showQuestion() {
+  const q = quizQuestions[currentIndex];
+
+  // Round badge
+  const roundBadge = q.round && !q.round.startsWith('學習指引')
+    ? `<span class="round-badge">${q.round}</span>` : '';
+
+  document.getElementById('qNum').textContent = `第 ${currentIndex + 1}/${quizQuestions.length} 題`;
+  document.getElementById('qMeta').innerHTML = `${roundBadge}${q.source || ''}`;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('progressFill').style.width =
+    `${(currentIndex / quizQuestions.length) * 100}%`;
+
+  const labels = ['A', 'B', 'C', 'D'];
+  const opts = q.opts;
+  document.getElementById('options').innerHTML = labels.map((label, i) => `
+    <div class="option" onclick="selectOption(${i})" id="opt-${i}">
+      <div class="opt-label">${label}</div>
+      <div class="opt-text">${opts[label] || ''}</div>
+    </div>
+  `).join('');
+
+  answered = false;
+  updateStats();
+}
+
+function selectOption(index) {
+  if (answered) return;
+  answered = true;
+
+  const q = quizQuestions[currentIndex];
+  const isCorrect = index === (q.a.charCodeAt(0) - 65); // 'A'→0, 'B'→1...
+
+  document.querySelectorAll('.option').forEach(el => el.classList.add('disabled'));
+  document.getElementById(`opt-${index}`).classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) document.getElementById(`opt-${q.a.charCodeAt(0) - 65}`).classList.add('correct');
+
+  if (isCorrect) correct++;
+  else {
+    wrong++;
+    wrongList.push({ ...q, userAnswer: index });
+    // 加入累積錯題（防重複）
+    const exists = allWrongList.some(w => w._key === (q.source + '|' + q.q.substring(0, 30)));
+    if (!exists) {
+      allWrongList.push({ ...q, userAnswer: index, _key: q.source + '|' + q.q.substring(0, 30) });
+      persistWrongList();
+    }
+  }
+
+  const expEl = document.getElementById('explanation');
+  expEl.innerHTML = `<strong>💡 解析：</strong>${q.explanation}`;
+  expEl.classList.add('show');
+
+  document.getElementById('nextBtn').disabled = false;
+  updateStats();
+  saveProgress();
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= quizQuestions.length) showResult();
+  else showQuestion();
+}
+
+function updateStats() {
+  const total = correct + wrong;
+  const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
+  // 複習模式：正確率以本次答對 / 總複習題數計算
+  let displayAcc = acc;
+  if (isReviewMode && quizQuestions.length > 0) {
+    displayAcc = Math.round((correct / quizQuestions.length) * 100);
+  }
+  document.getElementById('correctCount').textContent = correct;
+  document.getElementById('wrongCount').textContent = wrong;
+  document.getElementById('accuracy').textContent = displayAcc + '%';
+}
+
+function showResult() {
+  if (timerInterval) clearInterval(timerInterval);
+  const total = correct + wrong;
+
+  let finalAcc, finalCorrect, finalWrong, msg;
+
+  if (isReviewMode) {
+    finalCorrect = correct;
+    finalWrong = wrong;
+    finalAcc = quizQuestions.length > 0 ? Math.round((correct / quizQuestions.length) * 100) : 0;
+    if (finalAcc >= 90) msg = '🎉 錯題複習得非常扎實！';
+    else if (finalAcc >= 70) msg = '✅ 大部分都記住了！';
+    else if (finalAcc >= 50) msg = '⚠️ 有些觀念還需要加強';
+    else msg = '📚 建議重新記憶這些題目';
+  } else {
+    finalCorrect = correct;
+    finalWrong = wrong;
+    finalAcc = total > 0 ? Math.round((correct / total) * 100) : 0;
+    if (finalAcc >= 90) msg = '🎉 表現優異！具備專業水準';
+    else if (finalAcc >= 70) msg = '✅ 及格！繼續保持';
+    else if (finalAcc >= 60) msg = '⚠️ 接近及格，再加強';
+    else msg = '📚 需要加強，建議重新練習';
+  }
+
+  document.getElementById('questionView').style.display = 'none';
+  document.getElementById('resultView').style.display = 'block';
+  document.getElementById('resultScore').textContent = finalAcc + '%';
+  document.getElementById('resultCorrect').textContent = finalCorrect;
+  document.getElementById('resultWrong').textContent = finalWrong;
+  document.getElementById('resultMsg').textContent = msg;
+
+  setTimeout(() => document.getElementById('resultBarFill').style.width = finalAcc + '%', 100);
+}
+
+function restartQuiz() {
+  startQuiz(currentSubject, totalQuestions, currentRound);
+}
+
+function backToModes() {
+  if (timerInterval) clearInterval(timerInterval);
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('questionView').style.display = 'none';
+  document.getElementById('modeSelect').style.display = 'block';
+  document.getElementById('stats').style.display = 'none';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('roundConfig').classList.remove('show');
+}
+
+function quitQuiz() {
+  if (confirm('確定要結束練習嗎？')) showResult();
+}
+
+function reviewWrong() {
+  if (allWrongList.length === 0) {
+    alert('目前沒有錯題記錄（所有練習累積）');
+    return;
+  }
+  isReviewMode = true;
+  quizQuestions = shuffle([...allWrongList]);
+  currentIndex = 0; correct = 0; wrong = 0;
+  answered = false; wrongList = [];
+  document.getElementById('modeSelect').style.display = 'none';
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('questionView').style.display = 'block';
+  document.getElementById('stats').style.display = 'flex';
+  showQuestion();
+}
+
+function persistWrongList() {
+  try {
+    localStorage.setItem(WRONG_KEY, JSON.stringify(allWrongList));
+  } catch(e) {}
+}
+
+function clearWrongList() {
+  allWrongList = [];
+  persistWrongList();
+}
+
+function saveProgress() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      correct, wrong, currentSubject, currentRound, totalQuestions, savedAt: Date.now()
+    }));
+  } catch(e) {}
+}
+
+// Add clear button to result screen
+function addClearWrongBtn() {
+  if (!document.getElementById('clearWrongBtn')) {
+    const btn = document.createElement('button');
+    btn.id = 'clearWrongBtn';
+    btn.className = 'btn btn-secondary';
+    btn.style.cssText = 'margin-top:10px;width:100%';
+    btn.textContent = '🗑️ 清除所有錯題記錄';
+    btn.onclick = function() {
+      if (confirm('確定清除所有累積的錯題記錄？')) {
+        clearWrongList();
+        alert('已清除');
+      }
+    };
+    document.querySelector('.result-card').appendChild(btn);
+  }
+}
+
+// Patch showResult to add clear button
+const _showResult = showResult;
+showResult = function() {
+  _showResult();
+  setTimeout(addClearWrongBtn, 100);
+};
+
+// 夜晚模式（已移除 toggleDarkMode，按鈕已移除）
+
+init();
+
+// ── 考點精華 ──
+const TIPS_DATA = {
+  l11: `
+    <div class="tips-section"><h3>① 機器學習類型判斷</h3><ul>
+      <li>看到「有標籤資料」→ <strong>監督式學習</strong></li>
+      <li>看到「無標籤、找分群」→ <strong>非監督式學習</strong></li>
+      <li>看到「少量標籤+大量無標籤」→ <strong>半監督式學習</strong></li>
+      <li>看到「Agent跟環境互動、獎懲」→ <strong>強化學習</strong></li>
+    </ul></div>
+    <div class="tips-section"><h3>② 監督 v.s. 非監督（几乎每梯次都考）</h3><ul>
+      <li>「自動分群」= 非監督；「分類/預測」= 監督</li>
+      <li>差異關鍵：是否需要標籤（Label）</li>
+    </ul></div>
+    <div class="tips-section"><h3>③ 強化學習：Exploration vs. Exploitation</h3><ul>
+      <li>典型情境：AI 推薦暢銷品，但想發現新商品 → 探索與利用的權衡</li>
+    </ul></div>
+    <div class="tips-section"><h3>④ 過擬合 v.s. 欠擬合</h3><ul>
+      <li>過擬合：訓練好、測試差（記住題庫）</li>
+      <li>欠擬合：兩者都差（没學會）</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑤ 異常偵測（Anomaly Detection）</h3><ul>
+      <li>典型：工廠感測器偵測設備異常</li>
+      <li>通常 = 非監督式學習 或 半監督式學習</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑥ CNN v.s. LSTM</h3><ul>
+      <li><strong>CNN</strong> → 圖像處理（卷積神經網路）</li>
+      <li><strong>LSTM</strong> → 序列/長期依賴（長短期記憶）</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑦ 可解釋AI工具</h3><ul>
+      <li><strong>LIME</strong> → 單一筆資料的局部解釋（如：為什麼這筆貸款被拒）</li>
+      <li><strong>SHAP</strong> → 各特徵的貢獻值（正/負影響）</li>
+      <li><strong>顯著性圖</strong> → 影像中哪些區域影響最大</li>
+      <li><strong>PDP</strong> → 全域趨勢，無法解釋單一筆</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑧ AI倫理五原則</h3><ul>
+      <li><strong>公平性</strong>：不同族群核准率差異大 → 違反公平性</li>
+      <li><strong>透明度</strong>：無法解釋AI判斷依據 → 違反透明度</li>
+      <li><strong>隱私性</strong>：未告知就拿資料再訓練 → 違反隱私性</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑨ 資料漂移 v.s. 概念漂移</h3><ul>
+      <li>資料漂移：輸入資料分布改變（例：用户裝置改變）</li>
+      <li>概念漂移：X→Y關係改變（例：消費行為改變）</li>
+    </ul></div>
+  `,
+  l12: `
+    <div class="tips-section"><h3>① RAG v.s. Fine-tuning（45次，几乎每梯次都考）</h3><ul>
+      <li>文件經常更新 → <strong>RAG</strong>（不需重新訓練，立即反映新內容）</li>
+      <li>想讓模型永久學會特定風格/領域 → <strong>Fine-tuning</strong></li>
+    </ul></div>
+    <div class="tips-section"><h3>② AI Agent 核心特性</h3><ul>
+      <li>能自主規劃、調用工具、根據回饋調整策略</li>
+      <li>跟「傳統自動化」最大差別：「動態決策」而非「固定流程」</li>
+    </ul></div>
+    <div class="tips-section"><h3>③ Few-shot Prompting</h3><ul>
+      <li>用少量範例引導模型適應新情境</li>
+      <li>跟 Fine-tuning 的差別：不需要重新訓練</li>
+    </ul></div>
+    <div class="tips-section"><h3>④ Chain of Thought (CoT) 推理鏈</h3><ul>
+      <li>鼓勵模型逐步推理，不要直接給答案</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑤ Prompt Injection 防禦</h3><ul>
+      <li>多層防禦：輸入驗證 + 輸出監控 + 系統提示保護</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑥ 封閉式平台 v.s. 開放式平台</h3><ul>
+      <li>封閉式劣勢：資料鎖定風險、未建立治理規範會導致混亂</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑦ Agentic AI 任务规划器</h3><ul>
+      <li>負責任務拆解、決策路徑規劃</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑧ Solution Graph（解決方案圖譜）</h3><ul>
+      <li>有向無環圖（DAG），節點=步驟，邊=依賴關係</li>
+      <li>定義 Agent 可參考的任務分解與決策路徑結構</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑨ Token 與 Token Economics</h3><ul>
+      <li>Token 影響計費與上下文長度限制</li>
+      <li>Token Economics <strong>不包含</strong>「訓練階段的GPU成本」</li>
+    </ul></div>
+    <div class="tips-section"><h3>⑩ 強化微調 RFT</h3><ul>
+      <li>跟標準 Fine-tuning 的差別：需要人類回饋信號</li>
+    </ul></div>
+  `
+};
+
+let currentTipsTab = 'l11';
+
+function showTipsModal() {
+  switchTipsTab('l11');
+  document.getElementById('tipsModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeTipsModal() {
+  document.getElementById('tipsModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+function switchTipsTab(tab) {
+  currentTipsTab = tab;
+  document.getElementById('tipsBody').innerHTML = TIPS_DATA[tab];
+  document.querySelectorAll('.tips-tab').forEach(t => {
+    t.classList.toggle('active', t.textContent.includes(tab === 'l11' ? 'L11' : 'L12'));
+  });
+}
+// Init first tab content
+document.getElementById('tipsBody') && (document.getElementById('tipsBody').innerHTML = TIPS_DATA['l11']);
+
+</script>
+
+<!-- 考點精華 Modal -->
+<div id="tipsModal" class="modal-overlay" onclick="if(event.target===this)closeTipsModal()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>📚 考點精華</h2>
+      <button class="modal-close" onclick="closeTipsModal()">✕</button>
+    </div>
+    <div class="tips-tabs">
+      <button class="tips-tab active" onclick="switchTipsTab('l11')">📗 L11 基礎概論</button>
+      <button class="tips-tab" onclick="switchTipsTab('l12')">📘 L12 生成式AI</button>
+    </div>
+    <div class="tips-body" id="tipsBody"></div>
+  </div>
+</div>
+
+</body>
+</html>

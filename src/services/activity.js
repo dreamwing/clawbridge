@@ -6,6 +6,38 @@ const fs = require('fs');
 const { LOG_DIR } = require('../config');
 const { WORKSPACE_DIR } = require('./openclaw');
 
+// --- Log hygiene ---
+// Keep the daily activity file bounded, and never spam stderr when the disk
+// is full: every append fails with ENOSPC, and an unthrottled error message
+// turns one disk problem into thousands of log lines.
+const MAX_LOG_BYTES = 32 * 1024 * 1024;
+const WRITE_ERROR_THROTTLE_MS = 60 * 1000;
+
+function rotateIfOversized(logFile) {
+    let stat;
+    try {
+        stat = fs.statSync(logFile);
+    } catch (e) {
+        return; // file does not exist yet
+    }
+    if (stat.size < MAX_LOG_BYTES) return;
+    try {
+        const rotated = `${logFile}.1`;
+        try { fs.unlinkSync(rotated); } catch (e) { /* no previous rotation */ }
+        fs.renameSync(logFile, rotated);
+    } catch (e) {
+        // Rotation is best-effort — never block logging on it.
+    }
+}
+
+function reportWriteFailure(e) {
+    const now = Date.now();
+    const last = global.lastLogWriteErrorAt || 0;
+    if (now - last < WRITE_ERROR_THROTTLE_MS) return;
+    global.lastLogWriteErrorAt = now;
+    console.error('Log write failed:', (e && e.message) ? e.message : e);
+}
+
 function logActivity(task, id = null) {
     if (!task || task === 'System Idle') return;
 
@@ -38,9 +70,10 @@ function logActivity(task, id = null) {
 
     try {
         if (!fs.existsSync(monthDir)) fs.mkdirSync(monthDir, { recursive: true });
+        rotateIfOversized(logFile);
         fs.appendFileSync(logFile, JSON.stringify(entry) + '\n');
     } catch (e) {
-        console.error('Log write failed:', e);
+        reportWriteFailure(e);
     }
 }
 

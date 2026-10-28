@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>📥 雅典娜檔案下載</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; padding: 20px; padding-bottom: calc(80px + env(safe-area-inset-bottom, 20px)); }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { text-align: center; margin: 24px 0 20px; font-size: 22px; font-weight: 700; color: #fff; }
+        h1 span { font-size: 28px; }
+        .hint { text-align: center; font-size: 12px; color: #666; margin-bottom: 16px; }
+        .file-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .file-item { background: #1c1c1e; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; transition: border-color 0.2s; position: relative; }
+        .file-item:active { border-color: #0a84ff; }
+        .file-content { display: flex; align-items: center; padding: 14px 16px; gap: 12px; text-decoration: none; color: #fff; cursor: pointer; }
+        .file-icon { font-size: 26px; flex-shrink: 0; }
+        .file-info { flex: 1; min-width: 0; }
+        .file-name { font-size: 15px; font-weight: 500; word-break: break-all; }
+        .file-meta { font-size: 12px; color: #555; margin-top: 4px; }
+        .file-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; position: relative; z-index: 10; }
+        .btn-download {
+            background: #0a84ff;
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: background 0.2s;
+            white-space: nowrap;
+            min-width: 44px;
+            min-height: 44px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            line-height: 1.4;
+            /* 讓手機知道這個連結會下載檔案 */
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .btn-download:hover { background: #0070e0; }
+        .btn-delete {
+            background: #ff4757;
+            border: none;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            min-width: 44px;
+            min-height: 44px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn-delete:hover { background: #ff6b7a; }
+        .btn-delete:disabled { background: #555; cursor: not-allowed; }
+        .empty { text-align: center; color: #555; padding: 48px 0; font-size: 14px; line-height: 1.6; }
+        .upload-zone { background: #1c1c1e; border: 2px dashed rgba(255,255,255,0.12); border-radius: 16px; padding: 32px 20px; text-align: center; margin-top: 24px; transition: border-color 0.2s; }
+        .upload-zone.dragover { border-color: #0a84ff; background: rgba(10,132,255,0.05); }
+        .upload-icon { font-size: 40px; margin-bottom: 12px; }
+        .upload-zone h2 { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+        .upload-zone p { font-size: 13px; color: #666; }
+        input[type="file"] { display: none; }
+        .upload-btn { display: inline-block; margin-top: 14px; padding: 10px 24px; background: #0a84ff; color: #fff; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .upload-btn:active { background: #0070e0; }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #30d158; color: #000; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+        .toast.show { opacity: 1; }
+        .toast.error { background: #ff375f; color: #fff; }
+        .spinner { text-align: center; padding: 40px 0; color: #555; font-size: 14px; }
+
+        /* 確認對話框 */
+        .confirm-dialog {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000;
+        }
+        .confirm-dialog.show { display: flex; }
+        .confirm-box { background: #1c1c1e; border-radius: 16px; padding: 30px; max-width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .confirm-box h3 { margin-bottom: 12px; color: #fff; font-size: 18px; }
+        .confirm-box p { color: #888; margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+        .confirm-buttons { display: flex; gap: 12px; justify-content: center; }
+        .confirm-buttons button { padding: 12px 28px; border-radius: 10px; border: none; cursor: pointer; font-size: 15px; font-weight: 600; }
+        .btn-cancel { background: #2a2d3a; color: #fff; }
+        .btn-confirm { background: #0a84ff; color: #fff; }
+        .btn-confirm.danger { background: #ff4757; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span>📥</span><br>雅典娜檔案下載</h1>
+        <p class="hint">上傳或下載 Mac 分享資料夾中的檔案</p>
+
+        <ul class="file-list" id="fileList">
+            <li><div class="spinner">載入中...</div></li>
+        </ul>
+
+        <div class="upload-zone" id="dropZone">
+            <div class="upload-icon">☁️</div>
+            <h2>上傳檔案</h2>
+            <p>選擇檔案後自動上傳到分享資料夾</p>
+            <label class="upload-btn" for="fileInput">選擇檔案</label>
+            <input type="file" id="fileInput" multiple>
+        </div>
+    </div>
+
+    <!-- 確認刪除對話框 -->
+    <div class="confirm-dialog" id="confirmDialog">
+        <div class="confirm-box">
+            <h3 id="confirmTitle">⚠️ 確認操作</h3>
+            <p id="confirmMessage">確定要執行這個操作嗎?</p>
+            <div class="confirm-buttons">
+                <button class="btn-cancel" onclick="closeDialog()">取消</button>
+                <button class="btn-confirm" id="confirmBtn" onclick="doConfirm()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const LIST_API  = '/api/share-list';
+        const UPLOAD_API = '/api/share-upload';
+        const DOWNLOAD_BASE = '/api/share-download?file=';
+        let pendingDelete = null;
+        let pendingDownload = null;
+
+        const icons = {
+            pdf:'📄', zip:'📦', apk:'📱', mp3:'🎵', mp4:'🎬',
+            png:'🖼️', jpg:'🖼️', jpeg:'🖼️', txt:'📝', js:'💻',
+            json:'📋', html:'🌐', css:'🎨', md:'📘',
+            doc:'📝', docx:'📝', xls:'📊', xlsx:'📊', ppt:'📽️', pptx:'📽️'
+        };
+
+        function getIcon(name) {
+            const ext = name.split('.').pop().toLowerCase();
+            return icons[ext] || '📎';
+        }
+
+        function fmtSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+            if (bytes < 1073741824) return (bytes/1048576).toFixed(1) + ' MB';
+            return (bytes/1073741824).toFixed(1) + ' GB';
+        }
+
+        function fmtDate(timestamp) {
+            const d = new Date(timestamp);  // timestamp 已是毫秒
+            const now = new Date();
+            const diff = now - d;
+
+            // 如果是小於 24 小時,顯示相對時間
+            if (diff < 86400000) {
+                const hours = Math.floor(diff / 3600000);
+                const mins = Math.floor(diff / 60000);
+                if (hours > 0) return hours + ' 小時前';
+                if (mins > 0) return mins + ' 分鐘前';
+                return '剛剛';
+            }
+
+            // 否則顯示日期
+            const month = d.getMonth() + 1;
+            const day = d.getDate();
+            const hours = d.getHours().toString().padStart(2, '0');
+            const mins = d.getMinutes().toString().padStart(2, '0');
+            return `${month}/${day} ${hours}:${mins}`;
+        }
+
+        function showToast(msg, isError) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast' + (isError ? ' error' : '');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        async function loadFiles() {
+            const list = document.getElementById('fileList');
+            try {
+                const res = await fetch(LIST_API);
+                if (!res.ok) throw new Error('fetch failed');
+                const data = await res.json();
+                // API 回傳 {name, size, mtime} 陣列
+                const raw = Array.isArray(data) ? data : (data.files || []);
+                const files = raw.map(n => typeof n === 'string' ? { name: n, size: 0, mtime: 0 } : { name: String(n.name || n), size: n.size || 0, mtime: n.mtime || 0 });
+                list.innerHTML = '';
+                if (!files.length) {
+                    list.innerHTML = '<li class="empty">目前沒有檔案</li>';
+                    return;
+                }
+
+                // 按時間排序（最新的在前）
+                files.sort((a, b) => (b.mtime || 0) - (a.mtime || 0));
+
+                for (const f of files) {
+                    const li = document.createElement('li');
+                    li.className = 'file-item';
+                    const fileName = f.name || f;
+                    const icon = getIcon(fileName);
+                    const downloadUrl = DOWNLOAD_BASE + encodeURIComponent(fileName);
+
+                    // 手機：直接下載；桌面：確認後下載
+                    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+                    const downloadBtn = isMobile
+                        ? `<a class="btn-download" href="${downloadUrl}" download="${fileName}">📥</a>`
+                        : `<a class="btn-download" href="#" onclick="confirmDownload('${fileName.replace(/'/g, "\\'")}')">📥</a>`;
+                    
+                    li.innerHTML = `<div class="file-content">
+                        <span class="file-icon">${icon}</span>
+                        <div class="file-info">
+                            <div class="file-name">${fileName}</div>
+                            <div class="file-meta">${f.size ? '📦 ' + fmtSize(f.size) + ' &nbsp;' : ''}${f.mtime ? '📅 ' + fmtDate(f.mtime) : ''}</div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        ${downloadBtn}
+                        <button class="btn-delete" onclick="confirmDelete('${fileName.replace(/'/g, "\\'")}')">🗑️</button>
+                    </div>`;
+                    list.appendChild(li);
+                }
+            } catch (e) {
+                list.innerHTML = '<li class="empty" style="color:#f66;">載入失敗: ' + e.message + '</li>';
+            }
+        }
+
+        function confirmDownload(filename) {
+            pendingDownload = filename;
+            document.getElementById('confirmTitle').textContent = '📥 確認下載';
+            document.getElementById('confirmMessage').textContent = `確定要下載「${filename}」嗎?`;
+            document.getElementById('confirmBtn').textContent = '📥 下載';
+            document.getElementById('confirmBtn').classList.remove('danger');
+            document.getElementById('confirmBtn').onclick = doConfirm;
+            document.getElementById('confirmDialog').classList.add('show');
+        }
+
+        function confirmDelete(filename) {
+            pendingDelete = filename;
+            document.getElementById('confirmTitle').textContent = '⚠️ 確認刪除';
+            document.getElementById('confirmMessage').textContent = `確定要刪除「${filename}」嗎?\n此操作無法復原!`;
+            document.getElementById('confirmBtn').textContent = '🗑️ 刪除';
+            document.getElementById('confirmBtn').classList.add('danger');
+            document.getElementById('confirmBtn').onclick = doConfirm;
+            document.getElementById('confirmDialog').classList.add('show');
+        }
+
+        function doConfirm() {
+            if (pendingDownload !== null) {
+                const filename = pendingDownload;
+                const downloadUrl = DOWNLOAD_BASE + encodeURIComponent(filename);
+                showToast('開始下載：' + filename, false);
+                window.location.href = downloadUrl;
+                pendingDownload = null;
+            } else if (pendingDelete !== null) {
+                doDelete();
+            }
+            closeDialog();
+        }
+
+        function closeDialog() {
+            pendingDelete = null;
+            pendingDownload = null;
+            document.getElementById('confirmDialog').classList.remove('show');
+        }
+
+        async function doDelete() {
+            if (!pendingDelete) return;
+            const filename = pendingDelete;
+            const btn = document.getElementById('confirmBtn');
+            btn.disabled = true;
+            btn.textContent = '刪除中...';
+
+            try {
+                const res = await fetch(`/api/share-delete?file=${encodeURIComponent(filename)}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('✅ 刪除成功!');
+                    loadFiles();
+                } else {
+                    const data = await res.json();
+                    showToast('❌ 刪除失敗: ' + (data.error || '未知錯誤'), true);
+                }
+            } catch (e) {
+                showToast('❌ 刪除失敗: ' + e.message, true);
+            }
+
+            btn.disabled = false;
+            btn.textContent = '刪除';
+            closeDialog();
+        }
+
+        // 上傳功能
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                uploadFiles(e.dataTransfer.files);
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) uploadFiles(fileInput.files);
+        });
+
+        async function uploadFiles(files) {
+            for (const file of files) {
+                const fd = new FormData();
+                fd.append('file', file);
+                try {
+                    const res = await fetch(UPLOAD_API, { method: 'POST', body: fd });
+                    if (res.ok) {
+                        showToast(`✅ ${file.name} 上傳成功!`);
+                    } else {
+                        showToast(`❌ ${file.name} 上傳失敗`, true);
+                    }
+                } catch (e) {
+                    showToast(`❌ ${file.name} 上傳失敗: ${e.message}`, true);
+                }
+            }
+            fileInput.value = '';
+            setTimeout(loadFiles, 500);
+        }
+
+        // 初始化
+        loadFiles();
+    </script>
+</body>
+</html>

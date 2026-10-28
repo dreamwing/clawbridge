@@ -22,7 +22,10 @@ router.get('/api/memory', (req, res) => {
         try {
             const files = fs
                 .readdirSync(memoryDir)
-                .filter(f => f.match(/^\d{4}-\d{2}-\d{2}\.md$/))
+                .filter(f => 
+                    (f.match(/^\d{4}-\d{2}-\d{2}\.md$/) && !f.startsWith('morning-report-') && !f.startsWith('evening-report-') && !f.startsWith('afternoon-report-')) ||
+                    (f.match(/^\d{4}-\d{2}-\d{2}-[0-9]{4}\.md$/) && !f.match(/[0-9]{4}-[0-9]{2}$/))
+                )
                 .sort()
                 .reverse()
                 .slice(0, 30);
@@ -37,7 +40,7 @@ router.get('/api/memory', (req, res) => {
 
     const tz = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai';
     let date = req.query.date || new Date().toLocaleDateString('en-CA', { timeZone: tz });
-    if (!date.match(/^\d{4}-\d{2}-\d{2}$/)) return res.status(400).json({ error: 'Invalid date' });
+    if (!date.match(/^\d{4}-\d{2}-\d{2}(-[0-9]{4})?$/)) return res.status(400).json({ error: 'Invalid date' });
 
     const memPath = path.join(WORKSPACE_DIR, 'memory', `${date}.md`);
     if (!fs.existsSync(memPath)) {

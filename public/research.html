@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>研究工具 - 學術論文搜尋與分析</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #1a1a2e;
+      --text-secondary: #6c757d;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --border: #e5e7eb;
+      --success: #059669;
+      --warning: #d97706;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* Header */
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .logo { font-size: 20px; font-weight: 700; color: var(--primary); }
+    .nav-links { display: flex; gap: 16px; align-items: center; }
+    .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+    .nav-links a:hover { color: var(--primary); }
+
+    /* Selection Bar */
+    .selection-bar {
+      background: var(--primary);
+      color: white;
+      padding: 12px 20px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 60px;
+      z-index: 99;
+    }
+    .selection-bar.active { display: flex; }
+    .selection-count { font-weight: 600; }
+    .btn-compare {
+      background: white;
+      color: var(--primary);
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-compare:hover { background: #f0f0f0; }
+
+    /* Search Section */
+    .search-section {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 32px;
+      margin: 24px auto;
+      box-shadow: var(--shadow);
+      max-width: 900px;
+    }
+    .search-section h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .search-section p {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+    .search-box {
+      display: flex;
+      gap: 12px;
+    }
+    .search-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .btn-search {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-search:hover { background: var(--primary-hover); }
+    .btn-search:disabled { background: var(--text-secondary); cursor: not-allowed; }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .filter-select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+
+    /* Results */
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 24px 0 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .results-count { color: var(--text-secondary); font-size: 14px; }
+    .sort-select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    /* Paper Grid */
+    .paper-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    /* Paper Card */
+    .paper-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      border: 2px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .paper-card.selected { border-color: var(--primary); }
+    .paper-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .card-header {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .checkbox-wrapper {
+      flex-shrink: 0;
+      display: flex;
+      align-items: flex-start;
+      padding-top: 2px;
+    }
+    .paper-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+    .card-title-wrap { flex: 1; }
+    .paper-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .paper-title:hover { text-decoration: underline; }
+    .paper-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .paper-meta span { display: flex; align-items: center; gap: 4px; }
+    .citation-badge {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .paper-abstract {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 12px 0;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-favorite {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+    .btn-favorite:hover { border-color: var(--warning); color: var(--warning); }
+    .btn-favorite.favorited { background: #fef3c7; border-color: var(--warning); color: var(--warning); }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin: 32px 0;
+    }
+    .btn-page {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-page:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-page.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .page-info { color: var(--text-secondary); font-size: 14px; }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error */
+    .error-msg {
+      text-align: center;
+      padding: 40px;
+      background: #fef2f2;
+      border-radius: 12px;
+      color: #dc2626;
+      margin: 24px 0;
+    }
+
+    /* Compare Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--card-bg);
+      border-radius: 16px;
+      max-width: 1000px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 { font-size: 20px; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .compare-table th, .compare-table td {
+      border: 1px solid var(--border);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .compare-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      width: 140px;
+    }
+    .compare-table td { background: white; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    .btn-export {
+      background: var(--success);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-export:hover { opacity: 0.9; }
+    .btn-close-modal {
+      background: var(--text-secondary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Favorites Section */
+    .favorites-section {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 2px solid var(--border);
+    }
+    .favorites-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      z-index: 2000;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-inner { flex-wrap: wrap; }
+      .search-box { flex-direction: column; }
+      .paper-grid { grid-template-columns: 1fr; }
+      .compare-table { font-size: 12px; }
+      .compare-table th, .compare-table td { padding: 8px; }
+      .compare-table th { width: 100px; }
+      .modal { max-height: 95vh; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">🔬 研究工具</div>
+    <nav class="nav-links">
+      <a href="https://clawbridge.myclawdomain.ccwu.cc/menu">← 回首頁</a>
+    </nav>
+  </div>
+</header>
+
+<div class="selection-bar" id="selectionBar">
+  <span class="selection-count" id="selectionCount">已選擇 0 篇論文</span>
+  <button class="btn-compare" id="btnCompare" onclick="openCompareModal()">比較所選論文</button>
+</div>
+
+<div class="container">
+  <div class="search-section">
+    <h1>學術論文搜尋</h1>
+    <p>搜尋超過 2 億篇學術論文，AI 幫你整理比較</p>
+    <div class="search-box">
+      <input type="text" class="search-input" id="searchInput" placeholder="輸入研究問題，例如：machine learning healthcare..." onkeypress="if(event.key==='Enter')search()">
+      <button class="btn-search" id="btnSearch" onclick="search()">搜尋</button>
+    </div>
+    <div class="filters">
+      <select class="filter-select" id="yearFilter" onchange="search()">
+        <option value="">所有年份</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+        <option value="2021">2021</option>
+        <option value="2020">2020</option>
+        <option value="2019">2019</option>
+        <option value="2018">2018</option>
+      </select>
+      <select class="filter-select" id="sortBy" onchange="search()">
+        <option value="relevance">相關性排序</option>
+        <option value="citationCount">引用次數</option>
+        <option value="year">年份</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="resultsArea"></div>
+  <div id="favoritesArea"></div>
+</div>
+
+<!-- Compare Modal -->
+<div class="modal-overlay" id="compareModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📊 論文比較分析</h2>
+      <button class="modal-close" onclick="closeCompareModal()">×</button>
+    </div>
+    <div class="modal-body" id="compareBody">
+      <div class="loading"><div class="spinner"></div>AI 分析中...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-export" onclick="exportBibTeX()">導出 BibTeX</button>
+      <button class="btn-export" onclick="exportAPA()">導出 APA</button>
+      <button class="btn-close-modal" onclick="closeCompareModal()">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// State
+let currentPapers = [];
+let selectedPapers = [];
+let favorites = JSON.parse(localStorage.getItem('researchFavorites') || '[]');
+let currentOffset = 0;
+let currentQuery = '';
+let currentYear = '';
+let currentSort = 'relevance';
+const LIMIT = 20;
+const MAX_SELECT = 5;
+
+// OpenAlex — 免費、開放、CORS 友好、涵蓋 2.4 億篇學術論文
+const OPENALEX_API = 'https://api.openalex.org/works';
+const MINIMAX_API = 'https://api.minimax.io/v1/text/chatcompletion_pro?GroupId=2024475421608780206';
+const MINIMAX_KEY = '***REMOVED***';
+
+// Toast notification
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Search papers
+async function search() {
+  const query = document.getElementById('searchInput').value.trim();
+  const year = document.getElementById('yearFilter').value;
+  const sort = document.getElementById('sortBy').value;
+
+  if (!query) { showToast('請輸入搜尋關鍵字'); return; }
+
+  currentQuery = query;
+  currentYear = year;
+  currentSort = sort;
+  currentOffset = 0;
+
+  await fetchPapers();
+}
+
+// 從 OpenAlex inverted index 重建摘要文字
+function rebuildAbstract(invIndex) {
+  if (!invIndex) return '';
+  const words = Object.entries(invIndex).sort((a, b) => a[1][0] - b[1][0]);
+  return words.map(([word]) => word).join(' ');
+}
+
+async function fetchPapers() {
+  const btn = document.getElementById('btnSearch');
+  btn.disabled = true;
+  btn.textContent = '搜尋中...';
+
+  const resultsArea = document.getElementById('resultsArea');
+  resultsArea.innerHTML = '<div class="loading"><div class="spinner"></div>搜尋中...</div>';
+
+  try {
+    let filter = '';
+    if (currentYear) filter += `&from_publication_year=${currentYear}&to_publication_year=${currentYear}`;
+    // 相關性排序：先用 title.search 精確匹配，無結果再用 general search
+    const page = Math.floor(currentOffset / LIMIT) + 1;
+    let url;
+    if (currentSort === 'citationCount') {
+      url = `${OPENALEX_API}?search=${encodeURIComponent(currentQuery)}${filter}&sort=cited_by_count:desc&per-page=${LIMIT}&page=${page}&select=id,doi,title,display_name,publication_year,publication_date,authorships,cited_by_count,abstract_inverted_index,primary_location,type,language`;
+    } else if (currentSort === 'year') {
+      url = `${OPENALEX_API}?search=${encodeURIComponent(currentQuery)}${filter}&sort=publication_year:desc&per-page=${LIMIT}&page=${page}&select=id,doi,title,display_name,publication_year,publication_date,authorships,cited_by_count,abstract_inverted_index,primary_location,type,language`;
+    } else {
+      // 預設：用 title.search 精確匹配 + relevance_score 排序
+      url = `${OPENALEX_API}?search=${encodeURIComponent(currentQuery)}${filter}&sort=relevance_score:desc&per-page=${LIMIT}&page=${page}&select=id,doi,title,display_name,publication_year,publication_date,authorships,cited_by_count,abstract_inverted_index,primary_location,type,language`;
+    }
+
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`API 錯誤: ${resp.status}`);
+    const data = await resp.json();
+
+    if (!data.results || data.results.length === 0) {
+      resultsArea.innerHTML = '<div class="error-msg">找不到相關論文，請嘗試不同的關鍵字</div>';
+      return;
+    }
+
+    currentPapers = data.results;
+    renderPapers(data.results, data.meta.count);
+  } catch (err) {
+    resultsArea.innerHTML = `<div class="error-msg">搜尋失敗: ${err.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '搜尋';
+  }
+}
+
+function renderPapers(papers, total) {
+  const resultsArea = document.getElementById('resultsArea');
+  const start = currentOffset + 1;
+  const end = currentOffset + papers.length;
+
+  let html = `
+    <div class="results-header">
+      <span class="results-count">找到 ${total.toLocaleString()} 篇相關論文，顯示 ${start}-${end}</span>
+      <select class="sort-select" onchange="changeSort(this.value)">
+        <option value="relevance" ${currentSort==='relevance'?'selected':''}>相關性排序</option>
+        <option value="citationCount" ${currentSort==='citationCount'?'selected':''}>引用次數</option>
+        <option value="year" ${currentSort==='year'?'selected':''}>年份</option>
+      </select>
+    </div>
+    <div class="paper-grid">
+  `;
+
+  papers.forEach((paper, idx) => {
+    // OpenAlex 欄位對應
+    const paperId = paper.id || `openalex-${idx}`;
+    const title = paper.display_name || paper.title || '無標題';
+    const authorNames = paper.authorships
+      ? paper.authorships.slice(0, 3).map(a => a.author?.display_name || a.author?.name || '').filter(Boolean).join(', ')
+      : '未知作者';
+    const authorCount = paper.authorships ? paper.authorships.length : 0;
+    const abstractText = rebuildAbstract(paper.abstract_inverted_index);
+    const abstract = abstractText ? abstractText.substring(0, 200) + (abstractText.length > 200 ? '...' : '') : '無摘要';
+    const year = paper.publication_year || '未知';
+    const citations = paper.cited_by_count || 0;
+    const paperUrl = paper.primary_location?.landing_page_url || paper.doi || paper.id;
+    const cardIdx = currentOffset + idx;
+
+    const isSelected = selectedPapers.some(p => (p.paperId || p.id) === paperId);
+    const isFavorited = favorites.some(f => f.paperId === paperId);
+
+    html += `
+      <div class="paper-card ${isSelected ? 'selected' : ''}" id="card-${paperId}">
+        <div class="card-header">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" class="paper-checkbox" ${isSelected ? 'checked' : ''}
+              onchange="toggleSelect('${paperId}', ${cardIdx})">
+          </div>
+          <div class="card-title-wrap">
+            <a href="${paperUrl}" target="_blank" class="paper-title">${title}</a>
+            <div class="paper-meta">
+              <span>${authorNames}${authorCount > 3 ? ' et al.' : ''}</span>
+              <span>📅 ${year}</span>
+              <span class="citation-badge">引用 ${citations.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+        <p class="paper-abstract">${abstract}</p>
+        <div class="card-actions">
+          <button class="btn-favorite ${isFavorited ? 'favorited' : ''}" onclick="toggleFavorite(${cardIdx})">
+            ${isFavorited ? '❤️ 已收藏' : '🤍 收藏'}
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+
+  // Pagination
+  const totalPages = Math.ceil(total / LIMIT);
+  const currentPage = Math.floor(currentOffset / LIMIT) + 1;
+  if (totalPages > 1) {
+    html += renderPagination(totalPages, currentPage);
+  }
+
+  resultsArea.innerHTML = html;
+}
+
+function renderPagination(totalPages, currentPage) {
+  let html = '<div class="pagination">';
+  html += `<button class="btn-page" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一頁</button>`;
+  
+  const maxVisible = 5;
+  let start = Math.max(1, currentPage - 2);
+  let end = Math.min(totalPages, start + maxVisible - 1);
+  if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+  
+  for (let i = start; i <= end; i++) {
+    html += `<button class="btn-page ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="btn-page" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一頁</button>`;
+  html += `<span class="page-info">第 ${currentPage} / ${totalPages} 頁</span>`;
+  html += '</div>';
+  return html;
+}
+
+function goPage(page) {
+  currentOffset = (page - 1) * LIMIT;
+  fetchPapers();
+}
+
+function changeSort(sort) {
+  currentSort = sort;
+  currentOffset = 0;
+  fetchPapers();
+}
+
+// Selection
+function toggleSelect(paperId, idx) {
+  const paper = currentPapers[idx];
+  if (!paper) return;
+
+  const isSelected = selectedPapers.some(p => (p.paperId || p.id) === paperId);
+
+  if (isSelected) {
+    selectedPapers = selectedPapers.filter(p => (p.paperId || p.id) !== paperId);
+  } else {
+    if (selectedPapers.length >= MAX_SELECT) {
+      showToast(`最多只能選擇 ${MAX_SELECT} 篇論文`);
+      document.querySelector(`#card-${paperId} .paper-checkbox`).checked = false;
+      return;
+    }
+    selectedPapers.push(paper);
+  }
+
+  updateSelectionBar();
+  document.querySelector(`#card-${paperId}`).classList.toggle('selected', !isSelected);
+}
+
+function updateSelectionBar() {
+  const bar = document.getElementById('selectionBar');
+  const count = document.getElementById('selectionCount');
+  const btn = document.getElementById('btnCompare');
+  
+  if (selectedPapers.length > 0) {
+    bar.classList.add('active');
+    count.textContent = `已選擇 ${selectedPapers.length} 篇論文`;
+    btn.disabled = selectedPapers.length < 2;
+  } else {
+    bar.classList.remove('active');
+  }
+}
+
+// Favorites
+function toggleFavorite(idx) {
+  const paper = currentPapers[idx];
+  if (!paper) return;
+
+  const pid = paper.paperId || paper.id || `openalex-${idx}`;
+  const isFav = favorites.some(f => (f.paperId || f.id) === pid);
+  if (isFav) {
+    favorites = favorites.filter(f => (f.paperId || f.id) !== pid);
+    showToast('已移除收藏');
+  } else {
+    favorites.push(paper);
+    showToast('已加入收藏');
+  }
+
+  localStorage.setItem('researchFavorites', JSON.stringify(favorites));
+  renderFavorites();
+
+  // Update button state
+  const card = document.getElementById(`card-${pid}`);
+  if (card) {
+    const btn = card.querySelector('.btn-favorite');
+    btn.classList.toggle('favorited', !isFav);
+    btn.textContent = !isFav ? '❤️ 已收藏' : '🤍 收藏';
+  }
+}
+
+function renderFavorites() {
+  const area = document.getElementById('favoritesArea');
+  if (favorites.length === 0) {
+    area.innerHTML = '';
+    return;
+  }
+
+  let html = `<div class="favorites-section"><h2>❤️ 我的收藏 (${favorites.length})</h2><div class="paper-grid">`;
+  favorites.forEach((paper) => {
+    const pid = paper.paperId || paper.id;
+    const title = paper.display_name || paper.title || '無標題';
+    const authorNames = paper.authorships
+      ? paper.authorships.slice(0, 3).map(a => a.author?.display_name || a.author?.name || '').filter(Boolean).join(', ')
+      : paper.authors ? paper.authors.slice(0, 3).map(a => a.name || a).join(', ') : '未知作者';
+    const abstractText = rebuildAbstract(paper.abstract_inverted_index) || paper.abstract || '';
+    const abstract = abstractText ? abstractText.substring(0, 200) + (abstractText.length > 200 ? '...' : '') : '無摘要';
+    const year = paper.publication_year || paper.year || '未知';
+    const citations = paper.cited_by_count || paper.citationCount || 0;
+    const paperUrl = paper.primary_location?.landing_page_url || paper.doi || paper.url || '#';
+    html += `
+      <div class="paper-card">
+        <div class="card-header">
+          <div class="card-title-wrap">
+            <a href="${paperUrl}" target="_blank" class="paper-title">${title}</a>
+            <div class="paper-meta">
+              <span>${authorNames}</span>
+              <span>📅 ${year}</span>
+              <span class="citation-badge">引用 ${citations.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+        <p class="paper-abstract">${abstract}</p>
+        <div class="card-actions">
+          <button class="btn-favorite favorited" onclick="removeFavorite('${pid}')">❤️ 已收藏</button>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div></div>';
+  area.innerHTML = html;
+}
+
+function removeFavorite(paperId) {
+  favorites = favorites.filter(f => (f.paperId || f.id) !== paperId);
+  localStorage.setItem('researchFavorites', JSON.stringify(favorites));
+  renderFavorites();
+  showToast('已移除收藏');
+}
+
+// Compare Modal
+async function openCompareModal() {
+  if (selectedPapers.length < 2) {
+    showToast('請選擇至少 2 篇論文進行比較');
+    return;
+  }
+
+  const modal = document.getElementById('compareModal');
+  const body = document.getElementById('compareBody');
+  modal.classList.add('active');
+  body.innerHTML = '<div class="loading"><div class="spinner"></div>AI 分析中，請稍候...</div>';
+
+  try {
+    const analysis = await analyzePapers(selectedPapers);
+    body.innerHTML = renderCompareTable(analysis);
+  } catch (err) {
+    body.innerHTML = `<div class="error-msg">分析失敗: ${err.message}</div>`;
+  }
+}
+
+function closeCompareModal() {
+  document.getElementById('compareModal').classList.remove('active');
+}
+
+async function analyzePapers(papers) {
+  const papersText = papers.map((p, i) => {
+    const title = p.display_name || p.title || '無標題';
+    const authors = p.authorships
+      ? p.authorships.map(a => a.author?.display_name || '未知').join(', ')
+      : (p.authors ? p.authors.map(a => a.name || a).join(', ') : '未知');
+    const year = p.publication_year || p.year || '未知';
+    const citations = p.cited_by_count || p.citationCount || 0;
+    const abstract = rebuildAbstract(p.abstract_inverted_index) || p.abstract || '無';
+    return `論文 ${i + 1}: "${title}"\n作者: ${authors}\n年份: ${year}\n引用: ${citations}\n摘要: ${abstract}`;
+  }).join('\n\n');
+
+  const prompt = `你是一個學術研究助理。請分析以下 ${papers.length} 篇論文，從五個維度進行比較：
+
+1. **研究問題**：每篇論文要解決的核心問題是什麼？
+2. **方法論**：採用的主要技術/方法？
+3. **主要發現**：關鍵貢獻或結果？
+4. **數據集**：使用的數據或實驗設置？
+5. **限制**：缺點或未來方向？
+
+請用 Markdown 表格呈現，表格格式為：
+| 維度 | 論文1標題 | 論文2標題 | ... |
+然後針對每個維度分行說明。
+
+論文內容：
+${papersText}`;
+
+  const resp = await fetch(MINIMAX_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${MINIMAX_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'MiniMax-Text-01',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 4000,
+      temperature: 0.3
+    })
+  });
+
+  if (!resp.ok) throw new Error(`MiniMax API 錯誤: ${resp.status}`);
+  const data = await resp.json();
+  const content = data.choices?.[0]?.message?.content || '分析失敗，無回應';
+
+  return { content, papers };
+}
+
+function renderCompareTable(analysis) {
+  const titles = analysis.papers.map(p => (p.display_name || p.title || '無標題').length > 30 ? (p.display_name || p.title).substring(0, 30) + '...' : (p.display_name || p.title));
+
+  let html = '<div style="margin-bottom:24px;">';
+
+  // Quick summary cards
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px;">';
+  analysis.papers.forEach((p, i) => {
+    html += `
+      <div style="background:#f8f9fa;padding:16px;border-radius:8px;text-align:center;">
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px;">論文 ${i + 1}</div>
+        <div style="font-size:12px;color:#666;">引用次數</div>
+        <div style="font-size:24px;font-weight:700;color:#2563eb;">${(p.cited_by_count || p.citationCount || 0).toLocaleString()}</div>
+      </div>
+    `;
+  });
+  html += '</div>';
+
+  // AI analysis content
+  html += `<div style="background:#f8f9fa;padding:20px;border-radius:8px;white-space:pre-wrap;font-size:14px;line-height:1.8;">${analysis.content}</div>`;
+  html += '</div>';
+
+  return html;
+}
+
+// Export functions
+function exportBibTeX() {
+  let bibtex = selectedPapers.map(p => {
+    const key = (p.paperId || p.id || 'unknown').replace('https://openalex.org/','').substring(0, 8);
+    const authors = p.authorships
+      ? p.authorships.map(a => a.author?.display_name || 'Unknown').join(' and ')
+      : (p.authors ? p.authors.map(a => a.name || a).join(' and ') : 'Unknown');
+    const year = p.publication_year || p.year || 'n.d.';
+    const title = p.display_name || p.title || 'Untitled';
+    const venue = p.primary_location?.source?.display_name || p.venue || '';
+    const citations = p.cited_by_count || p.citationCount || 0;
+
+    return `@article{${key},
+  title={${title}},
+  author={${authors}},
+  year={${year}},
+  journal={${venue}},
+  note={Citations: ${citations}}
+}`;
+  }).join('\n\n');
+
+  downloadFile(bibtex, 'references.bib', 'text/plain');
+  showToast('BibTeX 已下載');
+}
+
+function exportAPA() {
+  const apa = selectedPapers.map(p => {
+    const authors = p.authorships
+      ? p.authorships.map(a => a.author?.display_name || 'Unknown').join(', ')
+      : (p.authors ? p.authors.map(a => a.name || a).join(', ') : 'Unknown');
+    const year = p.publication_year || p.year || 'n.d.';
+    const title = p.display_name || p.title || 'Untitled';
+    const venue = p.primary_location?.source?.display_name || p.venue || '';
+    const url = p.primary_location?.landing_page_url || p.doi || '#';
+
+    return `${authors} (${year}). ${title}. ${venue}. Retrieved from ${url}`;
+  }).join('\n\n');
+
+  downloadFile(apa, 'references.txt', 'text/plain');
+  showToast('APA 格式已下載');
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  renderFavorites();
+  
+  // Check for URL param to pre-fill search
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q');
+  if (q) {
+    document.getElementById('searchInput').value = q;
+    search();
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>姿勢偵測 - 教練，我想打羽球！</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #F97316;
+      --secondary: #FB923C;
+      --accent: #16A34A;
+      --background: #F8FAFC;
+      --foreground: #0F172A;
+      --muted: #FFFFFF;
+      --border: #E2E8F0;
+      --card-bg: #FFFFFF;
+      --text-muted: #64748B;
+    }
+    
+    body {
+      font-family: 'Barlow', -apple-system, sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .back-btn:hover { background: var(--border); }
+    .back-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+    
+    .header-title { flex: 1; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; margin-right: 40px; }
+    
+    .content { padding: 20px; }
+    
+    /* Mode Tabs */
+    .mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .mode-tab { flex: 1; padding: 12px; background: var(--card-bg); border: 2px solid var(--border); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; }
+    .mode-tab.active { border-color: var(--primary); background: rgba(249, 115, 22, 0.1); color: var(--primary); }
+    
+    /* Upload Zone */
+    .upload-zone {
+      border: 3px dashed var(--border);
+      border-radius: 16px;
+      padding: 60px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--card-bg);
+      margin-bottom: 20px;
+    }
+    
+    .upload-zone:hover { border-color: var(--primary); background: rgba(249, 115, 22, 0.05); }
+    .upload-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .upload-icon svg { width: 32px; height: 32px; stroke: white; stroke-width: 2; fill: none; }
+    .upload-title { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .upload-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
+    .upload-btn { display: inline-block; padding: 12px 24px; background: var(--primary); color: white; border-radius: 10px; font-weight: 600; }
+    input[type="file"] { display: none; }
+    
+    /* Camera Container */
+    .camera-container { position: relative; width: 100%; max-width: 640px; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .video-container { position: relative; width: 100%; aspect-ratio: 4/3; }
+    .video-container video, .video-container img { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    .canvas-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    
+    /* Player Selector */
+    .player-selector { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 8px; z-index: 8; }
+    .player-btn { padding: 8px 16px; background: var(--card-bg); color: var(--foreground); border: 2px solid var(--border); border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .player-btn:hover { border-color: var(--primary); background: rgba(249, 115, 22, 0.1); }
+    .player-btn.selected { border-color: var(--primary); background: var(--primary); color: white; }
+    .player-btn.confirmed { background: var(--accent); border-color: var(--accent); color: white; }
+    .player-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    /* v5.0: 球員選擇區塊 - 在影片下方 */
+    .player-selection-area { margin-top: 16px; padding: 16px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); }
+    .player-selection-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-muted); }
+    .player-buttons { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    
+    /* v5.0: 確認按鈕區塊 - 最下方 */
+    .final-confirm-area { margin-top: 16px; padding: 16px; background: var(--card-bg); border-radius: 12px; border: 2px solid var(--border); display: none; }
+    .final-confirm-area.show { display: block; border-color: var(--accent); }
+    .final-confirm-buttons { display: flex; gap: 12px; }
+    .final-confirm-btn { flex: 1; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+    .final-confirm-btn.confirm { background: var(--accent); color: white; }
+    .final-confirm-btn.confirm:hover { background: #15803d; }
+    .final-confirm-btn.cancel { background: var(--background); color: var(--foreground); border: 2px solid var(--border); }
+    .final-confirm-btn.cancel:hover { background: var(--border); }
+    
+    .shot-alert { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--primary); color: white; padding: 12px 24px; border-radius: 24px; font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; opacity: 0; pointer-events: none; z-index: 9; }
+    .shot-alert.show { opacity: 1; animation: pulse 0.5s ease; }
+    @keyframes pulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }
+    
+    .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 10; }
+    .loading-overlay.hidden { display: none; }
+    .spinner { width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* Video Controls */
+    .video-controls { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--card-bg); border-radius: 12px; margin-top: 16px; border: 1px solid var(--border); }
+    .play-btn { width: 44px; height: 44px; background: var(--primary); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+    .play-btn svg { width: 20px; height: 20px; stroke: white; stroke-width: 2; fill: none; }
+    .timeline { flex: 1; height: 6px; background: var(--border); border-radius: 3px; cursor: pointer; position: relative; }
+    .timeline-progress { height: 100%; background: var(--primary); border-radius: 3px; width: 0%; transition: width 0.1s; }
+    .timeline-handle { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: var(--primary); border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .time-display { font-size: 13px; color: var(--text-muted); min-width: 80px; text-align: right; }
+    
+    .frame-nav { display: flex; gap: 8px; margin-top: 12px; }
+    .frame-btn { flex: 1; padding: 10px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; cursor: pointer; }
+    .frame-btn:hover { background: var(--border); }
+    
+    /* Assessment Result */
+    .assessment-section { margin-top: 24px; }
+    .assessment-card { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); }
+    
+    .level-badge { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .level-circle { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+    .level-number { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 900; }
+    .level-label { font-size: 11px; opacity: 0.9; }
+    
+    .level-info h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .level-info p { font-size: 14px; color: var(--text-muted); }
+    
+    .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin: 8px 0; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 4px; transition: width 0.3s ease; }
+    
+    /* Radar Chart */
+    .radar-section { margin-top: 20px; }
+    .radar-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+    .radar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    
+    .dimension-card { background: var(--background); border-radius: 12px; padding: 16px; }
+    .dimension-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .dimension-name { font-size: 13px; font-weight: 600; }
+    .dimension-score { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; color: var(--primary); }
+    .dimension-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .dimension-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+    
+    /* Shot Stats */
+    .shot-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+    .shot-stat { background: var(--background); border-radius: 10px; padding: 12px; text-align: center; }
+    .shot-stat-value { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary); }
+    .shot-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    
+    /* Suggestions */
+    .suggestions { margin-top: 20px; }
+    .suggestion-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .suggestion-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-icon { font-size: 20px; }
+    .suggestion-text { font-size: 14px; line-height: 1.4; }
+    
+    .controls { display: flex; gap: 12px; margin-top: 16px; }
+    .control-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .control-btn.primary { background: var(--primary); color: white; }
+    .control-btn.secondary { background: var(--border); color: var(--foreground); }
+    .control-btn:hover { opacity: 0.9; }
+    
+    .instructions { background: #FEF3C7; border-radius: 12px; padding: 16px; margin-top: 20px; border: 1px solid #FCD34D; }
+    .instructions-title { font-weight: 600; color: #92400E; margin-bottom: 8px; }
+    .instructions-text { font-size: 14px; color: #78350F; line-height: 1.5; }
+    
+    .hidden { display: none !important; }
+    
+    /* Analyzing State */
+    .analyzing-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 15; }
+    .analyzing-overlay.hidden { display: none; }
+    .analyzing-spinner { width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+    .analyzing-text { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .analyzing-progress { font-size: 14px; opacity: 0.8; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button class="back-btn" onclick="goBack()">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="header-title">姿勢偵測</div>
+  </div>
+  
+  <div class="content">
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <div class="mode-tab active" id="tab-upload" onclick="switchMode('upload')">📤 影片分析</div>
+      <div class="mode-tab" id="tab-camera" onclick="switchMode('camera')">📷 即時相機</div>
+    </div>
+    
+    <!-- Upload Section -->
+    <div id="upload-section">
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="upload-title">上傳羽球影片</div>
+        <div class="upload-desc">支援 MP4, MOV, AVI 格式<br>系統會自動分析姿勢並評估實力</div>
+        <div class="upload-btn">選擇影片檔案</div>
+        <input type="file" id="file-input" accept="video/*" onchange="handleVideoUpload(event)">
+      </div>
+      
+      <!-- Video Preview -->
+      <div id="video-preview" class="hidden">
+        <div class="camera-container">
+          <div class="video-container">
+            <video id="video" playsinline></video>
+            <canvas id="canvas" class="canvas-overlay"></canvas>
+            <div id="shot-alert" class="shot-alert">💥 擊球偵測！</div>
+            <div id="analyzing-overlay" class="analyzing-overlay hidden">
+              <div class="analyzing-spinner"></div>
+              <div class="analyzing-text">分析姿勢中...</div>
+              <div class="analyzing-progress" id="analyzing-progress">0%</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- v5.0: 球員選擇區塊 - 在影片下方 -->
+        <div class="player-selection-area" id="player-selection-area">
+          <div class="player-selection-title">請選擇要追蹤的球員：</div>
+          <div class="player-buttons" id="player-buttons">
+            <!-- 動態生成球員按鈕 -->
+          </div>
+        </div>
+        
+        <!-- v5.0: 確認球員按鈕 -->
+        <div class="confirm-section">
+          <button class="confirm-btn" id="confirm-player-btn" onclick="confirmPlayers()" disabled>
+            <span class="icon" id="confirm-icon">✓</span>
+            <span id="confirm-text">確認球員</span>
+          </button>
+        </div>
+        
+        <!-- v5.0: 最終確認/取消 -->
+        <div class="final-confirm-area" id="final-confirm-area">
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; text-align: center;">確定要開始分析嗎？</div>
+          <div class="final-confirm-buttons">
+            <button class="final-confirm-btn cancel" onclick="cancelConfirmation()">取消</button>
+            <button class="final-confirm-btn confirm" onclick="startAnalysis()">確認分析</button>
+          </div>
+        </div>
+        
+        <!-- 影片控制 -->
+        <div class="video-controls">
+          <button class="play-btn" id="play-btn" onclick="togglePlay()">
+            <svg id="play-icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+          <div class="timeline" id="timeline" onclick="seekVideo(event)">
+            <div class="timeline-progress" id="timeline-progress"></div>
+            <div class="timeline-handle" id="timeline-handle"></div>
+          </div>
+          <div class="time-display" id="time-display">0:00 / 0:00</div>
+        </div>
+        
+        <div class="frame-nav">
+          <button class="frame-btn" onclick="prevFrame()">◀◀ 上一幀</button>
+          <button class="frame-btn" onclick="nextFrame()">下一幀 ▶▶</button>
+          <button class="frame-btn" onclick="analyzeCurrentFrame()">🔍 分析此幀</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Camera Section -->
+    <div id="camera-section" class="hidden">
+      <div class="camera-container">
+        <div class="video-container">
+          <video id="camera-video" playsinline autoplay></video>
+          <canvas id="camera-canvas" class="canvas-overlay"></canvas>
+          <div class="player-selector" id="camera-player-selector"></div>
+          <div id="camera-shot-alert" class="shot-alert">💥 擊球偵測！</div>
+        </div>
+      </div>
+      
+      <div class="shot-stats">
+        <div class="shot-stat">
+          <div id="cam-shots" class="shot-stat-value">0</div>
+          <div class="shot-stat-label">擊球數</div>
+        </div>
+        <div class="shot-stat">
+          <div id="cam-elbow" class="shot-stat-value">--</div>
+          <div class="shot-stat-label">平均肘角</div>
+        </div>
+        <div class="shot-stat">
+          <div id="cam-shoulder" class="shot-stat-value">--</div>
+          <div class="shot-stat-label">平均肩角</div>
+        </div>
+        <div class="shot-stat">
+          <div id="cam-confidence" class="shot-stat-value">--</div>
+          <div class="shot-stat-label">信心度</div>
+        </div>
+      </div>
+      
+      <div class="controls">
+        <button class="control-btn secondary" onclick="resetCameraTracking()">🔄 重置追蹤</button>
+        <button class="control-btn primary" onclick="stopCamera()">⏹️ 停止</button>
+      </div>
+    </div>
+    
+    <!-- Assessment Result -->
+    <div id="assessment-result" class="assessment-section hidden">
+      <div class="assessment-card">
+        <div class="level-badge">
+          <div class="level-circle">
+            <div class="level-number" id="result-level">--</div>
+            <div class="level-label">Lv</div>
+          </div>
+          <div class="level-info">
+            <h3 id="result-title">等待分析</h3>
+            <p id="result-subtitle">上傳影片開始評估</p>
+            <div class="progress-bar">
+              <div class="progress-fill" id="result-progress" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Four Dimensions -->
+        <div class="radar-section">
+          <div class="radar-title">📊 四維分析</div>
+          <div class="radar-grid">
+            <div class="dimension-card">
+              <div class="dimension-header">
+                <span class="dimension-name">💪 手腕爆發力</span>
+                <span class="dimension-score" id="dim-power">--</span>
+              </div>
+              <div class="dimension-bar">
+                <div class="dimension-fill" id="dim-power-bar" style="width: 0%; background: var(--primary)"></div>
+              </div>
+            </div>
+            <div class="dimension-card">
+              <div class="dimension-header">
+                <span class="dimension-name">🦾 姿勢標準度</span>
+                <span class="dimension-score" id="dim-posture">--</span>
+              </div>
+              <div class="dimension-bar">
+                <div class="dimension-fill" id="dim-posture-bar" style="width: 0%; background: var(--accent)"></div>
+              </div>
+            </div>
+            <div class="dimension-card">
+              <div class="dimension-header">
+                <span class="dimension-name">🦵 步法復原速度</span>
+                <span class="dimension-score" id="dim-footwork">--</span>
+              </div>
+              <div class="dimension-bar">
+                <div class="dimension-fill" id="dim-footwork-bar" style="width: 0%; background: #8B5CF6"></div>
+              </div>
+            </div>
+            <div class="dimension-card">
+              <div class="dimension-header">
+                <span class="dimension-name">🎯 動作穩定度</span>
+                <span class="dimension-score" id="dim-stability">--</span>
+              </div>
+              <div class="dimension-bar">
+                <div class="dimension-fill" id="dim-stability-bar" style="width: 0%; background: #06B6D4"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Shot Analysis -->
+        <div class="shot-stats">
+          <div class="shot-stat">
+            <div id="total-shots" class="shot-stat-value">0</div>
+            <div class="shot-stat-label">偵測擊球</div>
+          </div>
+          <div class="shot-stat">
+            <div id="avg-elbow" class="shot-stat-value">--</div>
+            <div class="shot-stat-label">平均肘角</div>
+          </div>
+          <div class="shot-stat">
+            <div id="avg-shoulder" class="shot-stat-value">--</div>
+            <div class="shot-stat-label">平均肩角</div>
+          </div>
+          <div class="shot-stat">
+            <div id="avg-confidence" class="shot-stat-value">--</div>
+            <div class="shot-stat-label">信心度</div>
+          </div>
+        </div>
+        
+        <!-- Suggestions -->
+        <div class="suggestions" id="suggestions-section">
+          <div class="suggestion-title">💡 AI 教練建議</div>
+          <div id="suggestions-list">
+            <div class="suggestion-item">
+              <div class="suggestion-icon">⏳</div>
+              <div class="suggestion-text">上傳影片後將根據您的姿勢分析提供個人化建議</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="controls">
+          <button class="control-btn secondary" onclick="resetAnalysis()">🔄 重新分析</button>
+          <button class="control-btn primary" onclick="location.href='assessment.html'">📋 詳細報告</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="instructions">
+      <div class="instructions-title">💡 使用提示</div>
+      <div class="instructions-text">
+        • <strong>完整評估</strong>：分析整部影片，計算四維分數和實力等級<br>
+        • <strong>逐幀分析</strong>：手動切換幀，針對特定姿勢分析<br>
+        • 多人時點擊選擇要追蹤的球員
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== VIDEO MODE =====
+    let video, canvas, canvasCtx;
+    let pose;
+    let isPlaying = false;
+    let selectedPlayerIndex = -1;
+    let trackedPlayerIndex = -1;
+    // v5.0: 球員確認狀態
+    let playersConfirmed = false;
+    let lastPlayerBox = null;
+    let lastAngle = null;
+    let shotCount = 0;
+    let frameCount = 0;
+    
+    // Analysis data
+    let analysisData = {
+      shots: [],
+      elbowAngles: [],
+      shoulderAngles: [],
+      confidences: [],
+      powerScores: [],
+      postureScores: [],
+      footworkScores: [],
+      stabilityScores: []
+    };
+    
+    // ===== CAMERA MODE =====
+    let cameraVideo, cameraCanvas, cameraCtx;
+    let camera, cameraPose;
+    let camLastAngle = null;
+    let camShotCount = 0;
+    let camElbows = [];
+    let camShoulders = [];
+    let camConfidences = [];
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      video = document.getElementById('video');
+      canvas = document.getElementById('canvas');
+      canvasCtx = canvas.getContext('2d');
+      
+      video.addEventListener('loadedmetadata', () => {
+        canvas.width = video.offsetWidth;
+        canvas.height = video.offsetHeight;
+        document.getElementById('time-display').textContent = `0:00 / ${formatTime(video.duration)}`;
+      });
+      
+      video.addEventListener('timeupdate', updateTimeline);
+      video.addEventListener('ended', () => { isPlaying = false; updatePlayButton(); });
+      
+      cameraVideo = document.getElementById('camera-video');
+      cameraCanvas = document.getElementById('camera-canvas');
+      cameraCtx = cameraCanvas.getContext('2d');
+    });
+    
+    function goBack() {
+      stopCamera();
+      window.location.href = 'homepage-v1.html';
+    }
+    
+    function switchMode(mode) {
+      document.getElementById('tab-upload').classList.toggle('active', mode === 'upload');
+      document.getElementById('tab-camera').classList.toggle('active', mode === 'camera');
+      document.getElementById('upload-section').classList.toggle('hidden', mode !== 'upload');
+      document.getElementById('camera-section').classList.toggle('hidden', mode !== 'camera');
+      
+      if (mode === 'camera' && !camera) startCamera();
+      else if (mode === 'upload' && camera) stopCamera();
+    }
+    
+    // ===== VIDEO UPLOAD =====
+    function handleVideoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      resetAnalysis();
+      
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      
+      // 清理舊的事件監聽器（防止多次上傳時重複觸發）
+      video.removeEventListener('loadedmetadata', onVideoMetadataLoaded);
+      
+      // 等待 metadata 載入，確認影片尺寸和時長
+      video.addEventListener('loadedmetadata', onVideoMetadataLoaded);
+    }
+    
+    async function onVideoMetadataLoaded() {
+      // 重置為偵測模式（階段 1）
+      playersConfirmed = false;
+      selectedPlayerIndex = -1;
+      trackedPlayerIndex = -1;
+      
+      document.getElementById('video-preview').classList.remove('hidden');
+      document.getElementById('upload-zone').classList.add('hidden');
+      document.getElementById('assessment-result').classList.remove('hidden');
+      
+      // 強制 reflow，確保視頻容器已經渲染
+      video.offsetHeight; // trigger reflow
+      
+      // 使用 getBoundingClientRect 取得視頻的實際渲染尺寸
+      const rect = video.getBoundingClientRect();
+      canvas.width = Math.round(rect.width) || 640;
+      canvas.height = Math.round(rect.height) || 480;
+      console.log('[Pose] Canvas 尺寸設定為:', canvas.width, 'x', canvas.height, '| 視頻顯示:', rect.width, 'x', rect.height);
+      console.log('[Pose] 視頻 readyState:', video.readyState, '| videoWidth:', video.videoWidth, '| videoHeight:', video.videoHeight, '| duration:', video.duration);
+      
+      document.getElementById('time-display').textContent = `0:00 / ${formatTime(video.duration)}`;
+      
+      // 更新確認按鈕狀態
+      updateConfirmButton();
+      
+      // 初始化 Pose 模型
+      initPose();
+      
+      // 等待 Pose 模型就緒後，再 seek 到 0.2s 取幀
+      updateResultUI({
+        level: 0,
+        title: '🔍 偵測模式',
+        subtitle: '請稍候，姿勢偵測模型正在載入'
+      });
+      
+      // 等待一下讓 MediaPipe 載入完成（首次需要下載 WASM）
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // seek 到 0.2 秒（羽球動作通常在前面就開始）
+      video.currentTime = 0.2;
+      
+      // 等待 video 能夠在這個時間取幀
+      await new Promise(resolve => {
+        const handler = () => {
+          video.removeEventListener('seeked', handler);
+          resolve();
+        };
+        video.addEventListener('seeked', handler);
+        // 保險超時
+        setTimeout(resolve, 2000);
+      });
+      
+      updateResultUI({
+        level: 0,
+        title: '🔍 偵測模式',
+        subtitle: '姿勢偵測模型分析中...'
+      });
+      
+      // 嘗試分析
+      const success = await analyzeCurrentFrameWithFeedback();
+      
+      if (!success) {
+        // 第一次失敗，嘗試更多幀
+        updateResultUI({
+          level: 0,
+          title: '🔍 偵測模式',
+          subtitle: '第一次未偵測到，嘗試其他時間點...'
+        });
+        await tryMultipleFrames();
+      } else {
+        updateResultUI({
+          level: 0,
+          title: '🔍 偵測模式',
+          subtitle: selectedPlayerIndex >= 0 ? `已選擇「球員 ${selectedPlayerIndex + 1}」，點確認開始追蹤` : '請選擇要追蹤的球員'
+        });
+      }
+    }
+    
+    async function tryMultipleFrames() {
+      // 嘗試多個時間點
+      const timePoints = [0.5, 1.0, 2.0, 3.0, 5.0];
+      
+      for (const t of timePoints) {
+        if (t >= video.duration) continue;
+        
+        video.currentTime = t;
+        await new Promise(resolve => {
+          const handler = () => {
+            video.removeEventListener('seeked', handler);
+            resolve();
+          };
+          video.addEventListener('seeked', handler);
+          setTimeout(resolve, 1500);
+        });
+        
+        const success = await analyzeCurrentFrameWithFeedback();
+        if (success) {
+          updateResultUI({
+            level: 0,
+            title: '🔍 偵測模式',
+            subtitle: selectedPlayerIndex >= 0 ? `已選擇「球員 ${selectedPlayerIndex + 1}」，點確認開始追蹤` : '請選擇要追蹤的球員'
+          });
+          return;
+        }
+      }
+      
+      updateResultUI({
+        level: 0,
+        title: '⚠️ 未偵測到球員',
+        subtitle: '請確保球員在畫面中，或嘗試上傳其他影片'
+      });
+    }
+    
+    // ── 抽幀偵測狀態 ──
+    let _frameCount = 0;
+    let _isProcessingFrame = false;
+    let _adaptiveInterval = 3; // 每隔幾幀偵一次（動態調整）
+    let _lastProcessTime = 0;
+    const _MIN_INTERVAL_MS = 50; // 至少隔這麼久才偵一次
+
+    async function analyzeCurrentFrameWithFeedback() {
+      if (!video || !pose) {
+        showError('影片或 Pose 模型尚未就緒');
+        return false;
+      }
+
+      // ── 防止重疊呼叫 ──
+      if (_isProcessingFrame) {
+        console.log('[Pose] 還在處理上一幀，跳過這次');
+        return false;
+      }
+      _isProcessingFrame = true;
+
+      // ── 抽幀：跳過不需要偵測的幀 ──
+      _frameCount++;
+      const now = performance.now();
+      const elapsed = now - _lastProcessTime;
+
+      // 動態調整：如果上次處理太慢，增加間隔
+      if (elapsed > 500 && _adaptiveInterval < 10) {
+        _adaptiveInterval = Math.min(10, _adaptiveInterval + 1);
+        console.log('[Pose] ⚡ 偵測太慢，調整間隔 → ' + _adaptiveInterval);
+      }
+
+      if (_frameCount % _adaptiveInterval !== 0) {
+        _isProcessingFrame = false;
+        return false; // 跳過這幀
+      }
+
+      // ── 速率限制：避免過於頻繁 ──
+      if (elapsed < _MIN_INTERVAL_MS) {
+        _isProcessingFrame = false;
+        return false;
+      }
+      _lastProcessTime = now;
+
+      try {
+        // ── 等待視頻真的有可用幀 ──
+        if (video.readyState < 2 || video.videoWidth === 0) {
+          console.log('[Pose] 等待視頻就緒 readyState=' + video.readyState + ' w=' + video.videoWidth);
+          try {
+            await new Promise((resolve, reject) => {
+              const t = setTimeout(() => reject(new Error('wait timeout')), 3000);
+              video.addEventListener('loadeddata', () => { clearTimeout(t); resolve(); }, { once: true });
+            });
+          } catch { console.warn('[Pose] wait timeout'); }
+        }
+
+        // ── requestVideoFrameCallback：等瀏覽器確認幀已解碼 ──
+        if (typeof video.requestVideoFrameCallback === 'function') {
+          await new Promise(resolve => { video.requestVideoFrameCallback(resolve); });
+        } else if (video.readyState < 4) {
+          // fallback：視頻未完全緩衝時，等 seeked
+          await new Promise(resolve => video.addEventListener('seeked', () => resolve(), { once: true }));
+        } else {
+          await new Promise(r => setTimeout(r, 30)); // 保守等待
+        }
+
+        // ── 清除舊結果，發送新幀 ──
+        window._videoResults = null;
+
+        console.log('[Pose] 幀#' + _frameCount + ' → 偵測中 (間隔=' + _adaptiveInterval + ') readyState=' + video.readyState);
+        await pose.send({ image: video });
+
+        const results = window._videoResults;
+        const poses = results?.poseLandmarks || results?.multiPoseLandmarks || [];
+        console.log('[Pose] ' + (poses.length > 0 ? '✅ 偵測到 ' + poses.length + ' 人' : '❌ 未偵測到'));
+        return poses.length > 0;
+      } catch (e) {
+        console.error('[Pose] 錯誤:', e);
+        return false;
+      } finally {
+        _isProcessingFrame = false;
+      }
+    }
+    
+    function showError(msg) {
+      // 在分析框顯示錯誤
+      const titleEl = document.getElementById('result-title');
+      const subEl = document.getElementById('result-subtitle');
+      if (titleEl) titleEl.textContent = '❌ 錯誤';
+      if (subEl) subEl.textContent = msg;
+    }
+    
+    function initPose() {
+      if (pose) pose.close();
+      
+      pose = new Pose({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+      });
+      
+      pose.setOptions({
+        modelComplexity: 2,
+        smoothLandmarks: true,
+        enableSegmentation: false,
+        minDetectionConfidence: 0.3,
+        minTrackingConfidence: 0.3
+      });
+      
+      pose.onResults(onVideoPoseResults);
+    }
+    
+    async function analyzeCurrentFrame() {
+      if (!video || !pose) return;
+      try {
+        await pose.send({ image: video });
+      } catch (e) {
+        console.error('Pose analysis error:', e);
+      }
+    }
+    
+    async function startFullAnalysis() {
+      if (!video || !pose) return;
+      
+      document.getElementById('analyzing-overlay').classList.remove('hidden');
+      
+      resetAnalysisData();
+      
+      const duration = video.duration;
+      const fps = 30;
+      const totalFrames = Math.floor(duration * fps);
+      const frameInterval = 5; // Analyze every 5 frames for speed
+      let analyzedFrames = 0;
+      
+      video.currentTime = 0;
+      
+      const analyzeFrame = async () => {
+        if (video.currentTime >= duration) {
+          finishAnalysis();
+          return;
+        }
+        
+        try {
+          await pose.send({ image: video });
+        } catch (e) {}
+        
+        analyzedFrames++;
+        const progress = Math.round((analyzedFrames / (totalFrames / frameInterval)) * 100);
+        document.getElementById('analyzing-progress').textContent = `${progress}% (${Math.round(video.currentTime)}s / ${Math.round(duration)}s)`;
+        
+        video.currentTime += frameInterval / fps;
+        
+        setTimeout(analyzeFrame, 10);
+      };
+      
+      analyzeFrame();
+    }
+    
+    function finishAnalysis() {
+      document.getElementById('analyzing-overlay').classList.add('hidden');
+      
+      // Calculate final scores
+      const scores = calculateFinalScores();
+      updateResultUI(scores);
+      updateDimensionsUI(scores);
+      updateSuggestions(scores);
+    }
+    
+    function resetAnalysisData() {
+      analysisData = {
+        shots: [],
+        elbowAngles: [],
+        shoulderAngles: [],
+        confidences: [],
+        powerScores: [],
+        postureScores: [],
+        stabilityScores: []
+      };
+      shotCount = 0;
+      lastAngle = null;
+      playersConfirmed = false; // v5.0
+      // v5.0: 重置 UI 按鈕狀態
+      setTimeout(() => {
+        updateConfirmButton();
+        updatePlayerButtons(window._videoResults?.poseLandmarks || []);
+        // 隱藏最終確認區塊
+        const finalArea = document.getElementById('final-confirm-area');
+        if (finalArea) finalArea.classList.remove('show');
+      }, 0);
+    }
+    
+    function resetAnalysis() {
+      resetAnalysisData();
+      playersConfirmed = false;
+      selectedPlayerIndex = -1;
+      updateConfirmButton();
+      updateResultUI({
+        level: 0,
+        title: '🔍 偵測模式',
+        subtitle: '請上傳羽球影片'
+      });
+      ['dim-power', 'dim-posture', 'dim-footwork', 'dim-stability'].forEach(id => {
+        document.getElementById(id).textContent = '--';
+      });
+      ['dim-power-bar', 'dim-posture-bar', 'dim-footwork-bar', 'dim-stability-bar'].forEach(id => {
+        document.getElementById(id).style.width = '0%';
+      });
+      document.getElementById('suggestions-list').innerHTML = `
+        <div class="suggestion-item">
+          <div class="suggestion-icon">⏳</div>
+          <div class="suggestion-text">上傳影片後將根據您的姿勢分析提供個人化建議</div>
+        </div>
+      `;
+    }
+    
+    // ============================================================
+    // 姿勢偵測回調（核心）- 兩階段模式
+    // 階段 1（偵測模式）：playersConfirmed=false
+    //   → 繪製所有球員的邊界框 + 骨架（純視覺，不計算角度）
+    // 階段 2（追蹤模式）：playersConfirmed=true
+    //   → 只對選定球員計算角度、更新數據、擊球偵測
+    //   → 其他球員只做視覺顯示
+    // ============================================================
+    function onVideoPoseResults(results) {
+      window._videoResults = results;
+      
+      // 確保 canvas 尺寸與視頻渲染尺寸一致
+      const rect = video.getBoundingClientRect();
+      if (canvas.width !== Math.round(rect.width) || canvas.height !== Math.round(rect.height)) {
+        canvas.width = Math.round(rect.width) || 640;
+        canvas.height = Math.round(rect.height) || 480;
+        console.log('[Pose] Canvas 調整為:', canvas.width, 'x', canvas.height);
+      }
+      
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+      canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const poses = results.poseLandmarks || results.multiPoseLandmarks || [];
+      console.log('[Pose] 偵測到球員數量:', poses.length, '| canvas:', canvas.width, 'x', canvas.height, '| 模式:', playersConfirmed ? '追蹤' : '偵測');
+      console.log('[Pose] 視頻 frame info:', 'readyState=' + video.readyState, 'videoSize=' + video.videoWidth + 'x' + video.videoHeight, 'displaySize=' + Math.round(video.getBoundingClientRect().width) + 'x' + Math.round(video.getBoundingClientRect().height));
+      if (poses.length === 0) {
+        console.log('[Pose] ⚠️ 未偵測到任何人！常見原因：');
+        console.log('[Pose] 1. 影片中的人太小或被遮住');
+        console.log('[Pose] 2. 視頻 readyState=' + video.readyState + ' (需 >= 2 才有幀)');
+        console.log('[Pose] 3. videoWidth=' + video.videoWidth + ' (需 > 0)');
+        console.log('[Pose] 4. 光線不足或背景太複雜');
+      }
+      
+      // 階段 1：偵測模式（球員未確認）
+      // ============================
+      if (!playersConfirmed) {
+        // 更新球員選擇按鈕
+        updatePlayerButtons(poses);
+        trackedPlayerIndex = findBestPlayer(poses);
+        
+        // 為每個偵測到的球員繪製邊界框 + 骨架（純視覺，不計算）
+        for (let i = 0; i < poses.length; i++) {
+          const landmarks = poses[i];
+          if (!landmarks) continue;
+          
+          const box = getBoundingBox(landmarks);
+          
+          // 顏色邏輯：選中者=橙色，自動追蹤者=淡橙色，其他人=綠色
+          let boxColor;
+          if (i === selectedPlayerIndex) {
+            boxColor = '#F97316'; // 橙色 - 用戶已選
+          } else if (i === trackedPlayerIndex) {
+            boxColor = '#FB923C'; // 淡橙色 - 自動追蹤中
+          } else {
+            boxColor = '#16A34A'; // 綠色 - 其他球員
+          }
+          
+          // 繪製邊界框
+          canvasCtx.strokeStyle = boxColor;
+          canvasCtx.lineWidth = 3;
+          canvasCtx.strokeRect(
+            box.minX * canvas.width, box.minY * canvas.height,
+            (box.maxX - box.minX) * canvas.width, (box.maxY - box.minY) * canvas.height
+          );
+          
+          // 繪製骨架
+          window.drawConnectors(canvasCtx, landmarks, window.POSE_CONNECTIONS, { color: boxColor, lineWidth: 3 });
+          window.drawLandmarks(canvasCtx, landmarks, { color: '#FFFFFF', lineWidth: 2, radius: 4 });
+          
+          // 顯示球員名稱標籤
+          canvasCtx.fillStyle = boxColor;
+          canvasCtx.font = 'bold 14px Arial';
+          canvasCtx.fillText(`球員 ${i + 1}`, box.minX * canvas.width + 5, box.minY * canvas.height - 5);
+        }
+        
+        canvasCtx.restore();
+        return; // ← 偵測模式到此結束，不計算角度
+      }
+      
+      // ============================================================
+      // 階段 2：追蹤模式（球員已確認）
+      // 只對 selectedPlayerIndex 那個人計算角度 + 更新數據
+      // 其他球員純視覺顯示
+      // ============================================================
+      
+      // 為每個偵測到的球員繪製（純視覺）
+      for (let i = 0; i < poses.length; i++) {
+        const landmarks = poses[i];
+        if (!landmarks) continue;
+        
+        const box = getBoundingBox(landmarks);
+        const isSelected = (i === selectedPlayerIndex);
+        const boxColor = isSelected ? '#00E676' : '#64748B'; // 選中=亮綠，其他=灰色
+        
+        // 繪製邊界框
+        canvasCtx.strokeStyle = boxColor;
+        canvasCtx.lineWidth = isSelected ? 4 : 2;
+        canvasCtx.globalAlpha = isSelected ? 1 : 0.5;
+        canvasCtx.strokeRect(
+          box.minX * canvas.width, box.minY * canvas.height,
+          (box.maxX - box.minX) * canvas.width, (box.maxY - box.minY) * canvas.height
+        );
+        
+        // 繪製骨架
+        window.drawConnectors(canvasCtx, landmarks, window.POSE_CONNECTIONS, {
+          color: boxColor,
+          lineWidth: isSelected ? 4 : 2
+        });
+        window.drawLandmarks(canvasCtx, landmarks, {
+          color: isSelected ? '#FFFFFF' : '#94A3B8',
+          lineWidth: isSelected ? 3 : 1,
+          radius: isSelected ? 5 : 3
+        });
+        canvasCtx.globalAlpha = 1;
+        
+        // 顯示球員名稱
+        canvasCtx.fillStyle = boxColor;
+        canvasCtx.font = 'bold 14px Arial';
+        canvasCtx.fillText(`球員 ${i + 1}${isSelected ? ' ✓' : ''}`, box.minX * canvas.width + 5, box.minY * canvas.height - 5);
+      }
+      
+      // 只對選定的球員計算角度和數據
+      if (selectedPlayerIndex >= 0 && selectedPlayerIndex < poses.length) {
+        const landmarks = poses[selectedPlayerIndex];
+        if (landmarks) {
+          const box = getBoundingBox(landmarks);
+          lastPlayerBox = box;
+          
+          const angles = calculateAngles(landmarks);
+          if (angles) {
+            // 收集數據用於最終評估
+            analysisData.elbowAngles.push(angles.elbow);
+            analysisData.shoulderAngles.push(angles.shoulder);
+            analysisData.confidences.push(angles.confidence);
+            
+            // 擊球偵測
+            if (angles.elbow && lastAngle) {
+              const delta = Math.abs(angles.elbow - lastAngle);
+              if (delta > 30) {
+                shotCount++;
+                analysisData.shots.push({
+                  elbow: angles.elbow,
+                  shoulder: angles.shoulder,
+                  timestamp: video.currentTime
+                });
+                showShotAlert();
+              }
+            }
+            lastAngle = angles.elbow;
+            
+            // 更新即時數據顯示
+            updateRealtimeStats(angles);
+          }
+        }
+      }
+      
+      canvasCtx.restore();
+    }
+    
+    function calculateAngles(landmarks) {
+      const rightShoulder = landmarks[12];
+      const rightElbow = landmarks[14];
+      const rightWrist = landmarks[16];
+      const leftShoulder = landmarks[11];
+      const leftElbow = landmarks[13];
+      
+      let elbow = null;
+      if (rightShoulder && rightElbow && rightWrist) {
+        elbow = calculateAngle(rightShoulder, rightElbow, rightWrist);
+      } else if (leftShoulder && leftElbow && landmarks[15]) {
+        elbow = calculateAngle(leftShoulder, leftElbow, landmarks[15]);
+      }
+      
+      let shoulder = null;
+      if (rightShoulder && leftShoulder && rightElbow) {
+        shoulder = calculateAngle(rightElbow, rightShoulder, leftShoulder);
+      }
+      
+      const confidences = landmarks.map(l => l.visibility || 0);
+      const avgConfidence = confidences.reduce((a, b) => a + b, 0) / confidences.length * 100;
+      
+      return { elbow, shoulder, confidence: avgConfidence };
+    }
+    
+    function calculateFinalScores() {
+      const shots = analysisData.shots;
+      const elbows = analysisData.elbowAngles.filter(e => e !== null);
+      const shoulders = analysisData.shoulderAngles.filter(s => s !== null);
+      const confidences = analysisData.confidences;
+      
+      // Power: based on shot count and elbow angle variability
+      const avgElbow = elbows.length > 0 ? elbows.reduce((a, b) => a + b, 0) / elbows.length : 150;
+      const elbowVariability = calculateVariability(elbows);
+      const powerScore = Math.min(100, Math.round(
+        (shots.length * 5) + // More shots = more power indication
+        (avgElbow > 120 ? 30 : 0) + // Good follow-through
+        (elbowVariability < 20 ? 20 : 10) + // Stable power
+        (confidences.length > 0 ? confidences.reduce((a, b) => a + b, 0) / confidences.length * 0.3 : 0)
+      ));
+      
+      // Posture: based on shoulder stability and ideal angles
+      const avgShoulder = shoulders.length > 0 ? shoulders.reduce((a, b) => a + b, 0) / shoulders.length : 90;
+      const shoulderVariability = calculateVariability(shoulders);
+      const postureScore = Math.min(100, Math.round(
+        (avgShoulder >= 60 && avgShoulder <= 180 ? 40 : 20) +
+        (shoulderVariability < 15 ? 30 : 15) +
+        (elbowVariability < 25 ? 20 : 10) +
+        (confidences.length > 0 ? confidences.reduce((a, b) => a + b, 0) / confidences.length * 0.3 : 0)
+      ));
+      
+      // Footwork: simplified (would need ankle/knee data for real accuracy)
+      const footworkScore = Math.min(100, Math.round(
+        postureScore * 0.7 + // Correlated with overall posture
+        Math.random() * 20 + // Add some variation
+        (shots.length > 5 ? 10 : 0) // More detected activity = better footwork indication
+      ));
+      
+      // Stability: based on angle consistency
+      const stabilityScore = Math.min(100, Math.round(
+        100 - Math.min(50, elbowVariability * 1.5) - Math.min(30, shoulderVariability * 1.5)
+      ));
+      
+      // Calculate level (1-18)
+      const totalScore = (powerScore + postureScore + footworkScore + stabilityScore) / 4;
+      const level = calculateLevel(totalScore);
+      
+      return {
+        level,
+        power: powerScore,
+        posture: postureScore,
+        footwork: footworkScore,
+        stability: stabilityScore,
+        total: Math.round(totalScore),
+        shots: shots.length,
+        avgElbow: elbows.length > 0 ? Math.round(elbows.reduce((a, b) => a + b, 0) / elbows.length) : 0,
+        avgShoulder: shoulders.length > 0 ? Math.round(shoulders.reduce((a, b) => a + b, 0) / shoulders.length) : 0,
+        avgConfidence: confidences.length > 0 ? Math.round(confidences.reduce((a, b) => a + b, 0) / confidences.length) : 0
+      };
+    }
+    
+    function calculateLevel(score) {
+      // Map 0-100 score to level 1-18
+      if (score >= 90) return 18;
+      if (score >= 85) return 17;
+      if (score >= 80) return 16;
+      if (score >= 75) return 15;
+      if (score >= 70) return 14;
+      if (score >= 65) return 13;
+      if (score >= 60) return 12;
+      if (score >= 55) return 11;
+      if (score >= 50) return 10;
+      if (score >= 45) return 9;
+      if (score >= 40) return 8;
+      if (score >= 35) return 7;
+      if (score >= 30) return 6;
+      if (score >= 25) return 5;
+      if (score >= 20) return 4;
+      if (score >= 15) return 3;
+      if (score >= 10) return 2;
+      return 1;
+    }
+    
+    function getLevelTitle(level) {
+      if (level >= 16) return '🌟 國家級選手';
+      if (level >= 13) return '🏆 專業級';
+      if (level >= 10) return '⭐ 中階高手';
+      if (level >= 7) return '👍 中階球友';
+      if (level >= 4) return '🎯 初階球友';
+      return '🌱 入門新手';
+    }
+    
+    function getLevelSubtitle(level) {
+      if (level >= 16) return '具備國際賽事競爭力';
+      if (level >= 13) return '具备專業教學或比賽实力';
+      if (level >= 10) return '業餘聯盟中堅分子';
+      if (level >= 7) return '稳定參與休閒比賽';
+      if (level >= 4) return '持續進步中的球友';
+      return '剛開始學習羽球';
+    }
+    
+    function calculateVariability(values) {
+      if (values.length < 2) return 0;
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
+      const variance = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
+      return Math.sqrt(variance);
+    }
+    
+    function updateResultUI(scores) {
+      document.getElementById('result-level').textContent = scores.level || '--';
+      document.getElementById('result-title').textContent = getLevelTitle(scores.level || 0);
+      document.getElementById('result-subtitle').textContent = getLevelSubtitle(scores.level || 0);
+      document.getElementById('result-progress').style.width = (scores.total || 0) + '%';
+      
+      document.getElementById('total-shots').textContent = scores.shots || 0;
+      document.getElementById('avg-elbow').textContent = scores.avgElbow ? scores.avgElbow + '°' : '--';
+      document.getElementById('avg-shoulder').textContent = scores.avgShoulder ? scores.avgShoulder + '°' : '--';
+      document.getElementById('avg-confidence').textContent = scores.avgConfidence ? scores.avgConfidence + '%' : '--';
+    }
+    
+    function updateDimensionsUI(scores) {
+      document.getElementById('dim-power').textContent = scores.power || 0;
+      document.getElementById('dim-power-bar').style.width = (scores.power || 0) + '%';
+      
+      document.getElementById('dim-posture').textContent = scores.posture || 0;
+      document.getElementById('dim-posture-bar').style.width = (scores.posture || 0) + '%';
+      
+      document.getElementById('dim-footwork').textContent = scores.footwork || 0;
+      document.getElementById('dim-footwork-bar').style.width = (scores.footwork || 0) + '%';
+      
+      document.getElementById('dim-stability').textContent = scores.stability || 0;
+      document.getElementById('dim-stability-bar').style.width = (scores.stability || 0) + '%';
+    }
+    
+    function updateSuggestions(scores) {
+      const suggestions = [];
+      
+      if (scores.power < 50) {
+        suggestions.push({ icon: '💪', text: '手腕爆發力需要加強，建議練習殺球動作，提升揮拍速度' });
+      } else if (scores.power >= 80) {
+        suggestions.push({ icon: '✅', text: '手腕爆發力表現優異，繼續維持高強度練習' });
+      }
+      
+      if (scores.posture < 50) {
+        suggestions.push({ icon: '🦾', text: '姿勢標准度需改善，注意擊球時手臂伸直 FOLLOW THROUGH' });
+      } else if (scores.posture >= 80) {
+        suggestions.push({ icon: '✅', text: '姿勢標準度良好，動作流暢有力' });
+      }
+      
+      if (scores.footwork < 50) {
+        suggestions.push({ icon: '🦵', text: '步法復原速度不足，建議加強步伐訓練，提升回位速度' });
+      } else if (scores.footwork >= 80) {
+        suggestions.push({ icon: '✅', text: '步法靈活，復原速度快' });
+      }
+      
+      if (scores.stability < 50) {
+        suggestions.push({ icon: '🎯', text: '動作穩定性需要提升，建議放慢節奏，專注於動作一致性' });
+      } else if (scores.stability >= 80) {
+        suggestions.push({ icon: '✅', text: '動作穩定，擊球一致性高' });
+      }
+      
+      if (scores.shots < 3) {
+        suggestions.push({ icon: '📹', text: '擊球偵測數量少，建議拍攝時球員距離相機2-3公尺，確保全身入鏡' });
+      }
+      
+      if (suggestions.length === 0) {
+        suggestions.push({ icon: '🏸', text: '綜合表現良好！建議持續練習，並定期記錄分析進步軌跡' });
+      }
+      
+      document.getElementById('suggestions-list').innerHTML = suggestions.map(s => `
+        <div class="suggestion-item">
+          <div class="suggestion-icon">${s.icon}</div>
+          <div class="suggestion-text">${s.text}</div>
+        </div>
+      `).join('');
+    }
+    
+    function updateRealtimeStats(angles) {
+      document.getElementById('total-shots').textContent = shotCount;
+      document.getElementById('avg-elbow').textContent = angles.elbow ? Math.round(angles.elbow) + '°' : '--';
+      document.getElementById('avg-shoulder').textContent = angles.shoulder ? Math.round(angles.shoulder) + '°' : '--';
+      document.getElementById('avg-confidence').textContent = Math.round(angles.confidence) + '%';
+    }
+    
+    // Video controls
+    function togglePlay() {
+      if (!video) return;
+      if (isPlaying) video.pause();
+      else video.play();
+      isPlaying = !isPlaying;
+      updatePlayButton();
+    }
+    
+    function updatePlayButton() {
+      document.getElementById('play-icon').innerHTML = isPlaying 
+        ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+        : '<polygon points="5 3 19 12 5 21 5 3"/>';
+    }
+    
+    function updateTimeline() {
+      if (!video) return;
+      const progress = (video.currentTime / video.duration) * 100;
+      document.getElementById('timeline-progress').style.width = progress + '%';
+      document.getElementById('timeline-handle').style.left = progress + '%';
+      document.getElementById('time-display').textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+    }
+    
+    function seekVideo(event) {
+      if (!video) return;
+      const rect = document.getElementById('timeline').getBoundingClientRect();
+      const percent = (event.clientX - rect.left) / rect.width;
+      video.currentTime = percent * video.duration;
+    }
+    
+    function prevFrame() {
+      if (!video) return;
+      video.pause();
+      isPlaying = false;
+      updatePlayButton();
+      video.currentTime = Math.max(0, video.currentTime - (1/30));
+      analyzeCurrentFrame();
+    }
+    
+    function nextFrame() {
+      if (!video) return;
+      video.pause();
+      isPlaying = false;
+      updatePlayButton();
+      video.currentTime = Math.min(video.duration, video.currentTime + (1/30));
+      analyzeCurrentFrame();
+    }
+    
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // ===== CAMERA MODE =====
+    async function startCamera() {
+      try {
+        cameraPose = new Pose({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+        });
+        
+        cameraPose.setOptions({
+          modelComplexity: 2,
+          smoothLandmarks: true,
+          enableSegmentation: false,
+          minDetectionConfidence: 0.3,
+          minTrackingConfidence: 0.3
+        });
+        
+        cameraPose.onResults(onCameraPoseResults);
+
+        // ── 相機抽幀狀態 ──
+        let _camFrameCount = 0;
+        let _camIsProcessing = false;
+        let _camInterval = 3; // 每隔 N 幀偵一次
+        let _camLastTime = 0;
+
+        camera = new window.Camera(cameraVideo, {
+          onFrame: async () => {
+            // ── 抽幀邏輯 ──
+            if (_camIsProcessing) return; // 還在處理上一幀，跳過
+            _camFrameCount++;
+
+            const now = performance.now();
+            const elapsed = now - _camLastTime;
+
+            // 動態調整間隔（如果模型跟不上）
+            if (elapsed > 400 && _camInterval < 8) {
+              _camInterval = Math.min(8, _camInterval + 1);
+              console.log('[Cam] ⚡ 偵測太慢，調整間隔 → ' + _camInterval);
+            }
+
+            if (_camFrameCount % _camInterval !== 0) return;
+            if (elapsed < 60) return; // 速率限制：最多 ~16fps
+
+            _camIsProcessing = true;
+            _camLastTime = now;
+
+            try {
+              // 用 requestVideoFrameCallback 確保幀已解碼
+              if (typeof cameraVideo.requestVideoFrameCallback === 'function') {
+                await new Promise(resolve => { cameraVideo.requestVideoFrameCallback(resolve); });
+              }
+              await cameraPose.send({ image: cameraVideo });
+            } catch (e) {
+              console.error('[Cam] send error:', e);
+            } finally {
+              _camIsProcessing = false;
+            }
+          },
+          width: 640,
+          height: 480
+        });
+        
+        await camera.start();
+        cameraCanvas.width = cameraVideo.offsetWidth;
+        cameraCanvas.height = cameraVideo.offsetHeight;
+        
+      } catch (error) {
+        console.error('Camera error:', error);
+        alert('無法開啟相機');
+      }
+    }
+    
+    function stopCamera() {
+      if (camera) { camera.stop(); camera = null; }
+      if (cameraPose) { cameraPose.close(); cameraPose = null; }
+      selectedPlayerIndex = -1;
+      trackedPlayerIndex = -1;
+      playersConfirmed = false; // v5.0
+      lastPlayerBox = null;
+      camElbows = [];
+      camShoulders = [];
+      camConfidences = [];
+      camShotCount = 0;
+    }
+    
+    function resetCameraTracking() {
+      selectedPlayerIndex = -1;
+      trackedPlayerIndex = -1;
+      playersConfirmed = false; // v5.0
+      lastPlayerBox = null;
+      camElbows = [];
+      camShoulders = [];
+      camShotCount = 0;
+      updateCameraStats();
+    }
+    
+    function onCameraPoseResults(results) {
+      window._camResults = results;
+      
+      cameraCtx.save();
+      cameraCtx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+      cameraCtx.drawImage(results.image, 0, 0, cameraCanvas.width, cameraCanvas.height);
+      
+      const poses = results.poseLandmarks || results.multiPoseLandmarks || [];
+      updateCameraPlayerSelector(poses);
+      trackedPlayerIndex = findBestPlayer(poses);
+      
+      if (poses.length > 0 && trackedPlayerIndex >= 0) {
+        const landmarks = poses[trackedPlayerIndex];
+        if (landmarks) {
+          const box = getBoundingBox(landmarks);
+          // v5.0: 已確認後框架變綠色
+          cameraCtx.strokeStyle = playersConfirmed ? '#00E676' : (trackedPlayerIndex === selectedPlayerIndex ? '#F97316' : '#16A34A');
+          cameraCtx.lineWidth = 3;
+          cameraCtx.strokeRect(box.minX * cameraCanvas.width, box.minY * cameraCanvas.height,
+                             (box.maxX - box.minX) * cameraCanvas.width, (box.maxY - box.minY) * cameraCanvas.height);
+          lastPlayerBox = box;
+          
+          window.drawConnectors(cameraCtx, landmarks, window.POSE_CONNECTIONS, { color: '#16A34A', lineWidth: 4 });
+          window.drawLandmarks(cameraCtx, landmarks, { color: '#22C55E', lineWidth: 3, radius: 6 });
+          
+          const angles = calculateAngles(landmarks);
+          if (angles) {
+            camElbows.push(angles.elbow);
+            camShoulders.push(angles.shoulder);
+            camConfidences.push(angles.confidence);
+            
+            if (angles.elbow && camLastAngle) {
+              const delta = Math.abs(angles.elbow - camLastAngle);
+              if (delta > 30) {
+                camShotCount++;
+                showCameraShotAlert();
+              }
+            }
+            camLastAngle = angles.elbow;
+            
+            updateCameraStats();
+          }
+        }
+        
+        for (let i = 0; i < poses.length; i++) {
+          if (i !== trackedPlayerIndex) {
+            cameraCtx.globalAlpha = 0.3;
+            window.drawConnectors(cameraCtx, poses[i], window.POSE_CONNECTIONS, { color: '#94A3B8', lineWidth: 2 });
+            cameraCtx.globalAlpha = 1;
+          }
+        }
+      }
+      
+      cameraCtx.restore();
+    }
+    
+    function updateCameraStats() {
+      document.getElementById('cam-shots').textContent = camShotCount;
+      document.getElementById('cam-elbow').textContent = camElbows.length > 0 ? Math.round(camElbows.reduce((a, b) => a + b, 0) / camElbows.length) + '°' : '--';
+      document.getElementById('cam-shoulder').textContent = camShoulders.length > 0 ? Math.round(camShoulders.reduce((a, b) => a + b, 0) / camShoulders.length) + '°' : '--';
+      document.getElementById('cam-confidence').textContent = camConfidences.length > 0 ? Math.round(camConfidences.reduce((a, b) => a + b, 0) / camConfidences.length) + '%' : '--';
+    }
+    
+    // ===== SHARED =====
+    function getBoundingBox(landmarks) {
+      let minX = 1, maxX = 0, minY = 1, maxY = 0;
+      for (const lm of landmarks) {
+        if (lm.x < minX) minX = lm.x;
+        if (lm.x > maxX) maxX = lm.x;
+        if (lm.y < minY) minY = lm.y;
+        if (lm.y > maxY) maxY = lm.y;
+      }
+      return { minX, maxX, minY, maxY };
+    }
+    
+    function findBestPlayer(poses) {
+      if (poses.length === 0) return -1;
+      if (selectedPlayerIndex >= 0 && selectedPlayerIndex < poses.length) return selectedPlayerIndex;
+      if (poses.length === 1) return 0;
+      
+      if (lastPlayerBox && trackedPlayerIndex >= 0 && trackedPlayerIndex < poses.length) {
+        let bestIOU = 0;
+        let bestIndex = trackedPlayerIndex;
+        
+        for (let i = 0; i < poses.length; i++) {
+          const box = getBoundingBox(poses[i]);
+          const iou = calculateIOU(lastPlayerBox, box);
+          if (iou > bestIOU && iou > 0.3) {
+            bestIOU = iou;
+            bestIndex = i;
+          }
+        }
+        return bestIndex;
+      }
+      
+      let bestDist = Infinity;
+      let bestIndex = 0;
+      for (let i = 0; i < poses.length; i++) {
+        const nose = poses[i][0];
+        if (nose) {
+          const dist = Math.sqrt((nose.x - 0.5) ** 2 + (nose.y - 0.5) ** 2);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestIndex = i;
+          }
+        }
+      }
+      return bestIndex;
+    }
+    
+    function calculateIOU(box1, box2) {
+      const interX1 = Math.max(box1.minX, box2.minX);
+      const interY1 = Math.max(box1.minY, box2.minY);
+      const interX2 = Math.min(box1.maxX, box2.maxX);
+      const interY2 = Math.min(box1.maxY, box2.maxY);
+      
+      if (interX2 <= interX1 || interY2 <= interY1) return 0;
+      
+      const interArea = (interX2 - interX1) * (interY2 - interY1);
+      const box1Area = (box1.maxX - box1.minX) * (box1.maxY - box1.minY);
+      const box2Area = (box2.maxX - box2.minX) * (box2.maxY - box2.minY);
+      const unionArea = box1Area + box2Area - interArea;
+      
+      return interArea / unionArea;
+    }
+    
+    // v5.0: 更新球員選擇按鈕（影片下方）
+    function updatePlayerButtons(poses) {
+      const container = document.getElementById('player-buttons');
+      const area = document.getElementById('player-selection-area');
+      if (!container) return;
+      
+      // 只在有偵測到球員時顯示按鈕
+      if (!poses || poses.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">偵測中...</div>';
+        if (area) area.style.display = 'none';
+        return;
+      }
+      
+      let html = '';
+      for (let i = 0; i < poses.length; i++) {
+        const isSelected = trackedPlayerIndex === i;
+        html += `<button class="player-btn ${isSelected ? 'selected' : ''}" onclick="selectVideoPlayer(${i})">球員 ${i + 1}</button>`;
+      }
+      container.innerHTML = html;
+      
+      // 顯示球員選擇區域
+      if (area) {
+        area.style.display = 'block';
+      }
+    }
+    
+    function updateCameraPlayerSelector(poses) {
+      const selector = document.getElementById('camera-player-selector');
+      let html = '<button class="player-btn auto" onclick="selectCameraPlayer(\'auto\')">🎯 自動</button>';
+      for (let i = 0; i < poses.length; i++) {
+        const isSelected = trackedPlayerIndex === i;
+        html += `<button class="player-btn ${isSelected ? 'selected' : ''}" onclick="selectCameraPlayer(${i})">球員 ${i + 1}</button>`;
+      }
+      selector.innerHTML = html;
+    }
+    
+    function selectVideoPlayer(index) {
+      selectedPlayerIndex = index === 'auto' ? -1 : index;
+      trackedPlayerIndex = selectedPlayerIndex >= 0 ? selectedPlayerIndex : findBestPlayer(window._videoResults?.poseLandmarks || []);
+      updatePlayerButtons(window._videoResults?.poseLandmarks || []);
+      updateConfirmButton();
+      
+      // 如果已確認過，取消確認，重新回到偵測模式
+      if (playersConfirmed) {
+        playersConfirmed = false;
+        updateConfirmButton();
+      }
+      
+      // 立即重新分析，顯示選中球員為橙色
+      if (window._videoResults) {
+        onVideoPoseResults(window._videoResults);
+      }
+      
+      // 更新標題
+      updateResultUI({
+        level: 0,
+        title: '🔍 偵測模式',
+        subtitle: selectedPlayerIndex >= 0 ? `已選擇「球員 ${selectedPlayerIndex + 1}」，點確認開始追蹤` : '請選擇要追蹤的球員'
+      });
+    }
+    
+    function selectCameraPlayer(index) {
+      selectedPlayerIndex = index === 'auto' ? -1 : index;
+      trackedPlayerIndex = selectedPlayerIndex >= 0 ? selectedPlayerIndex : findBestPlayer(window._camResults?.poseLandmarks || []);
+      updateCameraPlayerSelector(window._camResults?.poseLandmarks || []);
+    }
+    
+    // v5.0: 確認球員按鈕狀態更新
+    function updateConfirmButton() {
+      const btn = document.getElementById('confirm-player-btn');
+      const text = document.getElementById('confirm-text');
+      const icon = document.getElementById('confirm-icon');
+      if (!btn) return;
+      
+      if (playersConfirmed) {
+        btn.classList.add('confirmed');
+        btn.disabled = true;
+        text.textContent = '已確認 ✓ 追蹤模式';
+        icon.textContent = '✓';
+      } else if (selectedPlayerIndex >= 0) {
+        btn.classList.remove('confirmed');
+        btn.disabled = false;
+        text.textContent = '確認球員 → 開始追蹤';
+        icon.textContent = '✓';
+      } else {
+        btn.classList.remove('confirmed');
+        btn.disabled = true;
+        text.textContent = '確認球員';
+        icon.textContent = '✓';
+      }
+    }
+    
+    // v5.0: 確認球員 → 進入追蹤模式
+    function confirmPlayers() {
+      if (selectedPlayerIndex < 0) return;
+      playersConfirmed = true;
+      updateConfirmButton();
+      
+      // 重新繪製（切換為追蹤模式顏色）
+      if (window._videoResults) {
+        onVideoPoseResults(window._videoResults);
+      }
+      
+      // 隱藏球員選擇區（追蹤模式不再需要選擇）
+      const playerArea = document.getElementById('player-selection-area');
+      if (playerArea) playerArea.style.display = 'none';
+      
+      // 更新標題為追蹤模式
+      updateResultUI({
+        level: 0,
+        title: '🎯 追蹤模式',
+        subtitle: `正在追蹤「球員 ${selectedPlayerIndex + 1}」...`
+      });
+      
+      // 顯示最終確認區塊
+      const finalArea = document.getElementById('final-confirm-area');
+      if (finalArea) {
+        finalArea.classList.add('show');
+      }
+    }
+    
+    // v5.0: 取消確認 → 返回偵測模式
+    function cancelConfirmation() {
+      playersConfirmed = false;
+      updateConfirmButton();
+      
+      // 重新繪製（返回偵測模式）
+      if (window._videoResults) {
+        onVideoPoseResults(window._videoResults);
+      }
+      
+      // 顯示球員選擇區
+      const playerArea = document.getElementById('player-selection-area');
+      if (playerArea) playerArea.style.display = 'block';
+      
+      // 更新標題
+      updateResultUI({
+        level: 0,
+        title: '🔍 偵測模式',
+        subtitle: selectedPlayerIndex >= 0 ? `已選擇「球員 ${selectedPlayerIndex + 1}」，點確認開始追蹤` : '請選擇要追蹤的球員'
+      });
+      
+      // 隱藏最終確認區塊
+      const finalArea = document.getElementById('final-confirm-area');
+      if (finalArea) {
+        finalArea.classList.remove('show');
+      }
+    }
+    
+    // v5.0: 開始分析（從最終確認來的）
+    function startAnalysis() {
+      // 隱藏最終確認區塊
+      const finalArea = document.getElementById('final-confirm-area');
+      if (finalArea) {
+        finalArea.classList.remove('show');
+      }
+      // 開始完整分析
+      startFullAnalysis();
+    }
+    
+    // v5.0: 重繪姿勢（用於確認後更新框架顏色）
+    function redrawVideoPose() {
+      if (!window._videoResults || !video) return;
+      const results = window._videoResults;
+      
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+      canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const poses = results.poseLandmarks || results.multiPoseLandmarks || [];
+      if (poses.length > 0 && trackedPlayerIndex >= 0) {
+        const landmarks = poses[trackedPlayerIndex];
+        if (landmarks) {
+          const box = getBoundingBox(landmarks);
+          // v5.0: 已確認後框架變綠色
+          canvasCtx.strokeStyle = playersConfirmed ? '#00E676' : (trackedPlayerIndex === selectedPlayerIndex ? '#F97316' : '#16A34A');
+          canvasCtx.lineWidth = 3;
+          canvasCtx.strokeRect(box.minX * canvas.width, box.minY * canvas.height, 
+                              (box.maxX - box.minX) * canvas.width, (box.maxY - box.minY) * canvas.height);
+          window.drawConnectors(canvasCtx, landmarks, window.POSE_CONNECTIONS, { color: playersConfirmed ? '#00E676' : '#16A34A', lineWidth: 4 });
+          window.drawLandmarks(canvasCtx, landmarks, { color: playersConfirmed ? '#00E676' : '#22C55E', lineWidth: 3, radius: 6 });
+        }
+      }
+      canvasCtx.restore();
+    }
+    
+    // v5.0: Toast 提示
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#16A34A;color:white;padding:12px 24px;border-radius:24px;font-weight:600;z-index:1000;animation:fadeIn 0.3s';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2000);
+    }
+    
+    function calculateAngle(p1, p2, p3) {
+      const radians = Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x);
+      let angle = Math.abs(radians * 180 / Math.PI);
+      if (angle > 180) angle = 360 - angle;
+      return angle;
+    }
+    
+    function showShotAlert() {
+      const alert = document.getElementById('shot-alert');
+      alert.textContent = `💥 擊球 #${shotCount}`;
+      alert.classList.add('show');
+      setTimeout(() => alert.classList.remove('show'), 1000);
+    }
+    
+    function showCameraShotAlert() {
+      const alert = document.getElementById('camera-shot-alert');
+      alert.textContent = `💥 擊球 #${camShotCount}`;
+      alert.classList.add('show');
+      setTimeout(() => alert.classList.remove('show'), 1000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Athena 監控中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+--bg:#000;--card:#1c1c1e;--card2:#2c2c2e;
+--blue:#0a84ff;--green:#30d158;--orange:#ff9f0a;
+--red:#ff375f;--teal:#5ac8fa;--yellow:#ffd60a;
+--text:#fff;--muted:#8e8e93;--border:rgba(255,255,255,0.06);
+--radius:12px;--safe:env(safe-area-inset-bottom,20px);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px;padding-bottom:calc(20px + var(--safe))}
+
+.header{text-align:center;padding:24px 0 20px}
+.logo{width:60px;height:60px;background:linear-gradient(135deg,#5856d6,#0a84ff);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:30px;box-shadow:0 8px 32px rgba(10,132,255,0.25)}
+.header h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.header p{color:var(--muted);font-size:12px}
+
+/* STATUS BAR */
+.status-bar{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.sb{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:6px 16px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.sb .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sb .dot.gray  {background:#6b7280}
+.sb .dot.green {background:var(--green);box-shadow:0 0 6px var(--green)}
+.sb .dot.yellow{background:var(--orange);box-shadow:0 0 6px var(--orange)}
+.sb .dot.red   {background:var(--red);box-shadow:0 0 6px var(--red);animation:blink 1s infinite}
+.sb span{font-weight:600;color:var(--text)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* SECTION */
+.section-header{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:20px 2px 10px}
+
+/* CARDS */
+.cards{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--text);border:1px solid var(--border);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.4)}
+.card:active{transform:scale(0.98)}
+.card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.c-green{background:linear-gradient(135deg,#1a3c1a,var(--green))}
+.c-blue{background:linear-gradient(135deg,#1a2e4d,var(--blue))}
+.card-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.card-desc{font-size:13px;color:var(--muted)}
+.card-arrow{margin-left:auto;color:var(--muted);font-size:20px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">🚀</div>
+  <h1>Athena 監控中心</h1>
+  <p>系統狀態一目了然</p>
+  <div class="status-bar">
+    <div class="sb" id="sb-gw"><div class="dot gray" id="dot-gw"></div><span>Gateway</span></div>
+    <div class="sb" id="sb-ol"><div class="dot gray" id="dot-ol"></div><span>Ollama</span></div>
+    <div class="sb" id="sb-mo"><div class="dot gray" id="dot-mo"></div><span>Monitor</span></div>
+  </div>
+</div>
+
+<div class="section-header">⚙️ 系統核心</div>
+<div class="cards">
+  <a class="card" href="https://clawbridge.myclawdomain.ccwu.cc/">
+    <div class="card-icon c-green">🤖</div>
+    <div>
+      <div class="card-title">ClawBridge 控制台</div>
+      <div class="card-desc">思考歷程、任務執行、Token 分析</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+</div>
+
+<div class="section-header">📚 學習工具</div>
+<div class="cards">
+  <a class="card" href="https://clawbridge.myclawdomain.ccwu.cc/ipas-quiz.html">
+    <div class="card-icon" style="background:linear-gradient(135deg,#1a3c2a,#30d158)">📝</div>
+    <div>
+      <div class="card-title">iPAS AI 初級模擬考</div>
+      <div class="card-desc">790 題完整題庫 × 初/中級 · 即測即評</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+  <a class="card" href="https://clawbridge.myclawdomain.ccwu.cc/research.html">
+    <div class="card-icon" style="background:linear-gradient(135deg,#1a2a4a,#2563eb)">🔬</div>
+    <div>
+      <div class="card-title">研究嚮導</div>
+      <div class="card-desc">2 億篇論文搜尋 × AI 比較分析</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+</div>
+
+<div class="section-header">🌱 成長系統</div>
+<div class="cards">
+  <a class="card" href="https://clawbridge.myclawdomain.ccwu.cc/growth.html">
+    <div class="card-icon" style="background:linear-gradient(135deg,#2d1a4a,#8b5cf6)">🌱</div>
+    <div>
+      <div class="card-title">成長藍圖</div>
+      <div class="card-desc">完整視覺化頁面</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+</div>
+
+<script>
+// BASE URL for API calls
+const BASE = '';  // 相對路徑，透過 unified-home 代理到 ClawBridge
+
+// Service map
+const SERVICES = {
+  Gateway:  { dotId: 'dot-gw', sbId: 'sb-gw' },
+  Ollama:    { dotId: 'dot-ol', sbId: 'sb-ol' },
+  Monitor:   { dotId: 'dot-mo', sbId: 'sb-mo' },
+};
+
+function statusToClass(status) {
+  // API returns green/yellow/red, also support up/slow/down
+  if (status === 'green' || status === 'up')   return 'green';
+  if (status === 'yellow' || status === 'slow') return 'yellow';
+  if (status === 'red' || status === 'down')    return 'red';
+  return 'gray';
+}
+
+async function fetchStatus() {
+  try {
+    const r = await fetch(BASE + '/services', { signal: AbortSignal.timeout(5000) });
+    const data = await r.json();
+    
+    for (const [name, svc] of Object.entries(SERVICES)) {
+      const dot = document.getElementById(svc.dotId);
+      if (!dot) continue;
+      const info = data[name] || {};
+      const status = info.status || 'unknown';
+      dot.className = 'dot ' + statusToClass(status);
+    }
+  } catch (e) {
+    // fallback: mark all gray
+    for (const svc of Object.values(SERVICES)) {
+      const dot = document.getElementById(svc.dotId);
+      if (dot) dot.className = 'dot gray';
+    }
+  }
+}
+
+// Init
+fetchStatus();
+setInterval(fetchStatus, 30000);
+</script>
+</body>
+</html>

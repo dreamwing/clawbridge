@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九容瑜伽 JiuRong Yoga | 龍潭山間專業瑜伽</title>
+    <meta name="description" content="九容瑜伽工作室，龍潭山區專業瑜伽教學，小班制課程，線上預約">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header class="site-header" id="siteHeader">
+    <div class="header-inner">
+        <div class="header-brand">
+            <span class="brand-kanji">九容</span>
+            <span class="brand-sep">·</span>
+            <span class="brand-en">瑜伽</span>
+        </div>
+        <nav class="header-nav">
+            <a href="#booking" class="nav-item active">課程預約</a>
+            <a href="#teachers" class="nav-item">師資</a>
+            <a href="#courses" class="nav-item">課卡</a>
+            <a href="#about" class="nav-item">關於</a>
+            <a href="/api/admin" class="nav-item nav-admin">後台</a>
+        </nav>
+        <a href="#booking" class="header-cta">立即預約</a>
+        <button class="hamburger" id="hamburger" aria-label="選單">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</header>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-header">
+        <div>
+            <span class="brand-kanji">九容</span>
+            <span class="brand-sep">·</span>
+            <span class="brand-en">瑜伽</span>
+        </div>
+        <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+    </div>
+    <div class="mobile-nav-links">
+        <a href="#booking" class="mobile-nav-item">課程預約</a>
+        <a href="#teachers" class="mobile-nav-item">師資陣容</a>
+        <a href="#courses" class="mobile-nav-item">課卡方案</a>
+        <a href="#about" class="mobile-nav-item">關於場館</a>
+        <a href="/api/admin" class="mobile-nav-item mobile-nav-admin">後台管理</a>
+    </div>
+    <div class="mobile-nav-footer">
+        <a href="tel:0900-XXX-XXX" class="mobile-nav-tel">📞 0900-XXX-XXX</a>
+        <span class="mobile-nav-line">LINE @jiurong-yoga</span>
+    </div>
+</div>
+<div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+
+<!-- ===== KV ===== -->
+<section class="kv-section">
+    <div class="kv-swiper swiper">
+        <div class="swiper-wrapper">
+            <div class="kv-slide swiper-slide">
+                <div class="kv-bg" style="background: linear-gradient(160deg, #2c2420 0%, #5c4a38 40%, #8B7355 70%, #C4A77D 100%);"></div>
+                <div class="kv-content">
+                    <div class="kv-eyebrow">JIURONG YOGA</div>
+                    <h1 class="kv-title">九容瑜伽</h1>
+                    <p class="kv-sub">龍潭山間 · 身心回歸</p>
+                </div>
+            </div>
+            <div class="kv-slide swiper-slide">
+                <div class="kv-bg" style="background: linear-gradient(160deg, #1a2e1a 0%, #3d5c3d 50%, #6B8E6B 100%);"></div>
+                <div class="kv-content">
+                    <div class="kv-eyebrow">HATHA YOGA</div>
+                    <h1 class="kv-title">哈達瑜伽</h1>
+                    <p class="kv-sub">傳統體式 · 打好根基</p>
+                </div>
+            </div>
+            <div class="kv-slide swiper-slide">
+                <div class="kv-bg" style="background: linear-gradient(160deg, #1a1a2e 0%, #2d3a4a 50%, #4a6075 100%);"></div>
+                <div class="kv-content">
+                    <div class="kv-eyebrow">YIN YOGA</div>
+                    <h1 class="kv-title">陰瑜伽</h1>
+                    <p class="kv-sub">深度停留 · 身心釋放</p>
+                </div>
+            </div>
+            <div class="kv-slide swiper-slide">
+                <div class="kv-bg" style="background: linear-gradient(160deg, #2e1a1a 0%, #4a2d2d 50%, #6B4545 100%);"></div>
+                <div class="kv-content">
+                    <div class="kv-eyebrow">FLOW YOGA</div>
+                    <h1 class="kv-title">流動瑜伽</h1>
+                    <p class="kv-sub">串聯呼吸 · 身心節奏</p>
+                </div>
+            </div>
+            <div class="kv-slide swiper-slide">
+                <div class="kv-bg" style="background: linear-gradient(160deg, #1a1a1a 0%, #3d3d3d 50%, #6B6B6B 100%);"></div>
+                <div class="kv-content">
+                    <div class="kv-eyebrow">MORNING MEDITATION</div>
+                    <h1 class="kv-title">晨間冥想</h1>
+                    <p class="kv-sub">以平靜開啟每一天</p>
+                </div>
+            </div>
+        </div>
+        <div class="swiper-pagination kv-pagination"></div>
+    </div>
+</section>
+
+<!-- ===== Main ===== -->
+<main class="main-content">
+
+    <!-- ===== Booking ===== -->
+    <section class="booking-section" id="booking">
+        <div class="section-header">
+            <div class="section-tag">RESERVATION</div>
+            <h2 class="section-title">課程預約</h2>
+            <p class="section-subtitle">選擇日期，查看當日課程</p>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar-wrapper">
+            <div class="calendar-inner">
+                <div class="calendar-nav">
+                    <button class="cal-nav-btn" id="calPrev" aria-label="上週">‹</button>
+                    <div class="calendar-track" id="calendarTrack"></div>
+                    <button class="cal-nav-btn" id="calNext" aria-label="下週">›</button>
+                </div>
+                <div class="calendar-today-row">
+                    <button class="cal-today-btn" id="todayHint">今天</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Date Label -->
+        <div class="selected-date-label" id="selectedDateDisplay"></div>
+
+        <!-- Course List -->
+        <div class="course-list" id="courseList"></div>
+    </section>
+
+    <!-- ===== Teachers ===== -->
+    <section class="teachers-section" id="teachers">
+        <div class="section-header">
+            <div class="section-tag">TEACHERS</div>
+            <h2 class="section-title">師資</h2>
+            <p class="section-subtitle">用心帶領每一次練習</p>
+        </div>
+        <div class="teachers-container" id="teachersContainer">
+
+            <!-- Featured Teacher -->
+            <div class="teacher-featured">
+                <div class="teacher-avatar-wrap">
+                    <div class="teacher-avatar zen-avatar-1">
+                        <span class="avatar-initial">L</span>
+                    </div>
+                </div>
+                <div class="teacher-content">
+                    <div class="teacher-role">創辦人</div>
+                    <div class="teacher-name">Luna</div>
+                    <div class="teacher-title">資深瑜伽導師</div>
+                    <p class="teacher-bio">專精哈達瑜伽與陰瑜伽，十年教學經驗，引導學員在練習中找到自己的節奏，與身心好好相處。</p>
+                </div>
+            </div>
+
+            <!-- Secondary Teachers -->
+            <div class="teacher-row">
+                <div class="teacher-card">
+                    <div class="teacher-avatar-sm zen-avatar-2">
+                        <span class="avatar-initial-sm">G</span>
+                    </div>
+                    <div class="teacher-card-content">
+                        <div class="teacher-name-sm">Guest</div>
+                        <div class="teacher-title-sm">客席導師</div>
+                        <p class="teacher-bio-sm">每月特邀導師，帶來多元練習風格，拓寬練習視野</p>
+                    </div>
+                </div>
+                <div class="teacher-card">
+                    <div class="teacher-avatar-sm zen-avatar-3">
+                        <span class="avatar-initial-sm">冥</span>
+                    </div>
+                    <div class="teacher-card-content">
+                        <div class="teacher-name-sm">晨間冥想</div>
+                        <div class="teacher-title-sm">每日帶領</div>
+                        <p class="teacher-bio-sm">早晨 07:00 冥想練習，以平靜開啟每一天</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Plans ===== -->
+    <section class="courses-section" id="courses">
+        <div class="section-header">
+            <div class="section-tag">PLANS</div>
+            <h2 class="section-title">課卡方案</h2>
+            <p class="section-subtitle">選擇適合你的練習方式</p>
+        </div>
+        <div class="plans-container">
+            <div class="plan-card">
+                <div class="plan-eyebrow">體驗</div>
+                <div class="plan-name">單堂</div>
+                <div class="plan-price">500<span class="plan-unit">元</span></div>
+                <div class="plan-desc">任何實體課程皆可使用</div>
+            </div>
+            <div class="plan-card plan-featured">
+                <div class="plan-badge">最熱門</div>
+                <div class="plan-eyebrow">推薦</div>
+                <div class="plan-name">5 堂</div>
+                <div class="plan-price">2,200<span class="plan-unit">元</span></div>
+                <div class="plan-desc">相當於每堂 440 元</div>
+            </div>
+            <div class="plan-card">
+                <div class="plan-eyebrow">完整</div>
+                <div class="plan-name">10 堂</div>
+                <div class="plan-price">4,000<span class="plan-unit">元</span></div>
+                <div class="plan-desc">相當於每堂 400 元</div>
+            </div>
+            <div class="plan-card">
+                <div class="plan-eyebrow">長期</div>
+                <div class="plan-name">20 堂</div>
+                <div class="plan-price">7,200<span class="plan-unit">元</span></div>
+                <div class="plan-desc">相當於每堂 360 元</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== About ===== -->
+    <section class="about-section" id="about">
+        <div class="section-header">
+            <div class="section-tag">ABOUT</div>
+            <h2 class="section-title">關於九容</h2>
+            <p class="section-subtitle">在山間，找回練習的初心</p>
+        </div>
+        <div class="about-container">
+            <div class="about-text">
+                <p>九容瑜伽成立於龍潭山間，是一方遠離城市喧囂的練習天地。</p>
+                <p>我們相信，瑜伽不只是身體的練習，更是與自我對話的方式。在一呼一吸之間，回到當下，找回平靜。</p>
+                <p>小班制授課，讓老師能夠看見每位學員的需要，細緻照顧每一次練習。</p>
+            </div>
+            <div class="about-info">
+                <div class="about-row">
+                    <span class="about-label">地址</span>
+                    <span class="about-value">桃園市龍潭區（山間工作室）</span>
+                </div>
+                <div class="about-row">
+                    <span class="about-label">電話</span>
+                    <span class="about-value">0900-XXX-XXX</span>
+                </div>
+                <div class="about-row">
+                    <span class="about-label">LINE</span>
+                    <span class="about-value">@jiurong-yoga</span>
+                </div>
+                <div class="about-row">
+                    <span class="about-label">時間</span>
+                    <span class="about-value">週一至週六 08:00 - 21:00</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ===== Footer ===== -->
+<footer class="site-footer">
+    <div class="footer-brand">
+        <span class="brand-kanji">九容</span>
+        <span class="brand-sep">·</span>
+        <span class="brand-en">瑜伽</span>
+    </div>
+    <div class="footer-tagline">龍潭山間 · 身心回歸</div>
+    <div class="footer-contact">
+        <a href="tel:0900-XXX-XXX">📞 0900-XXX-XXX</a>
+        <span class="footer-dot">·</span>
+        <span>LINE @jiurong-yoga</span>
+    </div>
+    <div class="footer-copy">© 2026 九容瑜伽 JiuRong Yoga</div>
+</footer>
+
+<!-- ===== Modals ===== -->
+<div class="modal-overlay" id="modalOverlay"></div>
+
+<!-- Success Modal -->
+<div class="modal" id="successModal">
+    <div class="modal-card">
+        <div class="modal-icon-success">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" stroke="#0f766e" stroke-width="1.5"/>
+                <path d="M20 32 L28 40 L44 24" stroke="#0f766e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="modal-title">預約成功</div>
+        <div class="modal-desc">感謝您的報名<br>我們將於 24 小時內以 LINE 與您聯繫確認</div>
+        <button class="btn-primary-full" onclick="closeModal('successModal')">確定</button>
+    </div>
+</div>
+
+<!-- Full Modal -->
+<div class="modal" id="fullModal">
+    <div class="modal-card">
+        <div class="modal-icon-fail">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" stroke="#d6cfc2" stroke-width="1.5"/>
+                <circle cx="32" cy="32" r="22" stroke="#d6cfc2" stroke-width="1"/>
+                <path d="M22 32 C22 32 26 27 32 27 C38 27 42 32 42 32 C42 32 38 37 32 37 C26 37 22 32 22 32Z" stroke="#b91c1c" stroke-width="1.5"/>
+                <path d="M22 32 C22 32 16 26 16 21 C16 17 23 14 32 20" stroke="#b91c1c" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M42 32 C42 32 48 26 48 21 C48 17 41 14 32 20" stroke="#b91c1c" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="modal-title">預約已額滿</div>
+        <div class="modal-desc">可致電詢問候補或其他時段</div>
+        <a href="tel:0900-XXX-XXX" class="btn-outline-full">致電詢問</a>
+        <button class="btn-ghost-full mt-2" onclick="closeModal('fullModal')">返回</button>
+    </div>
+</div>
+
+<!-- Booking Form Modal -->
+<div class="modal" id="bookingFormModal">
+    <div class="modal-card modal-card-wide">
+        <div class="modal-header">
+            <div class="modal-title">填寫報名表</div>
+            <button class="modal-close" onclick="closeModal('bookingFormModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <form id="bookingForm" onsubmit="submitBooking(event)">
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label>姓名</label>
+                        <input type="text" id="bfName" placeholder="請輸入姓名" required>
+                    </div>
+                    <div class="form-group">
+                        <label>電話</label>
+                        <input type="tel" id="bfPhone" placeholder="0912-XXX-XXX" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>LINE ID（選填）</label>
+                    <input type="text" id="bfLine" placeholder="@your-line-id">
+                </div>
+                <div class="form-group">
+                    <label>報名方案</label>
+                    <select id="bfPlan" required>
+                        <option value="">請選擇方案</option>
+                        <option value="1">單堂體驗（500元）</option>
+                        <option value="5">5堂優惠（2,200元）</option>
+                        <option value="10">10堂方案（4,000元）</option>
+                        <option value="20">20堂完整（7,200元）</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>課程名稱</label>
+                    <input type="text" id="bfCourse" readonly>
+                </div>
+                <div class="form-group">
+                    <label>想說的話（選填）</label>
+                    <textarea id="bfNote" rows="2" placeholder="身體狀況或想練習的重點"></textarea>
+                </div>
+                <button type="submit" class="btn-primary-full mt-3">確認報名</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Scripts ===== -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ── KV Swiper ──────────────────────────────────────────────────
+    new Swiper('.kv-swiper', {
+        loop: false,
+        slidesPerView: 1,
+        spaceBetween: 0,
+        autoplay: { delay: 5000, disableOnInteraction: false },
+        pagination: { el: '.kv-pagination', clickable: true },
+        observer: true,
+        observeParents: true,
+    });
+
+    // ── Mobile Nav ─────────────────────────────────────────────────
+    const hamburger = document.getElementById('hamburger');
+    const mobileNav = document.getElementById('mobileNav');
+    const mobileNavClose = document.getElementById('mobileNavClose');
+    const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+    const mobileNavLinks = document.querySelectorAll('.mobile-nav-item');
+
+    function openMobileNav() {
+        mobileNav.classList.add('open');
+        mobileNavOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMobileNav() {
+        mobileNav.classList.remove('open');
+        mobileNavOverlay.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    hamburger.addEventListener('click', openMobileNav);
+    mobileNavClose.addEventListener('click', closeMobileNav);
+    mobileNavOverlay.addEventListener('click', closeMobileNav);
+    mobileNavLinks.forEach(l => l.addEventListener('click', closeMobileNav));
+
+    // ── Active Nav on Scroll ────────────────────────────────────────
+    const sections = document.querySelectorAll('section[id]');
+    const navItems = document.querySelectorAll('.header-nav .nav-item');
+    window.addEventListener('scroll', function() {
+        let current = '';
+        sections.forEach(sec => {
+            const top = sec.offsetTop - 90;
+            if (window.scrollY >= top) current = sec.getAttribute('id');
+        });
+        navItems.forEach(n => {
+            n.classList.toggle('active', n.getAttribute('href') === '#' + current);
+        });
+        // Header shadow
+        document.getElementById('siteHeader').classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // ── Calendar ───────────────────────────────────────────────────
+    const DAYS = ['日','一','二','三','四','五','六'];
+    const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    let selectedDate = new Date().toISOString().slice(0,10);
+
+    function buildCalendar() {
+        const container = document.getElementById('calendarTrack');
+        const today = new Date();
+        let html = '';
+        for (let i = -30; i <= 30; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() + i);
+            const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+            const cls = [
+                'cal-day',
+                i === 0 ? 'today' : '',
+                i < 0 ? 'past' : '',
+                isWeekend ? 'weekend' : '',
+                d.toISOString().slice(0,10) === selectedDate ? 'selected' : '',
+            ].filter(Boolean).join(' ');
+            html += `<div class="${cls}" data-date="${d.toISOString().slice(0,10)}">
+                <span class="cal-day-name">${DAYS[d.getDay()]}</span>
+                <span class="cal-day-num">${d.getDate()}</span>
+            </div>`;
+        }
+        container.innerHTML = html;
+
+        // Scroll to selected
+        const selectedEl = container.querySelector('.cal-day.selected');
+        if (selectedEl) {
+            setTimeout(() => {
+                const offset = selectedEl.offsetLeft - container.offsetWidth / 2 + selectedEl.offsetWidth / 2;
+                container.scrollTo({ left: offset, behavior: 'smooth' });
+            }, 50);
+        }
+
+        updateSelectedDisplay();
+        renderCourses(selectedDate);
+    }
+
+    document.getElementById('calendarTrack').addEventListener('click', function(e) {
+        const dayEl = e.target.closest('.cal-day');
+        if (dayEl && !dayEl.classList.contains('past')) {
+            document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
+            dayEl.classList.add('selected');
+            selectedDate = dayEl.dataset.date;
+            updateSelectedDisplay();
+            renderCourses(selectedDate);
+        }
+    });
+
+    document.getElementById('calPrev').addEventListener('click', function() {
+        document.getElementById('calendarTrack').scrollBy({ left: -210, behavior: 'smooth' });
+    });
+    document.getElementById('calNext').addEventListener('click', function() {
+        document.getElementById('calendarTrack').scrollBy({ left: 210, behavior: 'smooth' });
+    });
+
+    document.getElementById('todayHint').addEventListener('click', function() {
+        const todayStr = new Date().toISOString().slice(0,10);
+        document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
+        const el = document.querySelector(`.cal-day[data-date="${todayStr}"]`);
+        if (el) el.classList.add('selected');
+        selectedDate = todayStr;
+        updateSelectedDisplay();
+        renderCourses(selectedDate);
+        if (el) {
+            const container = document.getElementById('calendarTrack');
+            const offset = el.offsetLeft - container.offsetWidth / 2 + el.offsetWidth / 2;
+            container.scrollTo({ left: offset, behavior: 'smooth' });
+        }
+    });
+
+    function updateSelectedDisplay() {
+        const d = new Date(selectedDate + 'T00:00:00');
+        const dayName = '週' + DAYS[d.getDay()];
+        const monthDay = MONTHS[d.getMonth()] + d.getDate() + '日';
+        document.getElementById('selectedDateDisplay').textContent = monthDay + ' ' + dayName;
+    }
+
+    // ── Dynamic Data from API ─────────────────────────────────
+    let coursesData = [];
+    let teachersData = [];
+
+    async function loadAPI() {
+        try {
+            const [cr, tr] = await Promise.all([
+                fetch('/api/admin/all').then(r => r.json()),
+            ]);
+            const all = cr || {};
+            coursesData = (all.courses && Array.isArray(all.courses)) ? all.courses.filter(c => c.status === 'active') : [];
+            teachersData = (all.teachers && Array.isArray(all.teachers)) ? all.teachers.filter(t => t.status === 'active') : [];
+        } catch(e) {
+            coursesData = []; teachersData = [];
+        }
+        renderTeachers();
+        renderCourses(selectedDate);
+    }
+
+    // ── Teacher Renderer ────────────────────────────────────────────
+    function renderTeachers() {
+        const container = document.getElementById('teachersContainer');
+        if (!teachersData.length) {
+            container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--ink-light);font-size:13px;letter-spacing:3px">尚無師資資料</div>';
+            return;
+        }
+        const [featured, ...rest] = teachersData;
+        const initials = (n) => n ? n.slice(0, 1) : '?';
+        const avatars = ['zen-avatar-1','zen-avatar-2','zen-avatar-3','zen-avatar-4'];
+
+        let html = '';
+        // Featured
+        html += `<div class="teacher-featured">
+            <div class="teacher-avatar-wrap">
+                <div class="teacher-avatar ${avatars[0]}">
+                    <span class="avatar-initial">${initials(featured.name)}</span>
+                </div>
+            </div>
+            <div class="teacher-content">
+                <div class="teacher-role">創辦人</div>
+                <div class="teacher-name">${featured.name}</div>
+                <div class="teacher-title">${featured.specialty || '資深瑜伽導師'}</div>
+                <p class="teacher-bio">${featured.bio || ''}</p>
+            </div>
+        </div>`;
+
+        // Others in a row
+        if (rest.length > 0) {
+            html += '<div class="teacher-row">';
+            rest.forEach((t, i) => {
+                html += `<div class="teacher-card">
+                    <div class="teacher-avatar-sm ${avatars[(i+1)%4]}">
+                        <span class="avatar-initial-sm">${initials(t.name)}</span>
+                    </div>
+                    <div class="teacher-card-content">
+                        <div class="teacher-name-sm">${t.name}</div>
+                        <div class="teacher-title-sm">${t.specialty || ''}</div>
+                        <p class="teacher-bio-sm">${t.bio ? (t.bio.length > 30 ? t.bio.slice(0,30)+'…' : t.bio) : ''}</p>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+        }
+        container.innerHTML = html;
+    }
+
+    // ── Course Renderer ─────────────────────────────────────────────
+    function renderCourses(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        const dow = d.getDay();
+        const todayCourses = coursesData.filter(c => c.weekday == dow && c.status === 'active');
+        const container = document.getElementById('courseList');
+
+        if (todayCourses.length === 0) {
+            container.innerHTML = `<div class="course-empty">
+                <div class="course-empty-icon">🌿</div>
+                <div class="course-empty-title">今日無課程</div>
+                <div class="course-empty-desc">請選擇其他日期<br>或聯繫我們詢問私人課程</div>
+                <a href="tel:0900-XXX-XXX" class="course-empty-tel">📞 0900-XXX-XXX</a>
+            </div>`;
+            return;
+        }
+
+        let html = '';
+        todayCourses.forEach(c => {
+            const spots = (c.cap || 10) - (c.booked || 0);
+            let spotBadge, spotCls;
+            if (spots <= 0) { spotBadge = '額滿'; spotCls = 'spot-full'; }
+            else if (spots <= 3) { spotBadge = '僅餘 ' + spots + ' 位'; spotCls = 'spot-low'; }
+            else { spotBadge = '尚有名額'; spotCls = 'spot-available'; }
+
+            const lvlMap = { beginner:['初階','level-beginner'], intermediate:['中階','level-intermediate'], advanced:['高階','level-advanced'] };
+            const [lvlName, lvlCls] = lvlMap[c.level] || [];
+            const levelBadge = lvlName ? `<span class="level-badge ${lvlCls}">${lvlName}</span>` : '';
+
+            const btn = spots <= 0
+                ? `<button class="course-btn-outline" onclick="openModal('fullModal')">候補</button>`
+                : `<button class="course-btn" onclick="openBookingForm('${c.name}', '${c.time}')">預約</button>`;
+
+            html += `<div class="course-item">
+                <div class="course-time-col">
+                    <div class="course-time-main">${(c.time||'').split('-')[0]}</div>
+                    <div class="course-time-sub">${(c.time||'').split('-')[1] || ''}</div>
+                </div>
+                <div class="course-body">
+                    <div class="course-name">${c.name}</div>
+                    <div class="course-meta-row">
+                        <span class="course-teacher">${c.teacher || '老師'}老師</span>
+                        ${levelBadge}
+                        <span class="spot-badge ${spotCls}">${spotBadge}</span>
+                    </div>
+                    <div class="course-desc">${c.desc || ''}</div>
+                </div>
+                <div class="course-action">${btn}</div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+
+    // ── Booking Form ────────────────────────────────────────────────
+    window.openBookingForm = function(courseName, courseTime) {
+        document.getElementById('bfCourse').value = courseName + ' · ' + courseTime;
+        openModal('bookingFormModal');
+    };
+    window.submitBooking = function(e) {
+        e.preventDefault();
+        const name = document.getElementById('bfName').value;
+        const phone = document.getElementById('bfPhone').value;
+        if (!name || !phone) return;
+        closeModal('bookingFormModal');
+        setTimeout(() => openModal('successModal'), 200);
+        document.getElementById('bookingForm').reset();
+    };
+
+    // ── Modals ────────────────────────────────────────────────────
+    window.openModal = function(id) {
+        document.getElementById(id).classList.add('open');
+        document.getElementById('modalOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    };
+    window.closeModal = function(id) {
+        document.getElementById(id).classList.remove('open');
+        document.getElementById('modalOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+    };
+    document.getElementById('modalOverlay').addEventListener('click', function() {
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+        this.classList.remove('open');
+        document.body.style.overflow = '';
+    });
+
+    // ── Init ───────────────────────────────────────────────────────
+    buildCalendar();
+    loadAPI();
+});
+</script>
+
+<style>
+/* ===== BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+    --ink:#1c1917;--ink-mid:#3d3a36;--ink-light:#78716c;
+    --paper:#FAF8F5;--paper-warm:#F2EDE3;--paper-deep:#E8E0D2;
+    --border:#e2ddd5;--border-mid:#ccc7be;
+    --vermilion:#b91c1c;--vermilion-light:#dc2626;
+    --jade:#0d6b61;--jade-light:#14b8a6;
+    --gold:#C4A77D;--gold-dark:#92702e;
+    --serif:'Noto Serif TC','AR PL UMing TW','Source Han Serif TC',serif;
+    --sans:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;
+}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);line-height:1.75}
+a{text-decoration:none;color:inherit}
+button,input,select,textarea{font-family:var(--sans)}
+
+/* ===== HEADER ===== */
+.site-header{
+    position:fixed;top:0;left:0;right:0;height:60px;
+    background:rgba(250,248,245,0.96);backdrop-filter:blur(16px);
+    border-bottom:1px solid transparent;
+    z-index:1000;transition:border-color .25s,box-shadow .25s;
+}
+.site-header.scrolled{
+    border-bottom-color:var(--border);
+    box-shadow:0 1px 12px rgba(0,0,0,0.05);
+}
+.header-inner{
+    max-width:900px;margin:0 auto;padding:0 28px;
+    height:100%;display:flex;align-items:center;gap:32px;
+}
+.header-brand{display:flex;align-items:baseline;gap:5px;flex-shrink:0}
+.brand-kanji{font-family:var(--serif);font-size:20px;font-weight:400;letter-spacing:10px}
+.brand-sep{font-size:12px;color:var(--ink-light)}
+.brand-en{font-family:var(--serif);font-size:13px;font-weight:300;letter-spacing:4px;color:var(--ink-mid)}
+.header-nav{display:flex;flex:1}
+.nav-item{
+    padding:8px 14px;font-size:12px;letter-spacing:3px;color:var(--ink-mid);
+    border-bottom:2px solid transparent;transition:all .2s;
+}
+.nav-item:hover,.nav-item.active{color:var(--ink);border-bottom-color:var(--vermilion)}
+.nav-admin{
+    font-size:11px;letter-spacing:2px;padding:7px 14px;
+    border:1.5px solid var(--border);border-radius:40px;color:var(--ink-light);
+}
+.nav-admin:hover{border-color:var(--ink-mid);color:var(--ink);background:var(--paper-warm)}
+.header-cta{
+    display:inline-block;padding:8px 18px;
+    border:1px solid var(--ink);border-radius:40px;
+    font-size:12px;letter-spacing:3px;color:var(--ink);
+    transition:all .2s;flex-shrink:0;
+}
+.header-cta:hover{background:var(--ink);color:#fff}
+.hamburger{
+    display:none;flex-direction:column;gap:5px;
+    width:36px;height:36px;align-items:center;justify-content:center;
+    border-radius:6px;transition:background .2s;
+}
+.hamburger:hover{background:var(--paper-warm)}
+.hamburger span{display:block;width:20px;height:1.5px;background:var(--ink);border-radius:2px}
+
+/* ===== MOBILE NAV ===== */
+.mobile-nav{
+    position:fixed;top:0;left:0;bottom:0;width:270px;
+    background:#fff;z-index:2000;
+    transform:translateX(-100%);transition:transform .3s ease;
+    display:flex;flex-direction:column;
+}
+.mobile-nav.open{transform:translateX(0)}
+.mobile-nav-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 24px;border-bottom:1px solid var(--border);
+}
+.mobile-nav-close{font-size:16px;color:var(--ink-mid);padding:6px;border-radius:4px}
+.mobile-nav-close:hover{background:var(--paper-warm)}
+.mobile-nav-links{flex:1;padding:8px 0}
+.mobile-nav-item{
+    display:block;padding:14px 24px;font-size:13px;letter-spacing:4px;
+    color:var(--ink-mid);border-bottom:1px solid var(--border);
+    transition:color .2s;
+}
+.mobile-nav-item:hover{color:var(--vermilion)}
+.mobile-nav-admin{color:var(--ink-light);letter-spacing:3px;font-size:12px}
+.mobile-nav-footer{
+    padding:20px 24px;border-top:1px solid var(--border);
+    display:flex;flex-direction:column;gap:6px;
+}
+.mobile-nav-tel{font-size:13px;letter-spacing:2px;color:var(--ink-mid)}
+.mobile-nav-line{font-size:12px;letter-spacing:2px;color:var(--ink-light)}
+.mobile-nav-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1999;
+    opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.mobile-nav-overlay.open{opacity:1;pointer-events:auto}
+
+/* ===== KV ===== */
+.kv-section{margin-top:60px}
+.kv-swiper{position:relative;overflow:hidden;width:100%}
+.kv-swiper .swiper-slide{width:100%!important}
+.kv-swiper .swiper-wrapper{width:100%}
+.kv-slide{position:relative;height:500px;display:flex;align-items:center;justify-content:center}
+.kv-bg{position:absolute;inset:0;transition:transform 8s ease}
+.kv-slide:hover .kv-bg{transform:scale(1.03)}
+.kv-content{position:relative;z-index:2;text-align:center;color:#fff;padding:32px}
+.kv-eyebrow{
+    font-size:9px;letter-spacing:10px;opacity:.55;
+    font-family:var(--sans);margin-bottom:14px;text-transform:uppercase;
+}
+.kv-title{
+    font-family:var(--serif);font-size:42px;font-weight:400;
+    letter-spacing:12px;margin-bottom:12px;
+    text-shadow:0 4px 32px rgba(0,0,0,0.12);
+}
+.kv-sub{
+    font-size:13px;letter-spacing:5px;opacity:.75;
+    text-shadow:0 2px 12px rgba(0,0,0,0.1);
+}
+.kv-pagination{bottom:28px!important}
+.kv-pagination .swiper-pagination-bullet{
+    width:5px;height:5px;background:rgba(255,255,255,0.5);border-radius:50%;transition:all .3s;
+}
+.kv-pagination .swiper-pagination-bullet-active{
+    background:#fff;width:20px;border-radius:3px;
+}
+
+/* ===== SECTION SHARED ===== */
+.section-header{text-align:center;padding:80px 24px 48px}
+.section-tag{
+    font-size:9px;letter-spacing:6px;color:var(--gold-dark);
+    font-family:var(--sans);margin-bottom:12px;font-weight:500;display:block;
+}
+.section-title{
+    font-family:var(--serif);font-size:28px;font-weight:400;
+    letter-spacing:10px;margin-bottom:12px;color:var(--ink);
+}
+.section-subtitle{font-size:12px;color:var(--ink-light);letter-spacing:3px}
+
+/* ===== BOOKING ===== */
+.booking-section{background:var(--paper);border-top:1px solid var(--border)}
+
+.calendar-wrapper{
+    background:#fff;border-bottom:1px solid var(--border);
+    position:sticky;top:60px;z-index:100;
+}
+.calendar-inner{
+    max-width:900px;margin:0 auto;padding:0 28px;
+}
+.calendar-nav{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 0 10px;
+}
+.cal-nav-btn{
+    width:30px;height:30px;border:1px solid var(--border);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:16px;color:var(--ink-light);flex-shrink:0;
+    transition:all .2s;
+}
+.cal-nav-btn:hover{border-color:var(--ink-mid);color:var(--ink)}
+.calendar-track{
+    flex:1;overflow-x:auto;display:flex;gap:6px;
+    scrollbar-width:none;-ms-overflow-style:none;padding:4px 0;
+    cursor:grab;
+}
+.calendar-track::-webkit-scrollbar{display:none}
+.cal-day{
+    display:flex;flex-direction:column;align-items:center;
+    padding:10px 13px;border-radius:12px;border:1.5px solid transparent;
+    cursor:pointer;min-width:54px;flex-shrink:0;transition:all .2s;
+}
+.cal-day:hover{background:var(--paper-warm)}
+.cal-day.past{opacity:.3;pointer-events:none}
+.cal-day.selected{border-color:var(--vermilion);background:rgba(185,28,28,0.05)}
+.cal-day.today .cal-day-num{color:var(--vermilion);font-weight:600}
+.cal-day-name{font-size:10px;letter-spacing:1px;color:var(--ink-light);margin-bottom:4px}
+.cal-day-num{font-size:18px;font-weight:500;color:var(--ink);margin-top:0}
+.cal-today-row{text-align:center;padding:0 0 12px}
+.cal-today-btn{
+    font-size:11px;letter-spacing:3px;color:var(--ink-light);
+    padding:4px 14px;border-radius:20px;transition:all .2s;
+    border:1px solid transparent;
+}
+.cal-today-btn:hover{border-color:var(--border);background:var(--paper-warm)}
+
+.selected-date-label{
+    max-width:640px;margin:0 auto;padding:24px 28px 12px;
+    font-family:var(--serif);font-size:15px;letter-spacing:5px;
+    color:var(--ink-mid);
+}
+
+/* ===== COURSE LIST ===== */
+.course-list{max-width:640px;margin:0 auto;padding:8px 28px 80px;display:flex;flex-direction:column;gap:12px}
+.course-item{
+    display:flex;align-items:stretch;gap:0;
+    background:#fff;border:1px solid var(--border);
+    border-radius:14px;overflow:hidden;
+    transition:box-shadow .25s,border-color .25s,transform .2s;
+}
+.course-item:hover{box-shadow:0 4px 20px rgba(0,0,0,0.07);border-color:var(--border-mid);transform:translateX(2px)}
+.course-time-col{
+    min-width:84px;padding:20px 0 20px 20px;
+    background:var(--paper-warm);align-self:stretch;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    flex-shrink:0;border-right:1px solid var(--border);
+}
+.course-time-main{font-size:18px;font-weight:500;letter-spacing:1px}
+.course-time-sub{font-size:10px;color:var(--ink-light);margin-top:3px}
+.course-body{flex:1;padding:18px 16px;min-width:0}
+.course-name{font-size:16px;font-weight:500;letter-spacing:5px;margin-bottom:7px}
+.course-meta-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.course-teacher{font-size:11px;color:var(--ink-light);letter-spacing:2px}
+.course-desc{font-size:12px;color:var(--ink-light);letter-spacing:.5px}
+.course-action{padding:16px 20px;flex-shrink:0;display:flex;align-items:center}
+.course-btn{
+    display:inline-block;padding:10px 22px;border-radius:40px;
+    background:var(--ink);color:#fff;font-size:12px;letter-spacing:3px;
+    transition:background .2s;white-space:nowrap;cursor:pointer;border:none;
+}
+.course-btn:hover{background:var(--vermilion)}
+.course-btn-outline{
+    display:inline-block;padding:10px 22px;border-radius:40px;
+    border:1.5px solid var(--border);color:var(--ink-light);
+    font-size:12px;letter-spacing:3px;transition:all .2s;white-space:nowrap;cursor:pointer;background:transparent;
+}
+.course-btn-outline:hover{border-color:var(--ink);color:var(--ink)}
+
+.spot-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;letter-spacing:1px}
+.spot-full{background:#fee2e2;color:#b91c1c}
+.spot-low{background:#ffedd5;color:#c2410c}
+.spot-available{background:#f0fdf4;color:#15803d}
+.level-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;letter-spacing:1px}
+.level-beginner{background:#f0fdf4;color:#15803d}
+.level-intermediate{background:#ffedd5;color:#c2410c}
+.level-advanced{background:#fee2e2;color:#b91c1c}
+
+.course-empty{
+    text-align:center;padding:56px 24px;
+    border:1px dashed var(--border);border-radius:12px;background:#fff;
+}
+.course-empty-icon{font-size:36px;margin-bottom:14px;opacity:.4}
+.course-empty-title{font-family:var(--serif);font-size:18px;letter-spacing:6px;margin-bottom:8px}
+.course-empty-desc{font-size:12px;color:var(--ink-light);letter-spacing:2px;line-height:2}
+.course-empty-tel{font-size:12px;letter-spacing:3px;color:var(--ink-mid);display:inline-block;margin-top:14px}
+
+/* ===== TEACHERS ===== */
+.teachers-section{background:var(--paper-warm)}
+.teachers-container{max-width:640px;margin:0 auto;padding:0 28px 80px;display:flex;flex-direction:column;gap:16px}
+
+.teacher-featured{
+    display:flex;gap:32px;background:#fff;border:1px solid var(--border);
+    border-radius:20px;padding:32px;align-items:center;
+}
+.teacher-avatar-wrap{flex-shrink:0}
+.teacher-avatar{
+    width:96px;height:96px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+}
+.zen-avatar-1{background:linear-gradient(135deg,#8B7355,#C4A77D)}
+.avatar-initial{font-family:var(--serif);font-size:30px;color:#fff;letter-spacing:4px}
+.teacher-content{flex:1;min-width:0}
+.teacher-role{font-size:10px;letter-spacing:4px;color:var(--vermilion);font-weight:500;margin-bottom:6px;display:block}
+.teacher-name{font-family:var(--serif);font-size:24px;font-weight:400;letter-spacing:8px;margin-bottom:4px}
+.teacher-title{font-size:12px;letter-spacing:3px;color:var(--ink-light);margin-bottom:14px}
+.teacher-bio{font-size:13px;color:var(--ink-mid);line-height:2;letter-spacing:.3px}
+
+.teacher-row{display:flex;gap:16px}
+.teacher-card{
+    flex:1;display:flex;gap:16px;background:#fff;
+    border:1px solid var(--border);border-radius:14px;padding:20px 22px;align-items:center;
+    transition:box-shadow .2s,transform .2s;
+}
+.teacher-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.06);transform:translateY(-2px)}
+.teacher-avatar-sm{
+    width:56px;height:56px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.zen-avatar-2{background:linear-gradient(135deg,#6B8E6B,#8B9A7B)}
+.zen-avatar-3{background:linear-gradient(135deg,#4a5f72,#6B7E94)}
+.avatar-initial-sm{font-family:var(--serif);font-size:15px;color:#fff}
+.teacher-card-content{min-width:0}
+.teacher-name-sm{font-family:var(--serif);font-size:16px;letter-spacing:5px;margin-bottom:3px}
+.teacher-title-sm{font-size:11px;letter-spacing:2px;color:var(--ink-light);margin-bottom:8px}
+.teacher-bio-sm{font-size:12px;color:var(--ink-light);line-height:1.7}
+
+/* ===== PLANS ===== */
+.courses-section{background:var(--paper);border-top:1px solid var(--border)}
+.plans-container{
+    max-width:720px;margin:0 auto;padding:0 28px 80px;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:16px;
+}
+.plan-card{
+    background:#fff;border:1.5px solid var(--border);border-radius:16px;
+    padding:28px 20px;text-align:center;position:relative;
+    transition:box-shadow .25s,border-color .25s,transform .25s;
+}
+.plan-card:hover{box-shadow:0 6px 28px rgba(0,0,0,0.09);transform:translateY(-3px)}
+.plan-featured{border-color:var(--gold);border-width:2px}
+.plan-featured:hover{box-shadow:0 8px 32px rgba(196,167,125,0.2)}
+.plan-badge{
+    position:absolute;top:-1px;left:50%;transform:translateX(-50%);
+    background:var(--gold);color:#fff;font-size:9px;letter-spacing:3px;
+    padding:4px 14px;border-radius:0 0 12px 12px;white-space:nowrap;
+}
+.plan-eyebrow{font-size:10px;letter-spacing:4px;color:var(--ink-light);margin-bottom:10px;font-weight:400}
+.plan-name{font-family:var(--serif);font-size:24px;font-weight:400;letter-spacing:8px;margin-bottom:8px}
+.plan-price{font-size:30px;font-weight:300;letter-spacing:1px;margin-bottom:8px;color:var(--ink)}
+.plan-unit{font-size:13px;color:var(--ink-light)}
+.plan-desc{font-size:12px;color:var(--ink-light);letter-spacing:.5px}
+
+/* ===== ABOUT ===== */
+.about-section{background:var(--paper-warm)}
+.about-container{
+    max-width:640px;margin:0 auto;padding:0 28px 80px;
+    display:flex;flex-direction:column;gap:36px;
+}
+.about-text p{font-size:14px;color:var(--ink-mid);line-height:2.2;letter-spacing:.3px;margin-bottom:16px}
+.about-text p:last-child{margin-bottom:0}
+.about-info{display:flex;flex-direction:column;background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.about-row{
+    display:flex;gap:20px;padding:15px 20px;
+    border-bottom:1px solid var(--border);font-size:13px;
+}
+.about-row:first-child{border-top:none}
+.about-row:last-child{border-bottom:none}
+.about-label{color:var(--ink-light);letter-spacing:3px;min-width:56px;flex-shrink:0;padding-top:2px}
+.about-value{color:var(--ink-mid);letter-spacing:2px}
+
+/* ===== FOOTER ===== */
+.site-footer{
+    background:var(--ink);color:var(--paper);text-align:center;
+    padding:64px 24px;
+}
+.footer-brand{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-bottom:12px}
+.footer-brand .brand-kanji{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--paper);letter-spacing:14px}
+.footer-brand .brand-sep{font-size:12px;color:rgba(255,255,255,0.3)}
+.footer-brand .brand-en{font-family:var(--serif);font-size:14px;font-weight:300;color:rgba(255,255,255,0.5);letter-spacing:6px}
+.footer-tagline{font-size:10px;letter-spacing:6px;color:rgba(255,255,255,0.3);margin-bottom:18px}
+.footer-contact{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px}
+.footer-contact a,.footer-contact span{font-size:12px;letter-spacing:2px;color:rgba(255,255,255,0.4)}
+.footer-contact a:hover{color:rgba(255,255,255,0.7)}
+.footer-dot{opacity:.3}
+.footer-copy{font-size:10px;letter-spacing:1px;color:rgba(255,255,255,0.12)}
+
+/* ===== MODALS ===== */
+.modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2999;
+    opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal{
+    display:none;position:fixed;inset:0;z-index:3000;
+    align-items:center;justify-content:center;padding:20px;
+}
+.modal.open{display:flex}
+.modal-card{
+    background:#fff;border-radius:20px;max-width:340px;width:100%;
+    padding:44px 36px;text-align:center;
+    transform:translateY(16px);opacity:0;
+    transition:all .3s ease;
+    box-shadow:0 24px 64px rgba(0,0,0,0.18);
+}
+.modal.open .modal-card{transform:translateY(0);opacity:1}
+.modal-card-wide{max-width:420px;padding:0;text-align:left}
+.modal-icon-success,.modal-icon-fail{width:60px;height:60px;margin:0 auto 20px}
+.modal-icon-success svg,.modal-icon-fail svg{width:100%;height:100%}
+.modal-title{font-family:var(--serif);font-size:20px;font-weight:400;letter-spacing:8px;margin-bottom:10px}
+.modal-desc{font-size:13px;color:var(--ink-light);line-height:1.9;letter-spacing:1px;margin-bottom:24px}
+
+.modal-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 24px;border-bottom:1px solid var(--border);
+}
+.modal-header .modal-title{font-size:15px;letter-spacing:6px;margin-bottom:0}
+.modal-close{font-size:16px;color:var(--ink-mid);padding:6px;border-radius:4px;transition:background .2s}
+.modal-close:hover{background:var(--paper-warm)}
+.modal-body{padding:24px}
+
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{margin-bottom:14px}
+.form-group label{font-size:10px;letter-spacing:3px;color:var(--ink-mid);display:block;margin-bottom:8px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{
+    width:100%;padding:11px 14px;border:1px solid var(--border);
+    border-radius:8px;font-size:13px;color:var(--ink);background:var(--paper);
+    transition:border-color .2s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--vermilion)}
+.form-group input[readonly]{color:var(--ink-light);background:var(--paper-warm)}
+.form-group textarea{resize:none}
+
+/* ===== BUTTONS ===== */
+.btn-primary-full{
+    display:block;width:100%;padding:14px;border:none;border-radius:40px;
+    background:var(--ink);color:#fff;font-family:var(--sans);font-size:13px;
+    letter-spacing:4px;transition:background .2s,transform .15s;cursor:pointer;
+}
+.btn-primary-full:hover{background:var(--vermilion);transform:translateY(-1px)}
+.btn-primary-full:active{transform:translateY(0)}
+.btn-primary-full:hover{background:var(--vermilion)}
+.btn-outline-full{
+    display:block;width:100%;padding:12px;border:1px solid var(--border);
+    border-radius:40px;background:transparent;color:var(--ink);
+    font-family:var(--sans);font-size:12px;letter-spacing:4px;
+    text-align:center;transition:all .2s;cursor:pointer;
+}
+.btn-outline-full:hover{border-color:var(--ink);background:var(--paper-warm)}
+.btn-ghost-full{
+    display:block;width:100%;padding:10px;border:none;background:transparent;
+    color:var(--ink-light);font-family:var(--sans);font-size:12px;
+    letter-spacing:3px;text-align:center;cursor:pointer;transition:color .2s;
+}
+.btn-ghost-full:hover{color:var(--ink)}
+.mt-2{margin-top:8px}
+.mt-3{margin-top:12px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+    .header-nav,.header-cta,.hamburger{display:none}
+    .hamburger{display:flex}
+    .kv-title{font-size:38px;letter-spacing:12px}
+    .kv-slide{height:400px}
+    .plans-container{grid-template-columns:repeat(2,1fr)}
+    .teacher-featured{flex-direction:column;gap:20px;text-align:center;padding:24px}
+    .teacher-row{flex-direction:column}
+    .form-row-2{grid-template-columns:1fr}
+    .calendar-nav{padding:12px 0 8px}
+    .cal-day{min-width:46px;padding:8px 10px}
+    .course-time-col{min-width:68px}
+    .course-action{padding:12px}
+}
+</style>
+</body>
+</html>

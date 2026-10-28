@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>九容瑜伽 | 身心平衡回歸自然</title>
+  <meta name="description" content="九容瑜伽工作室，龍潭山區專業瑜伽教學，小班制課程線上預約">
+
+  <!-- Google Fonts: Noto Serif TC（官方完整支援繁體）-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #1c1917;
+      --ink-mid: #44403c;
+      --ink-light: #78716c;
+      --paper: #faf8f4;
+      --paper-warm: #f2ede3;
+      --paper-deep: #e8e0d2;
+      --vermilion: #b91c1c;
+      --vermilion-soft: #dc2626;
+      --jade: #0f766e;
+      --gold: #92400e;
+      --gold-soft: #b45309;
+      --cream: #fdfaf5;
+      --border: #d6cfc2;
+      --border-light: #e8e0d0;
+      --serif: 'Noto Serif TC', 'AR PL UMing TW', 'Source Han Serif TC', serif;
+      --sans: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--serif);
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 2;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      background: var(--cream);
+      border-bottom: 1px solid var(--border-light);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 32px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-mark {
+      width: 42px;
+      height: 42px;
+      position: relative;
+    }
+    .logo-mark svg {
+      width: 100%;
+      height: 100%;
+    }
+    .logo-text {
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 8px;
+      color: var(--ink);
+      font-family: var(--serif);
+    }
+    .nav-links {
+      display: flex;
+      gap: 40px;
+    }
+    .nav-links a {
+      font-size: 13px;
+      color: var(--ink-mid);
+      letter-spacing: 4px;
+      text-decoration: none;
+      font-family: var(--sans);
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--vermilion); }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 108px 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      font-size: 520px;
+      color: rgba(255,255,255,0.03);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      font-family: var(--serif);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+    .hero-inner {
+      max-width: 580px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-seal {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 40px;
+      position: relative;
+    }
+    .hero-seal svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .hero-title {
+      font-size: 44px;
+      font-weight: 300;
+      letter-spacing: 16px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+      color: var(--paper);
+    }
+    .hero-sub {
+      font-size: 13px;
+      letter-spacing: 8px;
+      opacity: .5;
+      margin-bottom: 52px;
+      font-family: var(--sans);
+      font-weight: 300;
+      color: var(--paper);
+    }
+    .hero-divider {
+      width: 56px;
+      height: 1px;
+      background: var(--vermilion);
+      margin: 0 auto 44px;
+    }
+    .hero-btn {
+      display: inline-block;
+      padding: 15px 52px;
+      border: 1px solid rgba(255,255,255,0.35);
+      color: var(--paper);
+      font-family: var(--serif);
+      font-size: 13px;
+      letter-spacing: 6px;
+      cursor: pointer;
+      background: transparent;
+      transition: all .3s;
+    }
+    .hero-btn:hover {
+      background: var(--vermilion);
+      border-color: var(--vermilion);
+    }
+
+    /* ===== Section Shared ===== */
+    .section { padding: 88px 32px; }
+    .section-inner { max-width: 820px; margin: 0 auto; }
+    .section-eyebrow {
+      font-size: 10px;
+      letter-spacing: 6px;
+      color: var(--gold-soft);
+      text-align: center;
+      margin-bottom: 10px;
+      font-family: var(--sans);
+      font-weight: 500;
+    }
+    .section-title {
+      font-size: 30px;
+      font-weight: 300;
+      text-align: center;
+      letter-spacing: 12px;
+      margin-bottom: 10px;
+      color: var(--ink);
+    }
+    .section-note {
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-light);
+      letter-spacing: 4px;
+      margin-bottom: 52px;
+      font-family: var(--sans);
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 52px;
+    }
+    .divider-line {
+      width: 88px;
+      height: 1px;
+      background: var(--border);
+    }
+    .divider-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--vermilion);
+      border-radius: 50%;
+    }
+
+    /* ===== Features ===== */
+    .features { background: var(--paper-warm); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border-light);
+    }
+    .feature {
+      background: var(--paper-warm);
+      padding: 52px 32px;
+      text-align: center;
+    }
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 22px;
+    }
+    .feature-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+    .feature-name {
+      font-size: 17px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      margin-bottom: 12px;
+    }
+    .feature-desc {
+      font-size: 13px;
+      color: var(--ink-light);
+      line-height: 2;
+      letter-spacing: 1px;
+      font-family: var(--sans);
+    }
+
+    /* ===== Courses ===== */
+    .courses { background: var(--paper); }
+    .course-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border-light);
+    }
+    .course-item {
+      background: var(--paper);
+      padding: 30px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      transition: background .2s;
+    }
+    .course-item:hover { background: var(--cream); }
+    .course-name {
+      font-size: 17px;
+      font-weight: 400;
+      letter-spacing: 5px;
+      margin-bottom: 6px;
+    }
+    .course-info {
+      font-size: 12px;
+      color: var(--ink-light);
+      letter-spacing: 2px;
+      font-family: var(--sans);
+    }
+    .course-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-shrink: 0;
+    }
+    .course-status {
+      font-size: 11px;
+      color: var(--jade);
+      letter-spacing: 2px;
+      font-family: var(--sans);
+    }
+    .course-status.warn { color: var(--vermilion); }
+    .course-btn {
+      padding: 10px 26px;
+      border: 1px solid var(--ink);
+      background: transparent;
+      font-family: var(--serif);
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .course-btn:hover { background: var(--ink); color: var(--paper); }
+
+    /* ===== Teachers ===== */
+    .teachers { background: var(--paper-warm); }
+    .teachers-inner {
+      display: flex;
+      gap: 72px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .teacher {
+      text-align: center;
+      width: 260px;
+    }
+    .teacher-img {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      margin: 0 auto 20px;
+      background: var(--paper);
+    }
+    .teacher-img svg {
+      width: 100%;
+      height: 100%;
+    }
+    .teacher-name {
+      font-size: 17px;
+      font-weight: 400;
+      letter-spacing: 5px;
+      margin-bottom: 4px;
+    }
+    .teacher-role {
+      font-size: 11px;
+      color: var(--vermilion);
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+      font-family: var(--sans);
+    }
+    .teacher-bio {
+      font-size: 12px;
+      color: var(--ink-light);
+      line-height: 2;
+      letter-spacing: 0.5px;
+      font-family: var(--sans);
+    }
+
+    /* ===== CTA ===== */
+    .cta {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 88px 32px;
+      text-align: center;
+    }
+    .cta h2 {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: 12px;
+      margin-bottom: 14px;
+      color: var(--paper);
+    }
+    .cta-note {
+      font-size: 12px;
+      opacity: .45;
+      letter-spacing: 4px;
+      margin-bottom: 44px;
+      font-family: var(--sans);
+    }
+    .cta-btn {
+      display: inline-block;
+      padding: 15px 60px;
+      border: 1px solid var(--vermilion);
+      color: var(--paper);
+      font-family: var(--serif);
+      font-size: 13px;
+      letter-spacing: 6px;
+      cursor: pointer;
+      background: transparent;
+      transition: all .3s;
+    }
+    .cta-btn:hover { background: var(--vermilion); }
+    .cta-contact {
+      margin-top: 30px;
+      font-size: 12px;
+      opacity: .35;
+      letter-spacing: 4px;
+      font-family: var(--sans);
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      background: var(--cream);
+      border-top: 1px solid var(--border-light);
+      padding: 56px 32px;
+      text-align: center;
+    }
+    .footer-seal {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 16px;
+    }
+    .footer-seal svg {
+      width: 100%;
+      height: 100%;
+    }
+    .footer-name {
+      font-size: 18px;
+      font-weight: 400;
+      letter-spacing: 8px;
+      margin-bottom: 16px;
+    }
+    .footer-info {
+      font-size: 12px;
+      color: var(--ink-light);
+      letter-spacing: 2px;
+      line-height: 2.2;
+      margin-bottom: 22px;
+      font-family: var(--sans);
+    }
+    .footer-copy {
+      font-size: 10px;
+      color: var(--ink-light);
+      opacity: .4;
+      letter-spacing: 2px;
+      font-family: var(--sans);
+    }
+
+    /* ===== Modal ===== */
+    #booking-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(28,25,23,0.6);
+      z-index: 9999;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    #booking-modal.open { display: flex; }
+    .modal-box {
+      background: var(--paper);
+      width: 100%;
+      max-width: 480px;
+      border-radius: 14px 14px 0 0;
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+    .modal-handle {
+      width: 40px; height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      margin: 16px auto 0;
+    }
+    .modal-header {
+      padding: 24px 36px 0;
+      text-align: center;
+    }
+    .modal-title {
+      font-size: 20px;
+      font-weight: 400;
+      letter-spacing: 8px;
+      margin-bottom: 5px;
+    }
+    .modal-sub {
+      font-size: 11px;
+      color: var(--ink-light);
+      letter-spacing: 2px;
+      font-family: var(--sans);
+    }
+    .modal-body { padding: 24px 36px 48px; }
+
+    .form-row { margin-bottom: 18px; }
+    .form-label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--ink-mid);
+      margin-bottom: 8px;
+      font-family: var(--sans);
+    }
+    .form-input, .form-select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      background: var(--cream);
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--ink);
+      border-radius: 6px;
+      transition: border-color .2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--vermilion);
+    }
+    .form-input::placeholder { color: var(--ink-light); opacity: .6; }
+
+    .form-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      font-family: var(--serif);
+      font-size: 13px;
+      letter-spacing: 6px;
+      cursor: pointer;
+      transition: background .2s;
+      margin-top: 8px;
+      border-radius: 6px;
+    }
+    .form-submit:hover { background: var(--vermilion); }
+
+    #booking-success {
+      display: none;
+      text-align: center;
+      padding: 24px 0;
+    }
+    #booking-success .check-icon {
+      width: 56px; height: 56px;
+      border: 1px solid var(--jade);
+      border-radius: 50%;
+      margin: 0 auto 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #booking-success .check-icon svg { width: 26px; height: 26px; }
+    #booking-success h3 {
+      font-size: 18px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      margin-bottom: 10px;
+    }
+    #booking-success p {
+      font-size: 12px;
+      color: var(--ink-light);
+      line-height: 2;
+      font-family: var(--sans);
+    }
+    .btn-close {
+      margin-top: 22px;
+      padding: 11px 36px;
+      border: 1px solid var(--ink);
+      background: transparent;
+      font-family: var(--serif);
+      font-size: 12px;
+      letter-spacing: 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all .2s;
+    }
+    .btn-close:hover { background: var(--ink); color: var(--paper); }
+
+    /* ===== Banner ===== */
+    .athena-clone-banner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(28,25,23,0.8);
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 5px 16px;
+      font-size: 9px;
+      letter-spacing: 1px;
+      z-index: 99999;
+      font-family: var(--sans);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .header-inner { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 80px 24px; }
+      .hero-title { font-size: 36px; letter-spacing: 8px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .course-item { flex-direction: column; align-items: flex-start; }
+      .course-right { width: 100%; justify-content: space-between; }
+      .teachers-inner { flex-direction: column; align-items: center; }
+      .section { padding: 64px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark">
+        <!-- 蓮花印章 SVG -->
+        <svg viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="21" cy="21" r="20" stroke="#1c1917" stroke-width="1.2"/>
+          <!-- 蓮花線條 -->
+          <path d="M21 34 C21 34 14 28 14 22 C14 18 17 16 21 16 C25 16 28 18 28 22 C28 28 21 34 21 34Z" stroke="#b91c1c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 34 C21 34 10 26 10 19 C10 14 15 12 21 16" stroke="#1c1917" stroke-width="1" stroke-linecap="round"/>
+          <path d="M21 34 C21 34 32 26 32 19 C32 14 27 12 21 16" stroke="#1c1917" stroke-width="1" stroke-linecap="round"/>
+          <path d="M15 24 C17 22 19 21 21 21" stroke="#1c1917" stroke-width="0.8" stroke-linecap="round"/>
+          <path d="M27 24 C25 22 23 21 21 21" stroke="#1c1917" stroke-width="0.8" stroke-linecap="round"/>
+          <!-- 蓮花頂點 -->
+          <circle cx="21" cy="13" r="1.5" fill="#b91c1c"/>
+        </svg>
+      </div>
+      <div class="logo-text">九容瑜伽</div>
+    </div>
+    <nav class="nav-links">
+      <a href="#features">理念</a>
+      <a href="#courses">課程</a>
+      <a href="#teachers">師資</a>
+      <a href="#contact">報名</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="hero-bg">蓮</div>
+  <div class="hero-inner">
+    <div class="hero-seal">
+      <!-- 蓮花古印 SVG -->
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="60" height="60" rx="3" stroke="#b91c1c" stroke-width="1.5"/>
+        <rect x="5" y="5" width="54" height="54" rx="2" stroke="#b91c1c" stroke-width="0.6" stroke-dasharray="2 2"/>
+        <!-- 蓮花 -->
+        <path d="M32 52 C32 52 22 43 22 34 C22 28 26.5 25 32 25 C37.5 25 42 28 42 34 C42 43 32 52 32 52Z" stroke="#b91c1c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 52 C32 52 17 40 17 30 C17 23 24 19 32 25" stroke="#b91c1c" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M32 52 C32 52 47 40 47 30 C47 23 40 19 32 25" stroke="#b91c1c" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M22 33 C25 30 28.5 28 32 28" stroke="#b91c1c" stroke-width="1" stroke-linecap="round"/>
+        <path d="M42 33 C39 30 35.5 28 32 28" stroke="#b91c1c" stroke-width="1" stroke-linecap="round"/>
+        <circle cx="32" cy="20" r="2" fill="#b91c1c"/>
+        <!-- 水波 -->
+        <path d="M20 56 Q26 53 32 56 Q38 59 44 56" stroke="#b91c1c" stroke-width="0.8" stroke-linecap="round" opacity="0.6"/>
+      </svg>
+    </div>
+    <h1 class="hero-title">身心平衡<br>回歸自然</h1>
+    <p class="hero-sub">在九容，找到屬於你的練習節奏</p>
+    <div class="hero-divider"></div>
+    <button class="hero-btn" onclick="openBooking()">立即報名</button>
+  </div>
+</section>
+
+<!-- ===== Features ===== -->
+<section class="section features" id="features">
+  <div class="section-inner">
+    <div class="section-eyebrow">TEACHING PHILOSOPHY</div>
+    <h2 class="section-title">教學理念</h2>
+    <p class="section-note">每一個練習，都是與自我的對話</p>
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-dot"></div>
+      <div class="divider-line"></div>
+    </div>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">
+          <!-- 蓮花教師 icon -->
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 人物主體 -->
+            <circle cx="28" cy="17" r="7" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+            <!-- 身體 -->
+            <path d="M28 24 L28 38" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+            <!-- 雙臂 -->
+            <path d="M18 30 L28 26 L38 30" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- 雙腿 -->
+            <path d="M28 38 L21 50" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M28 38 L35 50" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+            <!-- 蓮花底座裝飾 -->
+            <path d="M21 50 C23 48 25 47 28 47 C31 47 33 48 35 50" stroke="#b91c1c" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+            <!-- 頭頂光環 -->
+            <circle cx="28" cy="7" r="2.5" stroke="#b91c1c" stroke-width="1" stroke-dasharray="1.5 1.5"/>
+          </svg>
+        </div>
+        <div class="feature-name">專業師資</div>
+        <div class="feature-desc">十年教學經驗<br>溫柔引導身心回到當下</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <!-- 山嵐自然 icon -->
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 山峰 -->
+            <path d="M6 42 L18 24 L26 32 L34 20 L50 42 Z" stroke="#1c1917" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+            <!-- 主峰 -->
+            <path d="M18 24 L26 14 L34 20" stroke="#1c1917" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+            <!-- 太陽 -->
+            <circle cx="40" cy="16" r="5" stroke="#b91c1c" stroke-width="1.2"/>
+            <circle cx="40" cy="16" r="2.5" fill="#b91c1c" opacity="0.3"/>
+            <!-- 雲霧 -->
+            <path d="M8 36 Q12 33 16 36 Q20 39 24 36" stroke="#78716c" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+            <path d="M30 28 Q34 25 38 28" stroke="#78716c" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+            <!-- 樹 -->
+            <path d="M12 42 L12 38" stroke="#1c1917" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M9 38 Q12 34 15 38" stroke="#1c1917" stroke-width="1" stroke-linecap="round" fill="none"/>
+            <path d="M10 36 Q12 33 14 36" stroke="#1c1917" stroke-width="1" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="feature-name">天然環境</div>
+        <div class="feature-desc">龍潭山間，空氣清新<br>遠離喧囂，回歸寧靜</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <!-- 小班制 icon -->
+          <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 三人組成的圓 -->
+            <!-- 中央人物 -->
+            <circle cx="28" cy="16" r="5.5" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M28 21.5 L28 32" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M20 26 L28 23 L36 26" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M28 32 L23 42" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M28 32 L33 42" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+            <!-- 左邊人物 -->
+            <circle cx="14" cy="20" r="4.5" stroke="#78716c" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M14 24.5 L14 32" stroke="#78716c" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M9 28 L14 26 L19 28" stroke="#78716c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 32 L11 40" stroke="#78716c" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M14 32 L17 40" stroke="#78716c" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- 右邊人物 -->
+            <circle cx="42" cy="20" r="4.5" stroke="#78716c" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M42 24.5 L42 32" stroke="#78716c" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M37 28 L42 26 L47 28" stroke="#78716c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M42 32 L39 40" stroke="#78716c" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M42 32 L45 40" stroke="#78716c" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- 蓮花裝飾 -->
+            <circle cx="28" cy="48" r="1.5" fill="#b91c1c" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="feature-name">小班制度</div>
+        <div class="feature-desc">每班最多十五人<br>老師細節照顧每位學員</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Courses ===== -->
+<section class="section courses" id="courses">
+  <div class="section-inner">
+    <div class="section-eyebrow">MONTHLY CLASSES</div>
+    <h2 class="section-title">本月課程</h2>
+    <p class="section-note">選擇適合你的練習方式</p>
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-dot"></div>
+      <div class="divider-line"></div>
+    </div>
+    <div class="course-list">
+
+      <div class="course-item">
+        <div>
+          <div class="course-name">哈達瑜伽</div>
+          <div class="course-info">週一／三／五　09:00 - 10:30　｜　授課：Nina</div>
+        </div>
+        <div class="course-right">
+          <span class="course-status">尚有名額</span>
+          <button class="course-btn" onclick="openBooking('哈達瑜伽','週一/三/五 09:00-10:30')">預約</button>
+        </div>
+      </div>
+
+      <div class="course-item">
+        <div>
+          <div class="course-name">陰瑜伽</div>
+          <div class="course-info">週二／四　14:00 - 15:30　｜　授課：Nina</div>
+        </div>
+        <div class="course-right">
+          <span class="course-status">尚有名額</span>
+          <button class="course-btn" onclick="openBooking('陰瑜伽','週二/四 14:00-15:30')">預約</button>
+        </div>
+      </div>
+
+      <div class="course-item">
+        <div>
+          <div class="course-name">流動瑜伽</div>
+          <div class="course-info">週六　10:00 - 11:30　｜　授課：Guest Teacher</div>
+        </div>
+        <div class="course-right">
+          <span class="course-status warn">僅餘 3 位</span>
+          <button class="course-btn" onclick="openBooking('流動瑜伽','週六 10:00-11:30')">預約</button>
+        </div>
+      </div>
+
+      <div class="course-item">
+        <div>
+          <div class="course-name">晨間冥想</div>
+          <div class="course-info">每日　07:00 - 07:45　｜　授課：Nina</div>
+        </div>
+        <div class="course-right">
+          <span class="course-status">尚有名額</span>
+          <button class="course-btn" onclick="openBooking('晨間冥想','每日 07:00-07:45')">預約</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== Teachers ===== -->
+<section class="section teachers" id="teachers">
+  <div class="section-inner">
+    <div class="section-eyebrow">TEACHERS</div>
+    <h2 class="section-title">師資</h2>
+    <p class="section-note">用心帶領每一次練習</p>
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-dot"></div>
+      <div class="divider-line"></div>
+    </div>
+    <div class="teachers-inner">
+
+      <div class="teacher">
+        <div class="teacher-img">
+          <!-- Nina 老師人像 -->
+          <svg viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 外圈裝飾 -->
+            <circle cx="42" cy="42" r="40" stroke="#d6cfc2" stroke-width="0.8" stroke-dasharray="2 3"/>
+            <!-- 臉 -->
+            <circle cx="42" cy="36" r="13" stroke="#1c1917" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- 眉毛 -->
+            <path d="M34 31 Q37 29 40 31" stroke="#1c1917" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M44 31 Q47 29 50 31" stroke="#1c1917" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- 眼睛（柔和曲線）-->
+            <path d="M36 35 Q37.5 33.5 39 35" stroke="#1c1917" stroke-width="1" stroke-linecap="round"/>
+            <path d="M45 35 Q46.5 33.5 48 35" stroke="#1c1917" stroke-width="1" stroke-linecap="round"/>
+            <!-- 微笑 -->
+            <path d="M38 41 Q42 44 46 41" stroke="#1c1917" stroke-width="1" stroke-linecap="round"/>
+            <!-- 身體/蓮花座 -->
+            <path d="M42 49 L42 62" stroke="#1c1917" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M30 58 L42 54 L54 58" stroke="#1c1917" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- 蓮花底座 -->
+            <path d="M30 62 C34 58 38 56 42 56 C46 56 50 58 54 62" stroke="#b91c1c" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+            <path d="M26 66 C32 61 38 58 42 58 C46 58 52 61 58 66" stroke="#b91c1c" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+            <!-- 頭頂裝飾 -->
+            <circle cx="42" cy="20" r="2" stroke="#b91c1c" stroke-width="1" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="teacher-name">Nina</div>
+        <div class="teacher-role">創辦人・主導師</div>
+        <div class="teacher-bio">十年瑜伽教學，擅長哈達、陰瑜伽及冥想。相信每個人都能在練習中找到自己的節奏，與身心好好相處。</div>
+      </div>
+
+      <div class="teacher">
+        <div class="teacher-img">
+          <!-- Guest 老師人像 -->
+          <svg viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 外圈裝飾 -->
+            <circle cx="42" cy="42" r="40" stroke="#d6cfc2" stroke-width="0.8" stroke-dasharray="2 3"/>
+            <!-- 臉 -->
+            <circle cx="42" cy="36" r="13" stroke="#1c1917" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- 眉毛 -->
+            <path d="M34 31 Q37 29.5 40 31" stroke="#1c1917" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M44 31 Q47 29.5 50 31" stroke="#1c1917" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- 眼睛 -->
+            <path d="M36 35 Q37.5 33.5 39 35" stroke="#1c1917" stroke-width="1" stroke-linecap="round"/>
+            <path d="M45 35 Q46.5 33.5 48 35" stroke="#1c1917" stroke-width="1" stroke-linecap="round"/>
+            <!-- 表情 -->
+            <path d="M39 41 L45 41" stroke="#1c1917" stroke-width="1" stroke-linecap="round"/>
+            <!-- 身體 -->
+            <path d="M42 49 L42 62" stroke="#1c1917" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M30 58 L42 54 L54 58" stroke="#1c1917" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- 蓮花底座 -->
+            <path d="M30 62 C34 58 38 56 42 56 C46 56 50 58 54 62" stroke="#b91c1c" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+            <!-- 胸前的蓮花 -->
+            <path d="M36 55 C37.5 53 39 52 42 52 C45 52 46.5 53 48 55" stroke="#b91c1c" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="teacher-name">Guest</div>
+        <div class="teacher-role">客席導師</div>
+        <div class="teacher-bio">每月特邀導師，帶來多元練習風格，拓寬練習視野，體驗不同的身體對話方式。</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta" id="contact">
+  <div class="section-inner" style="max-width:600px;">
+    <h2>開始你的練習</h2>
+    <p class="cta-note">簡單三步驟，展開身心對話</p>
+    <button class="cta-btn" onclick="openBooking()">預約課程</button>
+    <div class="cta-contact">0900-XXX-XXX　｜　LINE @jiurong-yoga</div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer class="footer">
+  <div class="footer-seal">
+    <!-- 蓮花方印 -->
+    <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="40" height="40" rx="3" stroke="#b91c1c" stroke-width="1.2"/>
+      <path d="M22 36 C22 36 16 30 16 24 C16 20 18.5 18 22 18 C25.5 18 28 20 28 24 C28 30 22 36 22 36Z" stroke="#b91c1c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M22 36 C22 36 12 28 12 21 C12 16 16.5 13 22 18" stroke="#b91c1c" stroke-width="1" stroke-linecap="round"/>
+      <path d="M22 36 C22 36 32 28 32 21 C32 16 27.5 13 22 18" stroke="#b91c1c" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="22" cy="14" r="1.5" fill="#b91c1c"/>
+    </svg>
+  </div>
+  <div class="footer-name">九容瑜伽</div>
+  <div class="footer-info">
+    龍潭山間<br>
+    0900-XXX-XXX　｜　LINE @jiurong-yoga
+  </div>
+  <div class="footer-copy">© 2026 九容瑜伽 Jiurong Yoga Studio</div>
+</footer>
+
+<!-- ===== Booking Modal ===== -->
+<div id="booking-modal" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">填寫報名表</div>
+      <div class="modal-sub" id="modal-subtitle">請留下您的資料，我們將儘快與您聯繫</div>
+    </div>
+    <div class="modal-body">
+      <form id="booking-form" onsubmit="submitBooking(event)">
+        <div class="form-row">
+          <label class="form-label">課程名稱</label>
+          <select class="form-select" id="course-select">
+            <option value="">請選擇課程</option>
+            <option value="哈達瑜伽">哈達瑜伽（週一/三/五 09:00-10:30）</option>
+            <option value="陰瑜伽">陰瑜伽（週二/四 14:00-15:30）</option>
+            <option value="流動瑜伽">流動瑜伽（週六 10:00-11:30）</option>
+            <option value="晨間冥想">晨間冥想（每日 07:00-07:45）</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">姓名</label>
+          <input type="text" class="form-input" id="name" placeholder="請輸入姓名" required>
+        </div>
+        <div class="form-row">
+          <label class="form-label">手機號碼</label>
+          <input type="tel" class="form-input" id="phone" placeholder="0912-XXX-XXX" required>
+        </div>
+        <div class="form-row">
+          <label class="form-label">LINE ID（選填）</label>
+          <input type="text" class="form-input" id="line" placeholder="@your-line-id">
+        </div>
+        <div class="form-row">
+          <label class="form-label">報名方式</label>
+          <select class="form-select" id="sessions">
+            <option value="1">單堂體驗</option>
+            <option value="5">5 堂優惠</option>
+            <option value="10">10 堂方案</option>
+            <option value="20">20 堂完整方案</option>
+          </select>
+        </div>
+        <button type="submit" class="form-submit">送出報名</button>
+      </form>
+      <div id="booking-success">
+        <div class="check-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12l5 5L20 7"/>
+          </svg>
+        </div>
+        <h3>報名成功</h3>
+        <p>感謝您的報名<br>我們將於 24 小時內以 LINE 與您聯繫確認</p>
+        <button class="btn-close" onclick="closeBooking()">關閉</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Scripts ===== -->
+<script>
+  function openBooking(courseName, courseTime) {
+    var modal = document.getElementById('booking-modal');
+    var form = document.getElementById('booking-form');
+    var success = document.getElementById('booking-success');
+    var subtitle = document.getElementById('modal-subtitle');
+    var select = document.getElementById('course-select');
+
+    form.style.display = '';
+    success.style.display = 'none';
+
+    if (courseName) {
+      select.value = courseName;
+      subtitle.textContent = courseName + ' · ' + courseTime;
+    } else {
+      subtitle.textContent = '請留下您的資料，我們將儘快與您聯繫';
+    }
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function submitBooking(e) {
+    e.preventDefault();
+    var name = document.getElementById('name').value;
+    var phone = document.getElementById('phone').value;
+    if (!name || !phone) return;
+    document.getElementById('booking-form').style.display = 'none';
+    document.getElementById('booking-success').style.display = '';
+  }
+
+  function closeBooking() {
+    var modal = document.getElementById('booking-modal');
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+    document.getElementById('booking-form').reset();
+    document.getElementById('booking-form').style.display = '';
+    document.getElementById('booking-success').style.display = 'none';
+  }
+
+  document.getElementById('booking-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeBooking();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeBooking();
+  });
+  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      var t = document.querySelector(this.getAttribute('href'));
+      if (t) t.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+<div class="athena-clone-banner">
+  由雅典娜 Web Cloner v2.0 生成 | 蓮花美學版
+</div>
+
+</body>
+</html>

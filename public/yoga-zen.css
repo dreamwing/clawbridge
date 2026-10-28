@@ -1,0 +1,1593 @@
+/* ========================================
+   九容瑜伽 JiuRong Yoga - 樣式
+   ======================================== */
+
+/* 漸層與背景 */
+:root {
+    --zen-white: #FAF8F5;
+    --zen-cream: #F5F0E8;
+    --zen-cream-dark: #EDE6DA;
+    --zen-green: #8B9A7B;
+    --zen-green-light: #A8B5A0;
+    --zen-gray: #6B6B6B;
+    --zen-gray-light: #8A8A8A;
+    --zen-brown: #8B7355;
+    --zen-accent: #C4A77D;
+    --zen-text: #3A3A3A;
+    --zen-text-light: #6B6B6B;
+    
+    --font-serif: 'Noto Serif TC', serif;
+    --font-gothic: 'Zen Maru Gothic', sans-serif;
+    
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 2rem;
+    --space-lg: 4rem;
+    --space-xl: 8rem;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-gothic);
+    background: var(--zen-white);
+    color: var(--zen-text);
+    line-height: 1.8;
+    overflow-x: hidden;
+}
+
+/* ========================================
+   禪意東方美學 Hero 區升級（方案 B）
+   ========================================
+
+/* 水墨暈染背景 — Zen Ink Wash Effect */
+.zen-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+    background: linear-gradient(165deg, 
+        #F7F3ED 0%, 
+        #EDE6DA 30%, 
+        #E2D9CC 60%, 
+        #D9CEBD 100%);
+}
+
+/* 多層次水墨暈染 — 大圓 */
+.zen-bg::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -15%;
+    width: 80vw;
+    height: 80vw;
+    max-width: 900px;
+    max-height: 900px;
+    background: radial-gradient(ellipse at center,
+        rgba(139, 115, 85, 0.12) 0%,
+        rgba(139, 115, 85, 0.08) 35%,
+        rgba(139, 115, 85, 0.03) 60%,
+        transparent 75%);
+    animation: inkFloat1 25s ease-in-out infinite;
+    filter: blur(2px);
+}
+
+/* 水墨暈染 — 左下角第二層 */
+.zen-bg::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: -10%;
+    width: 70vw;
+    height: 70vw;
+    max-width: 800px;
+    max-height: 800px;
+    background: radial-gradient(ellipse at 30% 70%,
+        rgba(168, 181, 160, 0.15) 0%,
+        rgba(168, 181, 160, 0.08) 40%,
+        transparent 65%);
+    animation: inkFloat2 30s ease-in-out infinite reverse;
+    filter: blur(3px);
+    pointer-events: none;
+}
+
+/* 遠山剪影層 — Mountains Layer */
+.mountain-layer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 45vh;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.mountain-far {
+    position: absolute;
+    bottom: 0;
+    left: -5%;
+    width: 110%;
+    height: 100%;
+    /* 遠山 — 最淡 */
+    background: 
+        /* 山峰1 */
+        radial-gradient(ellipse 80% 60% at 15% 100%, rgba(139, 115, 85, 0.08) 0%, transparent 100%),
+        /* 山峰2 */
+        radial-gradient(ellipse 100% 50% at 35% 100%, rgba(139, 115, 85, 0.06) 0%, transparent 100%),
+        /* 山峰3（主峰）*/
+        radial-gradient(ellipse 120% 70% at 60% 100%, rgba(139, 115, 85, 0.1) 0%, transparent 100%),
+        /* 山峰4 */
+        radial-gradient(ellipse 90% 55% at 82% 100%, rgba(139, 115, 85, 0.07) 0%, transparent 100%),
+        /* 山峰5 */
+        radial-gradient(ellipse 70% 45% at 95% 100%, rgba(139, 115, 85, 0.05) 0%, transparent 100%);
+    filter: blur(1px);
+    animation: mountainFloat 35s ease-in-out infinite;
+}
+
+.mountain-near {
+    position: absolute;
+    bottom: 0;
+    left: -5%;
+    width: 110%;
+    height: 35vh;
+    /* 近山 — 稍深 */
+    background: 
+        radial-gradient(ellipse 90% 80% at 10% 100%, rgba(139, 115, 85, 0.1) 0%, transparent 100%),
+        radial-gradient(ellipse 110% 65% at 45% 100%, rgba(139, 115, 85, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 80% 70% at 75% 100%, rgba(139, 115, 85, 0.08) 0%, transparent 100%),
+        radial-gradient(ellipse 100% 60% at 100% 100%, rgba(139, 115, 85, 0.09) 0%, transparent 100%);
+    filter: blur(0.5px);
+    animation: mountainFloat 28s ease-in-out infinite reverse;
+}
+
+/* 水墨暈染動畫 */
+@keyframes inkFloat1 {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
+    33% { transform: translate(30px, 20px) scale(1.03); opacity: 0.9; }
+    66% { transform: translate(-20px, 30px) scale(0.98); opacity: 1.1; }
+}
+
+@keyframes inkFloat2 {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    50% { transform: translate(25px, -20px) rotate(3deg); }
+}
+
+@keyframes mountainFloat {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(15px); }
+}
+
+/* 禪意飄落粒子 — Ink Droplets */
+.ink-particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: rgba(139, 115, 85, 0.15);
+    border-radius: 50%;
+    animation: inkDrop 20s linear infinite;
+}
+
+.ink-particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 22s; }
+.ink-particle:nth-child(2) { left: 25%; animation-delay: 4s; animation-duration: 18s; }
+.ink-particle:nth-child(3) { left: 40%; animation-delay: 8s; animation-duration: 25s; }
+.ink-particle:nth-child(4) { left: 55%; animation-delay: 2s; animation-duration: 20s; }
+.ink-particle:nth-child(5) { left: 70%; animation-delay: 6s; animation-duration: 23s; }
+.ink-particle:nth-child(6) { left: 85%; animation-delay: 10s; animation-duration: 19s; }
+
+@keyframes inkDrop {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+}
+
+/* 頂部墨色漸層 */
+.zen-bg-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 15vh;
+    background: linear-gradient(to bottom, 
+        rgba(139, 115, 85, 0.06) 0%, 
+        transparent 100%);
+    pointer-events: none;
+}
+
+/* 原有禪圈 — 替換為水墨暈染層次 */
+.zen-circle { display: none; } /* 已由新背景取代 */
+.zen-line { display: none; }
+
+@keyframes float-slow {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    50% { transform: translate(20px, 20px) rotate(5deg); }
+}
+
+/* 動畫 — Enhanced with scroll-triggered stagger（taste-skill MOTION=4）*/
+.animate-fade-in {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeIn 0.8s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
+.delay-4 { animation-delay: 0.8s; }
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Scroll-triggered reveal（IntersectionObserver controlled）*/
+.reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s cubic-bezier(0.32, 0.72, 0, 1),
+                transform 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* 導航列 */
+.zen-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1.5rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    background: rgba(250, 248, 245, 0.9);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.nav-logo {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+}
+
+.logo-kanji {
+    color: var(--zen-brown);
+}
+
+.logo-dot {
+    color: var(--zen-accent);
+    margin: 0 0.2rem;
+}
+
+.logo-english {
+    color: var(--zen-green);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 3rem;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--zen-text);
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    position: relative;
+    transition: color 0.3s;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--zen-accent);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    width: 100%;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--zen-brown);
+}
+
+.btn-reserve {
+    padding: 0.8rem 2rem;
+    background: var(--zen-brown);
+    color: white !important;
+    text-decoration: none;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    border-radius: 2px;
+    transition: all 0.3s;
+}
+
+.btn-reserve:hover {
+    background: var(--zen-accent);
+    transform: translateY(-2px);
+}
+
+.nav-mobile-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.nav-mobile-toggle span {
+    width: 25px;
+    height: 2px;
+    background: var(--zen-text);
+    transition: all 0.3s;
+}
+
+/* ========================================
+   英雄區 — 禪意東方美學（方案 B 升級）
+   ========================================
+
+.hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    align-items: center;
+    padding: 0 8%;
+    padding-top: 80px;
+    position: relative;
+    z-index: 1;
+    gap: 2rem;
+    overflow: hidden;
+}
+
+/* 增強：左側內容 */
+.hero-left {
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-content {
+    text-align: left;
+    max-width: 580px;
+    position: relative;
+}
+
+/* 書法大字 — 氣韻流動 */
+.hero-title {
+    font-family: var(--font-serif);
+    font-weight: 300;
+    margin-bottom: 2.5rem;
+    position: relative;
+}
+
+.title-main {
+    display: block;
+    font-size: 6.5rem;
+    color: var(--zen-brown);
+    letter-spacing: 0.25em;
+    line-height: 1.1;
+    position: relative;
+    /* 書法墨跡效果 */
+    background: linear-gradient(135deg, 
+        var(--zen-brown) 0%, 
+        var(--zen-brown) 40%, 
+        var(--zen-accent) 60%, 
+        var(--zen-brown) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: inkShimmer 8s ease-in-out infinite;
+}
+
+.title-main::after {
+    content: '呼吸';
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: none;
+    /* 暈染光暈 */
+    filter: blur(12px);
+    opacity: 0.4;
+    z-index: -1;
+    background: linear-gradient(135deg, var(--zen-brown), var(--zen-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: inkGlow 6s ease-in-out infinite alternate;
+}
+
+@keyframes inkShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes inkGlow {
+    0% { opacity: 0.3; filter: blur(10px); }
+    100% { opacity: 0.5; filter: blur(15px); }
+}
+
+.title-sub {
+    display: block;
+    font-size: 1.8rem;
+    color: var(--zen-green);
+    letter-spacing: 0.6em;
+    margin-top: 0.8rem;
+    font-weight: 300;
+    position: relative;
+}
+
+/* 裝飾性書法線 */
+.title-underline {
+    display: block;
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--zen-accent), transparent);
+    margin-top: 1.5rem;
+    animation: lineDraw 2s ease-out forwards;
+    animation-delay: 0.8s;
+    opacity: 0;
+}
+
+@keyframes lineDraw {
+    from { width: 0; opacity: 0; }
+    to { width: 80px; opacity: 1; }
+}
+
+/* 禪意引言 */
+.hero-quote {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--zen-gray);
+    letter-spacing: 0.15em;
+    margin-bottom: 2.5rem;
+    padding-left: 1.5rem;
+    border-left: 2px solid var(--zen-accent);
+    line-height: 1.9;
+    opacity: 0;
+    animation: fadeIn 1s ease-out 0.5s forwards;
+}
+
+/* 右侧：太極陰陽裝置 */
+.hero-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* 太極陰陽魚 — 核心視覺 */
+.yin-yang-img {
+    width: 280px;
+    height: 280px;
+    object-fit: contain;
+    animation: fishRotate 12s linear infinite;
+    filter: drop-shadow(0 8px 25px rgba(92, 69, 48, 0.2));
+}
+
+@keyframes fishRotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* 手機版太極尺寸 */
+@media (max-width: 968px) {
+    .yin-yang-img {
+        width: 220px;
+        height: 220px;
+    }
+}
+
+@keyframes zenRotate {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes outerRing {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.02); opacity: 0.8; }
+}
+
+@keyframes sCurveShift {
+    0%, 100% { border-width: 1.5px; }
+    50% { border-width: 2.5px; }
+}
+
+/* 水墨暈染光環 */
+.hero-aura {
+    position: absolute;
+    inset: -50px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center,
+        rgba(168, 181, 160, 0.15) 0%,
+        rgba(139, 115, 85, 0.08) 40%,
+        transparent 70%);
+    animation: auraPulse 6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes auraPulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.08); opacity: 1; }
+}
+
+/* 書法飄帶裝飾 */
+.hero-scroll-indicator {
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--zen-gray-light);
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+}
+
+.scroll-kanji {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    color: var(--zen-accent);
+    opacity: 0.6;
+    animation: breath 3s ease-in-out infinite;
+}
+
+.scroll-line {
+    width: 1px;
+    height: 50px;
+    background: linear-gradient(to bottom, var(--zen-accent), transparent);
+    animation: scrollDown 2.5s ease-in-out infinite;
+}
+
+@keyframes scrollDown {
+    0% { transform: scaleY(0); transform-origin: top; opacity: 0; }
+    30% { opacity: 1; }
+    50% { transform: scaleY(1); transform-origin: top; }
+    51% { transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+}
+
+/* 右側禪意文字 */
+.hero-zen-text {
+    position: absolute;
+    right: -5%;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    font-family: var(--font-serif);
+    font-size: 0.75rem;
+    letter-spacing: 0.8em;
+    color: var(--zen-accent);
+    opacity: 0.25;
+    white-space: nowrap;
+    animation: fadeIn 2s ease-out 1.2s forwards;
+    opacity: 0;
+}
+
+/* 響應式書法大字 */
+@media (max-width: 968px) {
+    .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding-top: 100px;
+        gap: 3rem;
+    }
+    
+    .hero-left { justify-content: center; }
+    .hero-content { max-width: 100%; }
+    .title-main { font-size: 4.5rem; }
+    .title-sub { font-size: 1.4rem; letter-spacing: 0.4em; }
+    
+    .hero-zen-text { display: none; }
+
+    .hero-quote {
+        border-left: none;
+        padding-left: 0;
+        text-align: center;
+    }
+}
+
+/* ===== 舊 Hero 樣式已移除（由上方禪意東方美學取代）=====*/
+
+/* 通用區塊 */
+section {
+    padding: var(--space-xl) 5%;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: var(--space-lg);
+}
+
+.section-tag {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--zen-accent);
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--zen-brown);
+    letter-spacing: 0.2em;
+}
+
+.section-header.left {
+    text-align: left;
+}
+
+/* 核心理念 */
+.philosophy {
+    background: var(--zen-cream);
+}
+
+.philosophy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.philosophy-card {
+    text-align: center;
+    padding: var(--space-md);
+}
+
+.card-icon {
+    font-size: 3rem;
+    font-family: var(--font-serif);
+    color: var(--zen-accent);
+    margin-bottom: 1.5rem;
+}
+
+.philosophy-card h3 {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    color: var(--zen-brown);
+    margin-bottom: 1rem;
+    letter-spacing: 0.2em;
+}
+
+.philosophy-card p {
+    color: var(--zen-text-light);
+    line-height: 2;
+}
+
+/* 精選課程 */
+.featured-courses {
+    background: var(--zen-white);
+}
+
+.courses-scroll {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.course-card {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+}
+
+.course-img {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.course-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zen-flower {
+    background: linear-gradient(135deg, #E8E0D5 0%, #D4C4B0 100%);
+}
+
+.zen-stone {
+    background: linear-gradient(135deg, #C4C4C4 0%, #8A8A8A 100%);
+}
+
+.zen-water {
+    background: linear-gradient(135deg, #A8B5A0 0%, #7A8A6B 100%);
+}
+
+.course-level {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.3rem 1rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    border-radius: 2px;
+}
+
+.course-level.beginner {
+    background: var(--zen-green-light);
+    color: white;
+}
+
+.course-level.intermediate {
+    background: var(--zen-accent);
+    color: white;
+}
+
+.course-level.advanced {
+    background: var(--zen-brown);
+    color: white;
+}
+
+.course-content {
+    padding: 1.5rem;
+}
+
+.course-tag {
+    font-size: 0.7rem;
+    color: var(--zen-accent);
+    letter-spacing: 0.15em;
+}
+
+.course-content h3 {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    color: var(--zen-brown);
+    margin: 0.5rem 0 1rem;
+}
+
+.course-content p {
+    font-size: 0.9rem;
+    color: var(--zen-text-light);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.course-info {
+    display: flex;
+    gap: 1.2rem;
+    font-size: 0.8rem;
+    color: var(--zen-gray);
+    margin-bottom: 1rem;
+}
+
+.course-info .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.course-info svg {
+    color: var(--zen-accent);
+    flex-shrink: 0;
+}
+
+.course-link {
+    color: var(--zen-brown);
+    text-decoration: none;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    transition: color 0.3s;
+}
+
+.course-link:hover {
+    color: var(--zen-accent);
+}
+
+/* 預約區 */
+.booking-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: center;
+    background: var(--zen-cream);
+    padding: var(--space-lg);
+    border-radius: 4px;
+}
+
+.booking-desc {
+    color: var(--zen-text-light);
+    line-height: 2.2;
+    margin-bottom: var(--space-md);
+}
+
+.booking-features {
+    margin-bottom: var(--space-md);
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    color: var(--zen-text);
+}
+
+.feature-icon {
+    color: var(--zen-accent);
+}
+
+/* 小日曆 */
+.calendar-mini {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 4px;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.calendar-month {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    color: var(--zen-brown);
+}
+
+.calendar-nav {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nav-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--zen-cream-dark);
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-btn:hover {
+    background: var(--zen-cream);
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--zen-gray-light);
+    margin-bottom: 0.5rem;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+}
+
+.calendar-days .day {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.calendar-days .day:hover {
+    background: var(--zen-cream);
+}
+
+.calendar-days .day.available {
+    color: var(--zen-green);
+    font-weight: 500;
+}
+
+.calendar-days .day.today {
+    background: var(--zen-brown);
+    color: white;
+}
+
+.calendar-days .day.weekend {
+    color: var(--zen-gray-light);
+}
+
+.calendar-legend {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: var(--zen-gray-light);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.legend-item .dot.available {
+    background: var(--zen-green);
+}
+
+.legend-item .dot.full {
+    background: var(--zen-gray-light);
+}
+
+/* 老師區 — Asymmetric Bento（taste-skill VARIANCE=5: 非對稱）*/
+.teachers {
+    background: var(--zen-white);
+}
+
+.teachers-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr; /* featured + stack */
+    gap: 2.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+.teacher-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.teacher-card {
+    padding: 0;
+}
+
+/* Featured teacher — larger, with eyebrow */
+.teacher-card-featured {
+    padding: 2.5rem;
+    background: var(--zen-cream);
+    border-radius: 4px;
+    position: relative;
+}
+
+.teacher-card-featured .teacher-img {
+    margin-bottom: 1.5rem;
+}
+
+.teacher-card-featured .teacher-placeholder {
+    width: 140px;
+    height: 140px;
+}
+
+.teacher-card-featured h3 {
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    color: var(--zen-brown);
+    margin-bottom: 0.3rem;
+}
+
+.teacher-eyebrow {
+    display: block;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--zen-accent);
+    margin-bottom: 0.5rem;
+}
+
+.teacher-card-featured p {
+    font-size: 0.9rem;
+    color: var(--zen-text-light);
+    line-height: 1.8;
+    margin-top: 1rem;
+}
+
+/* Small teacher cards in stack */
+.teacher-card-sm {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 1.2rem;
+    align-items: start;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid var(--zen-cream-dark);
+}
+
+.teacher-img-sm {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.teacher-card-sm .teacher-placeholder {
+    width: 80px;
+    height: 80px;
+    margin: 0;
+}
+
+.teacher-card-sm h3 {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    color: var(--zen-brown);
+    margin-bottom: 0.2rem;
+}
+
+.teacher-card-sm p {
+    font-size: 0.82rem;
+    color: var(--zen-text-light);
+    line-height: 1.6;
+    margin-top: 0.5rem;
+}
+
+/* Shared teacher styles */
+.teacher-placeholder {
+    border-radius: 50%;
+}
+
+.zen-circle-teacher {
+    background: linear-gradient(135deg, var(--zen-cream) 0%, var(--zen-cream-dark) 100%);
+    border: 2px solid var(--zen-accent);
+}
+
+.zen-circle-teacher-1 {
+    border-color: var(--zen-brown);
+}
+
+.zen-circle-teacher-2 {
+    border-color: var(--zen-green-light);
+}
+
+.zen-circle-teacher-3 {
+    border-color: var(--zen-accent);
+}
+
+.teacher-title {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--zen-accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 0;
+    margin-top: 0.2rem;
+}
+
+/* 禪空間 */
+.space {
+    background: var(--zen-cream);
+}
+
+.space-intro {
+    max-width: 1200px;
+    margin: 0 auto var(--space-lg);
+}
+
+.space-desc {
+    color: var(--zen-text-light);
+    line-height: 2.2;
+    max-width: 500px;
+}
+
+.space-gallery {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--space-sm);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.gallery-item.large {
+    grid-row: span 2;
+}
+
+.gallery-placeholder {
+    height: 150px;
+}
+
+.gallery-item.large .gallery-placeholder {
+    height: 100%;
+    min-height: 320px;
+}
+
+.zen-bamboo {
+    background: linear-gradient(135deg, #A8B5A0 0%, #7A8A6B 100%);
+}
+
+.zen-石 {
+    background: linear-gradient(135deg, #C4C4C4 0%, #8A8A8A 100%);
+}
+
+.zen-mat {
+    background: linear-gradient(135deg, var(--zen-cream) 0%, var(--zen-cream-dark) 100%);
+}
+
+.gallery-caption {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    font-size: 0.85rem;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 預約表單 */
+.booking-form-section {
+    background: var(--zen-white);
+}
+
+.form-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.booking-form {
+    background: white;
+    padding: var(--space-lg);
+    border-radius: 4px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.05);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-size: 0.8rem;
+    color: var(--zen-gray);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.1em;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 1rem;
+    border: 1px solid var(--zen-cream-dark);
+    border-radius: 2px;
+    font-family: var(--font-gothic);
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+    background: var(--zen-white);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--zen-accent);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-submit {
+    text-align: center;
+    margin-top: var(--space-md);
+}
+
+.btn-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 3rem;
+    background: var(--zen-brown);
+    color: white;
+    border: none;
+    font-size: 1rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-submit:hover {
+    background: var(--zen-accent);
+    transform: translateY(-3px);
+}
+
+.btn-enchi {
+    font-size: 1.5rem;
+}
+
+/* 彈窗 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    padding: 3rem;
+    text-align: center;
+    max-width: 400px;
+    border-radius: 4px;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+}
+
+.modal.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    color: var(--zen-accent);
+}
+
+.modal-content h3 {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    color: var(--zen-brown);
+    margin-bottom: 1rem;
+}
+
+.modal-content p {
+    color: var(--zen-text-light);
+    line-height: 2;
+    margin-bottom: 2rem;
+}
+
+.btn-close {
+    padding: 1rem 2rem;
+    background: var(--zen-brown);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-close:hover {
+    background: var(--zen-accent);
+}
+
+/* 頁尾 */
+.zen-footer {
+    background: var(--zen-brown);
+    color: white;
+    padding: var(--space-lg) 5%;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: var(--space-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-brand .nav-logo {
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.footer-brand .logo-kanji {
+    color: white;
+}
+
+.footer-tagline {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.footer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    gap: 1rem;
+}
+
+.info-label {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    min-width: 60px;
+}
+
+.info-value {
+    font-size: 0.9rem;
+}
+
+.footer-social {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.social-link {
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: all 0.3s;
+}
+
+.social-link:hover {
+    background: white;
+    color: var(--zen-brown);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: var(--space-md);
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+/* 響應式 */
+@media (max-width: 968px) {
+    .philosophy-grid,
+    .teachers-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+    
+    .courses-scroll {
+        grid-template-columns: 1fr;
+    }
+    
+    .booking-preview {
+        grid-template-columns: 1fr;
+    }
+    
+    .space-gallery {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .gallery-item.large {
+        grid-column: span 2;
+        grid-row: span 1;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+        text-align: center;
+    }
+    
+    .footer-social {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background: var(--zen-white);
+        flex-direction: column;
+        gap: 0;
+        padding: 1rem 0;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transform: translateY(-100%);
+        opacity: 0;
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+    
+    .nav-links.mobile-open {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    .nav-links li {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .nav-links a {
+        display: block;
+        padding: 1rem;
+    }
+    
+    .nav-reserve {
+        display: none;
+    }
+    
+    .nav-mobile-toggle {
+        display: flex;
+    }
+    
+    .title-main {
+        font-size: 3rem;
+    }
+    
+    .title-sub {
+        font-size: 1.2rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-group.full {
+        grid-column: span 1;
+    }
+}
+
+/* ========================================
+   英雄區按鍵 — 禪意精致尺寸
+   ======================================== */
+.hero-cta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.5rem;
+    background: var(--zen-brown);
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    font-family: var(--font-gothic);
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(139, 115, 85, 0.25);
+}
+
+.btn-primary:hover {
+    background: var(--zen-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 115, 85, 0.35);
+}
+
+.btn-primary .btn-text {
+    font-size: inherit;
+}
+
+.btn-primary .btn-icon {
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+}
+
+.btn-primary:hover .btn-icon {
+    transform: translateX(3px);
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.65rem 1.5rem;
+    background: transparent;
+    color: var(--zen-brown);
+    border: 1px solid var(--zen-brown);
+    border-radius: 2px;
+    font-family: var(--font-gothic);
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    background: rgba(139, 115, 85, 0.08);
+    border-color: var(--zen-accent);
+    color: var(--zen-accent);
+    transform: translateY(-1px);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .hero-cta {
+        gap: 0.75rem;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.82rem;
+    }
+}

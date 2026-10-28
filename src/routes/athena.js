@@ -10,13 +10,22 @@ const WORKSPACE = process.env.OPENCLAW_WORKSPACE || path.join(process.env.HOME, 
 const DASHBOARD_PATH = path.join(WORKSPACE, '🏛️-雅典娜核心', 'athena-dashboard.html');
 const API_SERVER_PATH = path.join(WORKSPACE, '🏛️-雅典娜核心', 'athena-api-server.js');
 
+// Startup cache — load once, serve many
+let _dashboardHtmlCache = null;
+function getDashboardHtml() {
+    if (_dashboardHtmlCache) return _dashboardHtmlCache;
+    if (fs.existsSync(DASHBOARD_PATH)) {
+        _dashboardHtmlCache = fs.readFileSync(DASHBOARD_PATH, 'utf8')
+            .replace(/fetch\('\/api\//g, "fetch('/clawbridge/api/")
+            .replace(/fetch\("\/api\//g, 'fetch("/clawbridge/api/');
+    }
+    return _dashboardHtmlCache;
+}
+
 // Serve Athena Dashboard
 router.get('/athena', (req, res) => {
-    if (fs.existsSync(DASHBOARD_PATH)) {
-        // Update API endpoint in HTML to point to our proxy
-        let html = fs.readFileSync(DASHBOARD_PATH, 'utf8');
-        html = html.replace(/fetch\('\/api\//g, "fetch('/clawbridge/api/");
-        html = html.replace(/fetch\("\/api\//g, 'fetch("/clawbridge/api/');
+    const html = getDashboardHtml();
+    if (html) {
         res.type('html').send(html);
     } else {
         res.status(404).json({ error: 'Athena Dashboard not found' });

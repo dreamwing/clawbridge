@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "courtId": 1,
+    "userId": "user1",
+    "joinedAt": "2026-08-19"
+  },
+  {
+    "id": 2,
+    "courtId": 1,
+    "userId": "user2",
+    "joinedAt": "2026-08-19"
+  },
+  {
+    "id": 3,
+    "courtId": 1,
+    "userId": "user3",
+    "joinedAt": "2026-08-20"
+  },
+  {
+    "id": 4,
+    "courtId": 2,
+    "userId": "user2",
+    "joinedAt": "2026-08-18"
+  },
+  {
+    "id": 5,
+    "courtId": 2,
+    "userId": "user4",
+    "joinedAt": "2026-08-18"
+  },
+  {
+    "id": 6,
+    "courtId": 2,
+    "userId": "user5",
+    "joinedAt": "2026-08-18"
+  },
+  {
+    "id": 7,
+    "courtId": 2,
+    "userId": "user6",
+    "joinedAt": "2026-08-18"
+  },
+  {
+    "id": 8,
+    "courtId": 3,
+    "userId": "user1",
+    "joinedAt": "2026-08-19"
+  },
+  {
+    "id": 9,
+    "courtId": 3,
+    "userId": "user7",
+    "joinedAt": "2026-08-19"
+  },
+  {
+    "id": 10,
+    "courtId": 1,
+    "userId": "guest",
+    "joinedAt": "2026-08-23"
+  },
+  {
+    "id": 11,
+    "courtId": 1,
+    "userId": "testuser",
+    "joinedAt": "2026-08-23"
+  },
+  {
+    "id": 12,
+    "courtId": 3,
+    "userId": "guest",
+    "joinedAt": "2026-08-23"
+  },
+  {
+    "id": 13,
+    "courtId": 4,
+    "userId": "user_1787883645031",
+    "name": "葉小欣",
+    "level": 5,
+    "joinedAt": "2026-08-28"
+  },
+  {
+    "id": 14,
+    "courtId": 5,
+    "userId": "user_1787883645031",
+    "name": "葉小欣",
+    "level": 5,
+    "joinedAt": "2026-08-29"
+  }
+]

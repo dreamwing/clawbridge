@@ -1,0 +1,142 @@
+[
+  {
+    "id": 1,
+    "userId": "test",
+    "date": "2026-08-23",
+    "timestamp": "2026-08-23T11:51:29.514Z",
+    "shot": "殺球",
+    "score": 78,
+    "feedback": "建議加強手腕爆發力",
+    "shotCount": 0
+  },
+  {
+    "id": 2,
+    "userId": "demo",
+    "date": "2026-08-23",
+    "timestamp": "2026-08-23T11:52:35.249Z",
+    "shot": "殺球",
+    "score": 80,
+    "feedback": "",
+    "shotCount": 0
+  },
+  {
+    "id": 3,
+    "userId": "demo",
+    "date": "2026-08-23",
+    "timestamp": "2026-08-23T11:52:35.261Z",
+    "shot": "殺球",
+    "score": 75,
+    "feedback": "",
+    "shotCount": 0
+  },
+  {
+    "id": 4,
+    "userId": "demo",
+    "date": "2026-08-23",
+    "timestamp": "2026-08-23T11:52:35.272Z",
+    "shot": "高遠球",
+    "score": 85,
+    "feedback": "",
+    "shotCount": 0
+  },
+  {
+    "id": 5,
+    "userId": "user_1787488564853_56qs5okq",
+    "date": "2026-08-23",
+    "timestamp": "2026-08-23T12:36:05.011Z",
+    "shot": "高遠球",
+    "score": 96,
+    "feedback": "增加肩膀旋轉角度以提升揮拍力量。; 提高身體前傾角度以增加擊球高度。",
+    "shotCount": 0
+  },
+  {
+    "id": 6,
+    "userId": "user_1787927723094_m8rveu0y",
+    "date": "2026-08-29",
+    "timestamp": "2026-08-29T07:27:39.289Z",
+    "shot": "高遠球",
+    "score": 97,
+    "feedback": "",
+    "shotCount": 0
+  },
+  {
+    "id": 7,
+    "userId": "user_1787488564853_56qs5okq",
+    "date": "2026-08-29",
+    "timestamp": "2026-08-29T09:15:59.344Z",
+    "shot": "高遠球",
+    "score": 41,
+    "feedback": "[object Object]; [object Object]",
+    "shotCount": 0
+  },
+  {
+    "id": 8,
+    "userId": "user_1787488564853_56qs5okq",
+    "date": "2026-08-29",
+    "timestamp": "2026-08-29T09:22:16.987Z",
+    "shot": "高遠球",
+    "score": 13,
+    "feedback": "[object Object]; [object Object]",
+    "shotCount": 0
+  },
+  {
+    "id": 9,
+    "userId": "user_1787488564853_56qs5okq",
+    "date": "2026-08-29",
+    "timestamp": "2026-08-29T09:27:26.216Z",
+    "shot": "高遠球",
+    "score": 41,
+    "feedback": "[object Object]; [object Object]",
+    "shotCount": 0
+  },
+  {
+    "id": 10,
+    "userId": "user_1787488564853_56qs5okq",
+    "date": "2026-08-29",
+    "timestamp": "2026-08-29T09:42:45.404Z",
+    "shot": "高遠球",
+    "score": 41,
+    "feedback": "[object Object]; [object Object]",
+    "shotCount": 0
+  },
+  {
+    "id": 11,
+    "userId": "user_1787488564853_56qs5okq",
+    "date": "2026-08-29",
+    "timestamp": "2026-08-29T09:45:44.901Z",
+    "shot": "切球",
+    "score": 41,
+    "feedback": "[object Object]; [object Object]",
+    "shotCount": 0
+  },
+  {
+    "id": 12,
+    "userId": "user_1787488564853_56qs5okq",
+    "date": "2026-08-29",
+    "timestamp": "2026-08-29T09:57:46.743Z",
+    "shot": "切球",
+    "score": 41,
+    "feedback": "[object Object]; [object Object]",
+    "shotCount": 0
+  },
+  {
+    "id": 13,
+    "userId": "user_1787488564853_56qs5okq",
+    "date": "2026-08-29",
+    "timestamp": "2026-08-29T16:28:15.448Z",
+    "shot": "高遠球",
+    "score": 72,
+    "feedback": "",
+    "shotCount": 0
+  },
+  {
+    "id": 14,
+    "userId": "user_1787488564853_56qs5okq",
+    "date": "2026-08-29",
+    "timestamp": "2026-08-29T16:46:59.710Z",
+    "shot": "殺球",
+    "score": 97,
+    "feedback": "",
+    "shotCount": 0
+  }
+]

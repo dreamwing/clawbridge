@@ -38,3 +38,11 @@ coverage/
 tests/cost-control/local/.backup/
 tests/cost-control/local/.reports/
 tests/cost-control/local/.sandbox/
+
+# Large vendored assets / nested repos (not source)
+/public/badminton-coach/
+/public/mediapipe/
+/skills/
+/public/test-*.jpg
+/public/ipas-share.zip
+/public/yoga-zen-updated.zip
