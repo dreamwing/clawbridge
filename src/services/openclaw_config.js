@@ -5,7 +5,9 @@ const fs = require('fs').promises;
 const { resolveConfigDir } = require('../utils/paths');
 
 const execFileAsync = util.promisify(execFile);
-const CONFIG_GET_TIMEOUT_MS = 1500;
+// 2026-10-28 從 1500ms 提升至 5000ms，因實測 CLI 超時頻頻發生
+// (openclaw config get agents --json: min=1533ms, median=1538ms, max=2064ms)
+const CONFIG_GET_TIMEOUT_MS = 5000;
 
 // Helper to determine the openclaw binary path or just use 'openclaw'
 const OPENCLAW_BIN = 'openclaw';
