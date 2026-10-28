@@ -57,9 +57,15 @@ echo -e "${GREEN}📂 Installing in: $APP_DIR${NC}"
 # Allow custom service name via env var (for testing/parallel installs)
 SERVICE_NAME=${CLAW_SERVICE_NAME:-clawbridge}
 
+# ---- Canonical label（單一事實來源；避免 com.dreamwing.* 字面值散落各處）----
+SERVICE_LABEL="com.dreamwing.${SERVICE_NAME}"
+VENDOR_PLIST="$HOME/Library/LaunchAgents/${SERVICE_LABEL}.plist"
+SERVICE_LOG="/tmp/${SERVICE_LABEL}.log"
+SERVICE_ERR="/tmp/${SERVICE_LABEL}.err"
+
 # ---- launchd 重複載入防護（避免與 OpenClaw 管理的 label 搶同一 port）----
 # 本 App 可能已被另一個 launchd label 接管（OpenClaw 預設使用 ai.openclaw.<service>）。
-# 若該 label 已在 launchctl 中，setup.sh 不得再建立/載入 com.dreamwing.* User LaunchAgent，
+# 若該 label 已在 launchctl 中，setup.sh 不得再建立/載入自己的 User LaunchAgent，
 # 否則該 plist 下次登入會被自動載入，與前者搶同一 port（EADDRINUSE）。
 # 需要略過此防護時，設定 CLAW_SUPERVISED_LAUNCHD_LABEL="" 即可。
 SUPERVISED_LAUNCHD_LABEL="${CLAW_SUPERVISED_LAUNCHD_LABEL-ai.openclaw.${SERVICE_NAME}}"
@@ -75,7 +81,68 @@ clawbridge_supervised() {
     launchd_label_active "$SUPERVISED_LAUNCHD_LABEL"
 }
 
-# 停用殘留的 com.dreamwing.* plist：單純 unload 不夠，
+# 本服務是否「實際上」正在運行
+# 判定順序：先看自己的 canonical label，再看是否由 supervisor label 接管。
+# 兩者都沒載入 => 服務沒在跑（不能只看 plist 檔案存在就當作在跑）。
+canonical_service_running() {
+    [ "$OS_TYPE" = "Darwin" ] || return 1
+    launchd_label_active "$SERVICE_LABEL" && return 0
+    if [ -n "$SUPERVISED_LAUNCHD_LABEL" ] && launchd_label_active "$SUPERVISED_LAUNCHD_LABEL"; then
+        return 0
+    fi
+    return 1
+}
+
+# 取得佔用指定 port 的 PID 清單
+_port_pids() {
+    _p="$1"
+    [ -n "$_p" ] || return 0
+    if command -v lsof >/dev/null 2>&1; then
+        lsof -ti "tcp:$_p" 2>/dev/null
+    elif command -v fuser >/dev/null 2>&1; then
+        fuser -n tcp "$_p" 2>/dev/null | tr -s ' ' '\n' | grep -E '^[0-9]+$'
+    else
+        ss -lptn "sport = :$_p" 2>/dev/null | grep -oE 'pid=[0-9]+' | cut -d= -f2
+    fi
+}
+
+# 精準停止佔用指定 port 的行程
+# 取代原本的 pkill -f "node index.js"：後者會誤殺所有 node index.js 行程
+# （包含其他 App 的同名 process），造成非預期的服務中斷。
+stop_port_process() {
+    _port="$1"
+    [ -n "$_port" ] || return 0
+    _pids=$(_port_pids "$_port" | sort -u)
+    if [ -z "$_pids" ]; then
+        return 0
+    fi
+    for _pid in $_pids; do
+        _cmd=$(ps -o command= -p "$_pid" 2>/dev/null)
+        case "$_cmd" in
+            *node*)
+                if kill "$_pid" 2>/dev/null; then
+                    echo "🛑  已停止 port $_port 的行程 PID $_pid"
+                fi
+                ;;
+            *)
+                echo "⚠️  port $_port 由非 node 行程 PID $_pid 佔用（$_cmd），略過不殺"
+                ;;
+        esac
+    done
+    sleep 1
+    # 仍未釋放則強制結束（僅限 node 行程）
+    for _pid in $(_port_pids "$_port" | sort -u); do
+        _cmd=$(ps -o command= -p "$_pid" 2>/dev/null)
+        case "$_cmd" in
+            *node*)
+                kill -9 "$_pid" 2>/dev/null && echo "💥  已強制停止 port $_port 的行程 PID $_pid"
+                ;;
+        esac
+    done
+    return 0
+}
+
+# 停用殘留的 vendor plist：單純 unload 不夠，
 # 檔案留在 ~/Library/LaunchAgents 下次登入仍會被自動載入（改名 .disabled 即可停止載入）
 retire_vendor_plist() {
     _plist="$1"
@@ -89,10 +156,10 @@ retire_vendor_plist() {
 
 # Stop existing service if it exists (Safe stop)
 if [ "$OS_TYPE" = "Darwin" ]; then
-    launchctl unload "$HOME/Library/LaunchAgents/com.dreamwing.${SERVICE_NAME}.plist" >/dev/null 2>&1 || true
+    launchctl unload "$VENDOR_PLIST" >/dev/null 2>&1 || true
     # 若已由其他 launchd label 接管，順手把殘留的 vendor plist 移出 LaunchAgents，避免下次登入復活
     if clawbridge_supervised; then
-        retire_vendor_plist "$HOME/Library/LaunchAgents/com.dreamwing.${SERVICE_NAME}.plist"
+        retire_vendor_plist "$VENDOR_PLIST"
     fi
 else
     systemctl --user stop "$SERVICE_NAME" >/dev/null 2>&1 || true
@@ -185,13 +252,13 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     # macOS launchd setup
     SERVICE_DIR="$HOME/Library/LaunchAgents"
     mkdir -p "$SERVICE_DIR"
-    SERVICE_FILE="$SERVICE_DIR/com.dreamwing.${SERVICE_NAME}.plist"
+    SERVICE_FILE="$SERVICE_DIR/${SERVICE_LABEL}.plist"
 
     # 若已有其他 launchd label 接管本服務（如 OpenClaw 管理的 ai.openclaw.<service>），
-    # 就不再建立/載入 com.dreamwing.* User LaunchAgent，避免兩者搶同一 port。
+    # 就不再建立/載入自己的 User LaunchAgent，避免兩者搶同一 port。
     if clawbridge_supervised; then
         echo "ℹ️  已偵測到 launchd label「$SUPERVISED_LAUNCHD_LABEL」正在管理本服務。"
-        echo "    略過建立 com.dreamwing.${SERVICE_NAME}.plist，改由 ${SUPERVISED_LAUNCHD_LABEL} 負責啟動。"
+        echo "    略過建立 ${SERVICE_LABEL}.plist，改由 ${SUPERVISED_LAUNCHD_LABEL} 負責啟動。"
         retire_vendor_plist "$SERVICE_FILE"
         SERVICE_FILE=""
     fi
@@ -204,7 +271,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.dreamwing.${SERVICE_NAME}</string>
+    <string>${SERVICE_LABEL}</string>
     <key>ProgramArguments</key>
     <array>
         <string>$NODE_PATH</string>
@@ -222,15 +289,15 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/com.dreamwing.${SERVICE_NAME}.log</string>
+    <string>$SERVICE_LOG</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/com.dreamwing.${SERVICE_NAME}.err</string>
+    <string>$SERVICE_ERR</string>
 </dict>
 </plist>
 EOF
     
     echo "📝 Service file created at: $SERVICE_FILE"
-    echo "🚀 Loading macOS Launch Agent (com.dreamwing.${SERVICE_NAME})..."
+    echo "🚀 Loading macOS Launch Agent (${SERVICE_LABEL})..."
     launchctl load -w "$SERVICE_FILE" >/dev/null 2>&1 || true
     # If already loaded and we just want to restart:
     launchctl unload "$SERVICE_FILE" >/dev/null 2>&1 || true
@@ -454,21 +521,26 @@ if [[ "$ENABLE_TUNNEL" =~ ^[Yy]$ ]] || [ "$USE_VPN" = true ]; then
 
     # Restart service to pick up new env
     if [ "$OS_TYPE" = "Darwin" ]; then
-        pkill -f "node index.js" || true
+        if canonical_service_running; then
+            echo "ℹ️  偵測到服務正在運行，先精準停止 port ${PORT} 上的行程。"
+        else
+            echo "ℹ️  服務目前未運行（無已載入的 launchd label）。"
+        fi
+        stop_port_process "$PORT"
         if clawbridge_supervised; then
             # 由 launchd supervisor 管理：不再操作 vendor plist（避免與 supervisor 互搶）
-            retire_vendor_plist "$HOME/Library/LaunchAgents/com.dreamwing.${SERVICE_NAME}.plist"
+            retire_vendor_plist "$VENDOR_PLIST"
             echo "ℹ️  本服務由 ${SUPERVISED_LAUNCHD_LABEL} 管理，pkill 後將由 launchd 自動重啟。"
         else
-            launchctl unload "$HOME/Library/LaunchAgents/com.dreamwing.${SERVICE_NAME}.plist" >/dev/null 2>&1 || true
-            launchctl load -w "$HOME/Library/LaunchAgents/com.dreamwing.${SERVICE_NAME}.plist"
+            launchctl unload "$VENDOR_PLIST" >/dev/null 2>&1 || true
+            launchctl load -w "$VENDOR_PLIST"
         fi
     elif [ "$USE_USER_SYSTEMD" = true ]; then
         # Ensure we don't have a zombie process holding the port
-        pkill -f "node index.js" || true
+        stop_port_process "$PORT"
         systemctl --user restart "$SERVICE_NAME"
     else
-        pkill -f "node index.js" || true
+        stop_port_process "$PORT"
         sudo systemctl restart "$SERVICE_NAME"
     fi
 fi
@@ -550,7 +622,7 @@ if [ "$QUICK_TUNNEL" = true ] || [ -z "$CF_TOKEN" ]; then
         
         if [ ! -f "$APP_DIR/.quick_tunnel_url" ]; then
             if [ "$OS_TYPE" = "Darwin" ]; then
-                echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: tail -f /tmp/com.dreamwing.${SERVICE_NAME}.log${NC}"
+                echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: tail -f $SERVICE_LOG${NC}"
             elif [ "$USE_USER_SYSTEMD" = true ]; then
                 echo -e "\n${YELLOW}⚠️  URL not ready yet. Check logs later: journalctl --user -u ${SERVICE_NAME} -f${NC}"
             else
