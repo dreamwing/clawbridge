@@ -246,14 +246,30 @@ app.get('/services', (req, res) => {
     }).on('error', () => res.status(500).json({ error: 'unified-home unreachable' }));
 });
 
-// ── Public share upload (no auth — for local file sharing) ─────────────────────
+// ── Public share upload (write requires access key) ──────────────────────────
+// 讀取（列表／下載）維持公開；寫入（上傳／刪除）需要金鑰。
+// 為什麼要收斂：3847 經 Cloudflare Tunnel 對外公開，且 tunnel 設定含
+// 萬用網域指向本服務，無認證等於任何人都能上傳或刪除公開目錄中的檔案。
+// 金鑰沿用既有機制：config.SECRET_KEY（= ACCESS_KEY）+ safeCompare timing-safe 比對。
+const { SECRET_KEY } = require('./config');
+const { safeCompare } = require('./auth/utils');
+function requireShareWriteAuth(req, res, next) {
+    if (safeCompare(req.headers['x-claw-key'], SECRET_KEY)) return next();
+    return res.status(401).json({ error: 'Unauthorized' });
+}
 const multer = require('multer');
 const shareStorage = multer.diskStorage({
     destination: path.join(__dirname, '..', 'public', 'share'),
-    filename: (req, file, cb) => cb(null, file.originalname)
+    // IL-502：客戶端提供的檔名可能含路徑分隔符或 .. ，寫入前必須正規化，
+    // 否則 path.join 會讓檔案落到分享目錄之外。
+    filename: (req, file, cb) => {
+        const raw = String(file.originalname || 'file');
+        const base = path.basename(raw).replace(/[\/]/g, '');
+        cb(null, (base && base !== '.' && base !== '..') ? base : 'file');
+    }
 });
 const shareUpload = multer({ storage: shareStorage });
-app.post('/api/share-upload', shareUpload.single('file'), (req, res) => {
+app.post('/api/share-upload', requireShareWriteAuth, shareUpload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file' });
     res.json({ success: true, name: req.file.filename, size: req.file.size });
 });
@@ -279,7 +295,7 @@ app.get('/api/share-download', (req, res) => {
     res.download(filePath);
 });
 
-app.delete('/api/share-delete', (req, res) => {
+app.delete('/api/share-delete', requireShareWriteAuth, (req, res) => {
     const fs = require('fs');
     const file = req.query.file;
     if (!file || file.includes('..')) return res.status(400).json({ error: 'Invalid file' });

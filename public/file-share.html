@@ -126,6 +126,23 @@
     <div class="toast" id="toast"></div>
 
     <script>
+    // 存取金鑰：優先取網址參數，其次取瀏覽器記住的（沿用 dashboard.js 慣例）。
+    // 寫入端點（上傳／刪除）需要金鑰，讀取端點維持公開。
+    // 金鑰採延遲索取：只在真的要寫入時才提示輸入，純讀取訪客不受干擾。
+    let ACCESS_KEY = (() => {
+        const fromUrl = new URLSearchParams(location.search).get('key');
+        if (fromUrl) { localStorage.setItem('claw_key', fromUrl); return fromUrl; }
+        return localStorage.getItem('claw_key') || '';
+    })();
+    function authHeaders(extra) {
+        let key = ACCESS_KEY;
+        if (!key) {
+            key = prompt('🔑 Access Key:') || '';
+            if (key) { localStorage.setItem('claw_key', key); ACCESS_KEY = key; }
+        }
+        return Object.assign({}, extra || {}, key ? { 'x-claw-key': key } : {});
+    }
+
         const LIST_API  = '/api/share-list';
         const UPLOAD_API = '/api/share-upload';
         const DOWNLOAD_BASE = '/api/share-download?file=';
@@ -277,7 +294,7 @@
             btn.textContent = '刪除中...';
 
             try {
-                const res = await fetch(`/api/share-delete?file=${encodeURIComponent(filename)}`, { method: 'DELETE' });
+                const res = await fetch(`/api/share-delete?file=${encodeURIComponent(filename)}`, { method: 'DELETE', headers: authHeaders() });
                 if (res.ok) {
                     showToast('✅ 刪除成功!');
                     loadFiles();
@@ -318,7 +335,7 @@
                 const fd = new FormData();
                 fd.append('file', file);
                 try {
-                    const res = await fetch(UPLOAD_API, { method: 'POST', body: fd });
+                    const res = await fetch(UPLOAD_API, { method: 'POST', body: fd, headers: authHeaders() });
                     if (res.ok) {
                         showToast(`✅ ${file.name} 上傳成功!`);
                     } else {
