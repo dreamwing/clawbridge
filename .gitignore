@@ -46,3 +46,6 @@ tests/cost-control/local/.sandbox/
 /public/test-*.jpg
 /public/ipas-share.zip
 /public/yoga-zen-updated.zip
+
+# Local report copies (not source, not referenced by any page)
+/public/downloads/
