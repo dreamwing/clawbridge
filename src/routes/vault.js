@@ -92,7 +92,7 @@ router.get('/api/vault/candidates', (req, res) => {
  */
 router.post('/api/vault/promote', (req, res) => {
   try {
-    const { candidateId } = req.body;
+    const { candidateId } = req.body; if (!/^[A-Za-z0-9_-]{1,64}$/.test(String(candidateId || ""))) return res.status(400).json({ ok: false, error: "invalid candidateId" });
     if (!candidateId) {
       res.json({ ok: false, error: 'candidateId required' });
       return;
@@ -110,7 +110,7 @@ router.post('/api/vault/promote', (req, res) => {
  */
 router.post('/api/vault/reject', (req, res) => {
   try {
-    const { candidateId } = req.body;
+    const { candidateId } = req.body; if (!/^[A-Za-z0-9_-]{1,64}$/.test(String(candidateId || ""))) return res.status(400).json({ ok: false, error: "invalid candidateId" });
     if (!candidateId) {
       res.json({ ok: false, error: 'candidateId required' });
       return;
