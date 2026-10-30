@@ -13,7 +13,7 @@ const path = require('path');
 const fs = require('fs');
 
 // ── 環境 ────────────────────────────────────────────────
-const TOKEN = process.env.DISCORD_BOT_TOKEN || '***REMOVED***';
+const TOKEN = process.env.DISCORD_BOT_TOKEN || '';
 const CLIENT_ID = '1296791826515601006'; // TODO: 確認你的 Application ID
 
 // ── 路徑設定 ──────────────────────────────────────────
@@ -31,7 +31,9 @@ const spreads = spreadsData.spreads;
 // ── MiniMax AI 解讀 ───────────────────────────────────
 const MINIMAX_API = 'api.minimax.io';
 const MINIMAX_PATH = '/anthropic/v1/messages';
-const MINIMAX_KEY = '***REMOVED***';
+// [2026-10-30 安全修正] 金鑰改由環境變數注入，不再硬編碼在程式碼裡
+// （此檔位於 PUBLIC repo，git 歷史也會保留字面量 → 必須改）
+const MINIMAX_KEY = process.env.MINIMAX_API_KEY || '';
 
 async function callMinimax(systemPrompt, userMessage, maxTokens = 1200) {
   return new Promise((resolve, reject) => {

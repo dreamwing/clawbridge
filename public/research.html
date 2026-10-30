@@ -513,7 +513,10 @@ const MAX_SELECT = 5;
 // OpenAlex — 免費、開放、CORS 友好、涵蓋 2.4 億篇學術論文
 const OPENALEX_API = 'https://api.openalex.org/works';
 const MINIMAX_API = 'https://api.minimax.io/v1/text/chatcompletion_pro?GroupId=2024475421608780206';
-const MINIMAX_KEY = '***REMOVED***';
+// [2026-10-30 安全修正] 金鑰已從前端移除：此頁為公開靜態頁，硬編碼金鑰會直接外洩到
+// 公開網際網路上（2026-10-30 實測：公開網址可取得同一把金鑰）。
+// AI 摘要功能改由後端代理提供前先停用；搜尋（OpenAlex）功能不受影響。
+const MINIMAX_KEY = '';
 
 // Toast notification
 function showToast(msg) {
@@ -854,6 +857,7 @@ async function analyzePapers(papers) {
 論文內容：
 ${papersText}`;
 
+  if (!MINIMAX_KEY) { throw new Error('AI 摘要功能已暫停（金鑰安全修正，預計改由後端代理提供）'); }
   const resp = await fetch(MINIMAX_API, {
     method: 'POST',
     headers: {
