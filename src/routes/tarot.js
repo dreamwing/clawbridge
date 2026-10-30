@@ -10,8 +10,8 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const BOT_TOKEN = '8713585389:AAEs4jPCrTSH97ROa538XZgw6_kQ7iE53yk';
-const MINIMAX_KEY = '***REMOVED***';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const MINIMAX_KEY = process.env.MINIMAX_API_KEY || '';
 const CHAT_ID = '8508766428';
 
 const SCRIPT_DIR = path.join(__dirname, '../..');
