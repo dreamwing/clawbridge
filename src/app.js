@@ -384,14 +384,14 @@ app.get('/api/vault/status', (req, res) => {
     });
 });
 
-app.post('/api/vault/promote', (req, res) => {
+app.post('/api/vault/promote', requireShareWriteAuth, (req, res) => {
     const { candidateId } = req.body || {};
     if (!candidateId) { res.json({ ok: false, error: 'candidateId required' }); return; }
     const result = vaultJson(['promote', '--confirm', String(candidateId)], 'pretty');
     res.json({ ok: true, result });
 });
 
-app.post('/api/vault/reject', (req, res) => {
+app.post('/api/vault/reject', requireShareWriteAuth, (req, res) => {
     // Vault 不支援直接拒絕候選，候選只會停留在池中直到被晉升
     // 改用 vault delete 移除知識條目
     const { candidateId } = req.body || {};
@@ -570,6 +570,7 @@ app.use('/badminton-coach/js', (req, res, next) => {
 });
 
 // API routes (must be BEFORE static to handle /tarot, /api/*)
+app.use(["/api/kill", "/api/gateway/restart"], requireShareWriteAuth);
 app.use(apiRoutes);
 
 // Static files
